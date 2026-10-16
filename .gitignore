@@ -1,2 +1,11 @@
 *.pdf
 *.sh
+
+# React / Node
+node_modules
+dist
+.env
+.vercel
+
+# Se versiona la guia de preingreso que usa el sitio
+!client/public/docs/guia-de-preingreso.pdf
