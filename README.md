@@ -2,7 +2,7 @@
 
 Proyecto de 404-Solutions para la Práctica Profesionalizante IV (IFTS N.° 29). Reemplaza el Google Site del IFTS N.° 2 por un sitio público y un panel de administración.
 
-Esta rama sigue la arquitectura de tres capas definida en la Etapa 2 (sección 5.7):
+El proyecto sigue la arquitectura de tres capas definida en la Etapa 2 (sección 5.7):
 
 | Capa | Tecnología | Carpeta | Estado |
 |---|---|---|---|
@@ -11,6 +11,38 @@ Esta rama sigue la arquitectura de tres capas definida en la Etapa 2 (sección 5
 | Datos y servicios | MongoDB Atlas, Cloudinary, API de Instagram, correo de Bedelía | | Sin conectar |
 
 El prototipo original en HTML, CSS y JavaScript quedó en `prototipo-html/` como referencia.
+
+## Qué trae la rama feature/login-usuarios
+
+Esta rama sale de `develop` (con la migración a React ya mergeada) y agrega la autenticación real y la gestión de usuarios. Es la primera parte del servidor que deja de ser un esqueleto.
+
+- Login con contraseñas guardadas con bcrypt y token JWT de 8 horas. Tras 5 intentos fallidos con el mismo correo se bloquea esa cuenta durante 15 minutos (`express-rate-limit`).
+- Dos roles, `admin` y `bedelia`. La API le responde 403 a Bedelía en la gestión de usuarios, y en el cliente las pantallas de eventos, contenido y usuarios solo las abre el administrador.
+- Gestión de usuarios en el panel: listar, agregar, editar y eliminar. El servidor valida que el nombre y el correo estén completos, que el correo tenga formato válido y no esté repetido, que la contraseña tenga 8 caracteres con una mayúscula y un número, que nadie se elimine ni se cambie el rol a sí mismo, y que quede al menos un administrador.
+- El cliente guarda el token en `sessionStorage` y lo verifica con `/api/auth/yo` al abrir la página.
+- Hay un repositorio en memoria (desarrollo y pruebas) y otro con MongoDB. El de MongoDB todavía no se probó contra una base real.
+- 36 pruebas del servidor (`npm test` en `server/`).
+
+Rutas de la API que agrega:
+
+| Ruta | Quién | Qué hace |
+|---|---|---|
+| `GET /api/salud` | Público | Estado del servidor |
+| `POST /api/auth/login` | Público | Devuelve el token y el usuario |
+| `GET /api/auth/yo` | Con sesión | Devuelve el usuario de la sesión |
+| `GET /api/users` | Administrador | Lista los usuarios |
+| `POST /api/users` | Administrador | Crea un usuario |
+| `PUT /api/users/:id` | Administrador | Edita nombre, correo, rol o contraseña |
+| `DELETE /api/users/:id` | Administrador | Elimina un usuario |
+
+Estado de los issues relacionados:
+
+- #38 (gestión de usuarios y roles): cubierto. El alta y la edición están en un formulario de la misma pantalla, no en un modal.
+- #30 (login seguro): cubierto, con tres diferencias. El token está en `sessionStorage`, los middlewares se llaman `autenticar` y `requiereRol` en vez de `verifyToken` y `requireRole`, y tanto el administrador como Bedelía entran a `/admin` (el panel cambia según el rol).
+- #31 (roles validados en el servidor): parcial. El control de rol existe, pero hoy solo protege `/api/users`, porque `/api/events` y `/api/content` todavía no existen.
+- #29 (modelo de datos y seed): parcial. Solo está el modelo de usuarios y el administrador inicial; faltan los demás modelos y el script `npm run seed`.
+
+El detalle de cada cambio y cómo se verificó está en `docs/registro-de-cambios.md`.
 
 ## Cómo ejecutarlo
 
