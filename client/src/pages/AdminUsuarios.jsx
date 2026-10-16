@@ -1,40 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 
 export default function AdminUsuarios() {
   const { usuario } = useAuth();
 
-  const [usuarios, setUsuarios] = useState([
-    { nombre: "Matías Peláez", mail: "matias.pelaez@ifts2.edu.ar", rol: "Administrador" },
-  ]);
-  const [error, setError] = useState("");
-  const [okUsuario, setOkUsuario] = useState(false);
+  const VACIO = { nombre: "", mail: "", rol: "admin", password: "" };
 
-  const agregar = (e) => {
-    e.preventDefault();
-    setOkUsuario(false);
-    const f = e.currentTarget;
-    const nombre = f.elements["u-nombre"].value.trim();
-    const mail = f.elements["u-mail"].value.trim();
-    const rol = f.elements["u-rol"].value;
-    const pass = f.elements["u-pass"].value;
-    let msj = "";
-    if (!nombre || !mail) msj = "Completá el nombre y el correo.";
-    else if (usuarios.some((u) => u.mail.toLowerCase() === mail.toLowerCase()))
-      msj = "Ya hay un usuario con ese correo.";
-    else if (pass.length < 8 || !/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass))
-      msj = "La contraseña debe tener al menos 8 caracteres, con letras y números.";
-    setError(msj);
-    if (msj) return;
-    setUsuarios([...usuarios, { nombre, mail, rol }]);
-    f.reset();
-    setOkUsuario(true);
+  const [usuarios, setUsuarios] = useState([]);
+  const [form, setForm] = useState(VACIO);
+  const [editando, setEditando] = useState(null); // id del usuario que se está editando
+  const [error, setError] = useState("");
+  const [okUsuario, setOkUsuario] = useState("");
+
+  const cargar = () =>
+    api("/users")
+      .then((d) => setUsuarios(d.usuarios))
+      .catch((e) => setError(e.message));
+
+  useEffect(() => {
+    cargar();
+  }, []);
+
+  const cambiar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
+
+  const cancelar = () => {
+    setEditando(null);
+    setForm(VACIO);
+    setError("");
   };
 
-  const quitar = (u) => {
-    if (window.confirm("¿Eliminar a " + u.nombre + "?"))
-      setUsuarios(usuarios.filter((x) => x !== u));
+  const editar = (u) => {
+    setEditando(u.id);
+    setForm({ nombre: u.nombre, mail: u.mail, rol: u.rol, password: "" });
+    setError("");
+    setOkUsuario("");
+    document.getElementById("form-usuario")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    setOkUsuario("");
+    try {
+      if (editando) {
+        await api("/users/" + editando, { metodo: "PUT", cuerpo: form });
+        setOkUsuario("Cambios guardados.");
+      } else {
+        await api("/users", { metodo: "POST", cuerpo: form });
+        setOkUsuario("Usuario agregado. Al iniciar sesión va a ver solo las secciones de su rol.");
+      }
+      setError("");
+      setEditando(null);
+      setForm(VACIO);
+      cargar();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const quitar = async (u) => {
+    if (!window.confirm("¿Eliminar a " + u.nombre + "?")) return;
+    try {
+      await api("/users/" + u.id, { metodo: "DELETE" });
+      if (editando === u.id) cancelar();
+      setError("");
+      setOkUsuario("");
+      cargar();
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -74,33 +109,58 @@ export default function AdminUsuarios() {
           </ul>
         </div>
         <div className="caja" style={{ marginBottom: "24px" }}>
-          <h2>Agregar un usuario</h2>
-          <form id="form-usuario" noValidate onSubmit={agregar}>
+          <h2>{editando ? "Editar usuario" : "Agregar un usuario"}</h2>
+          <form id="form-usuario" noValidate onSubmit={guardar}>
             <div className="fila">
               <div className="campo">
                 <label htmlFor="u-nombre">Nombre y apellido</label>
-                <input id="u-nombre" autoComplete="off" />
+                <input
+                  id="u-nombre"
+                  autoComplete="off"
+                  value={form.nombre}
+                  onChange={cambiar("nombre")}
+                />
               </div>
               <div className="campo">
                 <label htmlFor="u-mail">Correo electrónico</label>
-                <input id="u-mail" type="email" autoComplete="off" />
+                <input
+                  id="u-mail"
+                  type="email"
+                  autoComplete="off"
+                  value={form.mail}
+                  onChange={cambiar("mail")}
+                />
               </div>
             </div>
             <div className="fila">
               <div className="campo">
                 <label htmlFor="u-rol">Rol</label>
-                <select id="u-rol">
-                  <option value="Administrador">Administrador</option>
-                  <option value="Bedelía">Bedelía</option>
+                <select
+                  id="u-rol"
+                  value={form.rol}
+                  onChange={cambiar("rol")}
+                  disabled={editando === usuario.id}
+                >
+                  <option value="admin">Administrador</option>
+                  <option value="bedelia">Bedelía</option>
                 </select>
               </div>
               <div className="campo">
-                <label htmlFor="u-pass">Contraseña inicial</label>
-                <input id="u-pass" type="password" autoComplete="new-password" />
+                <label htmlFor="u-pass">
+                  {editando ? "Contraseña nueva (opcional)" : "Contraseña inicial"}
+                </label>
+                <input
+                  id="u-pass"
+                  type="password"
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={cambiar("password")}
+                />
               </div>
             </div>
             <p style={{ color: "var(--suave)", fontSize: "14px" }}>
-              La contraseña debe tener al menos 8 caracteres, con letras y números.
+              {editando ? "Si dejás la contraseña vacía, se mantiene la actual. " : ""}
+              La contraseña debe tener al menos 8 caracteres, con una mayúscula y un número.
             </p>
             <p
               className={"aviso" + (error ? " visible error" : "")}
@@ -110,10 +170,20 @@ export default function AdminUsuarios() {
               {error}
             </p>
             <button className="boton boton-verde" type="submit">
-              Agregar usuario
+              {editando ? "Guardar cambios" : "Agregar usuario"}
             </button>
+            {editando && (
+              <button
+                className="boton boton-linea"
+                type="button"
+                style={{ marginLeft: "8px" }}
+                onClick={cancelar}
+              >
+                Cancelar
+              </button>
+            )}
             <p className={"aviso" + (okUsuario ? " visible" : "")} id="ok-usuario" role="status">
-              Usuario agregado. Al iniciar sesión va a ver solo las secciones de su rol.
+              {okUsuario}
             </p>
           </form>
         </div>
@@ -129,22 +199,25 @@ export default function AdminUsuarios() {
             </thead>
             <tbody id="tabla-usuarios">
               {usuarios.map((u) => (
-                <tr key={u.mail}>
+                <tr key={u.id}>
                   <td>
                     <strong>{u.nombre}</strong>
                   </td>
                   <td>{u.mail}</td>
                   <td>
-                    <span
-                      className={
-                        "etiqueta " + (u.rol === "Administrador" ? "et-verde" : "et-naranja")
-                      }
-                    >
-                      {u.rol}
+                    <span className={"etiqueta " + (u.rol === "admin" ? "et-verde" : "et-naranja")}>
+                      {u.rol === "admin" ? "Administrador" : "Bedelía"}
                     </span>
                   </td>
                   <td>
                     <div className="acciones-fila">
+                      <button
+                        className="boton boton-linea boton-chico"
+                        type="button"
+                        onClick={() => editar(u)}
+                      >
+                        Editar
+                      </button>
                       <button
                         className="boton boton-linea boton-chico"
                         type="button"
@@ -160,8 +233,8 @@ export default function AdminUsuarios() {
           </table>
         </div>
         <p style={{ color: "var(--suave)", fontSize: "14px", marginTop: "12px" }}>
-          Los datos de las cuentas (tres con acceso total y dos de Bedelía) los completa el
-          instituto; esta lista es de ejemplo.
+          Las cuentas (tres con acceso total y dos de Bedelía) las informa el instituto. Quien
+          administra las da de alta desde acá.
         </p>
       </main>
     </div>
