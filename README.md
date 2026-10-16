@@ -1,46 +1,71 @@
-# Renovación Web IFTS N° 2 - Prototipo
+# Portal web IFTS N.° 2
 
-Este repositorio contiene el prototipo y la arquitectura técnica para la renovación del sitio web institucional del **IFTS N° 2**, desarrollado como Trabajo Final de la carrera de Análisis de Sistemas (IFTS N° 29).
+Proyecto de 404-Solutions para la Práctica Profesionalizante IV (IFTS N.° 29). Reemplaza el Google Site del IFTS N.° 2 por un sitio público y un panel de administración.
 
-## Objetivo del Proyecto
+Esta rama sigue la arquitectura de tres capas definida en la Etapa 2 (sección 5.7):
 
-Modernizar la presencia digital del IFTS N° 2 mediante un diseño sobrio, accesible y orientado al perfil del egresado ("No formamos chef, formamos empresarios gastronómicos").
+| Capa | Tecnología | Carpeta | Estado |
+|---|---|---|---|
+| Presentación | React (Vite) y React Router | `client/` | Prototipo migrado, con datos simulados |
+| Lógica | Node.js y Express | `server/` | Estructura base, falta implementar las rutas |
+| Datos y servicios | MongoDB Atlas, Cloudinary, API de Instagram, correo de Bedelía | | Sin conectar |
 
-El sitio busca fusionar la identidad institucional pública (colores sobrios, enlaces útiles a sistemas como SIU-Guaraní) con un enfoque dinámico y profesional, automatizando la integración con las redes sociales de la institución.
+El prototipo original en HTML, CSS y JavaScript quedó en `prototipo-html/` como referencia.
 
-## Arquitectura y Tecnologías
+## Cómo ejecutarlo
 
-El sitio está diseñado para ser de **bajo mantenimiento y costo cero** para la institución:
-- **Hosting:** GitHub Pages (gratuito para uso educativo/institucional).
-- **Frontend:** HTML5, CSS3, JavaScript (sin frameworks pesados para garantizar rendimiento y accesibilidad).
-- **Integración con Instagram:** Se utiliza la API Graph de Instagram mediante un script de automatización (`scripts/fetch_instagram.py`) que descarga las últimas publicaciones curadas y las integra de forma estática en la web.
-- **CI/CD:** GitHub Actions (`.github/workflows/instagram-sync.yml`) ejecuta el script diariamente, actualizando el contenido automáticamente sin necesidad de un backend tradicional.
+Requiere Node.js 20 o superior.
 
-## Estructura del Repositorio
+```
+cd client
+npm install
+npm run dev
+```
 
-- `index.html`: Prototipo principal de la página de inicio.
-- `DESIGN.md`: Documento con los lineamientos de diseño, paleta de colores y decisiones de UX/UI.
-- `scripts/`: Scripts de automatización (Python).
-- `.github/workflows/`: Pipelines de integración y despliegue continuo.
-- `docs/relevamiento/`: Documentación original, notas de reuniones y archivos de articulación entre el IFTS 2 y el IFTS 29.
+El sitio queda en http://localhost:5173. Para el panel, ir a `/login` e ingresar con cualquier correo y una contraseña de 8 caracteres o más. Si el correo empieza con `bedel`, entra con el perfil Bedelía; con cualquier otro, entra como Administrador.
 
-## Cómo desplegar este prototipo en GitHub Pages
+El servidor (todavía sin rutas de negocio):
 
-Para compartir este prototipo con el equipo y profesores, sigue estos pasos:
+```
+cd server
+npm install
+cp .env.example .env
+npm run dev
+npm test
+```
 
-1. Asegúrate de tener todos los cambios "pusheados" a GitHub:
-   ```bash
-   git add .
-   git commit -m "feat: preparar repositorio para despliegue"
-   git push origin main
-   ```
-2. Ve a la página del repositorio en GitHub.
-3. Entra a **Settings** (Configuración) > **Pages** (Páginas) en el menú lateral izquierdo.
-4. En **Source** (Fuente), bajo "Build and deployment", selecciona `Deploy from a branch`.
-5. En la sección **Branch**, elige `main` y la carpeta `/(root)`.
-6. Haz clic en **Save**.
-7. ¡Listo! En unos minutos, GitHub te mostrará el enlace público (por ejemplo, `https://tu-usuario.github.io/ifts2-prototipo-trabajo-final/`) donde podrás ver la página en vivo.
+En desarrollo, el cliente reenvía las llamadas a `/api` al servidor en el puerto 4000 (ver `client/vite.config.js`).
 
-## Documentación Técnica
+## Estructura
 
-Para más detalles sobre la implementación de la API de Instagram y el flujo de trabajo automático, revisa la documentación en la carpeta `docs/relevamiento/` y los comentarios en los scripts.
+```
+client/
+  public/            imágenes (img/) y guía de preingreso (docs/)
+  src/
+    pages/           una pantalla por archivo (sitio público y panel)
+    components/      Header, Footer, AdminLateral, Layout, rutas protegidas
+    context/         AuthContext: sesión y rol
+    styles.css       estilos del prototipo, sin cambios
+server/
+  src/               app de Express, conexión a MongoDB
+  test/              pruebas con supertest
+prototipo-html/      versión original en HTML puro
+```
+
+## Qué es real y qué es simulado
+
+- La sesión y los roles (Administrador y Bedelía) se guardan en el navegador. Las rutas del panel están protegidas en el cliente: sin sesión redirigen a `/login`, y Bedelía no entra a eventos, contenido ni usuarios.
+- El límite de 5 intentos fallidos del login y la gestión de usuarios funcionan solo en memoria.
+- Los eventos, horarios, contenido institucional y la descarga de archivados son datos de ejemplo.
+- Instagram, el formulario de contacto y la subida de fotos todavía no están conectados.
+
+## Lo que falta para cumplir la arquitectura
+
+1. Modelos de MongoDB y rutas de la API: autenticación con bcrypt y JWT, permisos por rol en el servidor, CRUD de contenido estanco, información académica, eventos y usuarios.
+2. Subida de fotos a Cloudinary, con compresión y máximo de 20 por evento.
+3. Archivado automático y descarga de lo archivado.
+4. Formulario de contacto con envío real de correo y reCAPTCHA.
+5. Integración con Instagram (Graph API, hashtag acordado, renovación del token con tarea programada).
+6. Reemplazar los datos fijos de `client/src/pages/` por llamadas a la API.
+7. Despliegue en Vercel con variables de entorno.
+8. Pruebas unitarias y de integración, manual técnico y manual de usuario (Etapa 3).
