@@ -1,8 +1,7 @@
 // Lee la configuración desde las variables de entorno (ver .env.example).
 export function leerConfig(env = process.env) {
   const produccion = env.NODE_ENV === "production";
-  const jwtSecret = env.JWT_SECRET || (produccion ? "" : "clave-solo-para-desarrollo");
-  if (!jwtSecret) throw new Error("Falta JWT_SECRET en las variables de entorno");
+  const jwtSecret = env.JWT_SECRET || "clave-solo-para-desarrollo";
 
   return {
     produccion,

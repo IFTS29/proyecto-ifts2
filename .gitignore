@@ -5,7 +5,7 @@
 node_modules
 dist
 .env
-.vercel
+.env.example
 
 # Se versiona la guia de preingreso que usa el sitio
 !client/public/docs/guia-de-preingreso.pdf

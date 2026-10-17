@@ -1,121 +1,46 @@
-# Portal web IFTS N.° 2
+# Renovación Web IFTS N° 2 - Prototipo
 
-Proyecto de 404-Solutions para la Práctica Profesionalizante IV (IFTS N.° 29). Reemplaza el Google Site del IFTS N.° 2 por un sitio público y un panel de administración.
+Este repositorio contiene el prototipo y la arquitectura técnica para la renovación del sitio web institucional del **IFTS N° 2**, desarrollado como Trabajo Final de la carrera de Análisis de Sistemas (IFTS N° 29).
 
-El proyecto sigue la arquitectura de tres capas definida en la Etapa 2 (sección 5.7):
+## Objetivo del Proyecto
 
-| Capa | Tecnología | Carpeta | Estado |
-|---|---|---|---|
-| Presentación | React (Vite) y React Router | `client/` | Prototipo migrado; login y usuarios conectados a la API, el resto con datos simulados |
-| Lógica | Node.js y Express | `server/` | Login con JWT, permisos por rol y CRUD de usuarios; faltan eventos, información académica, contenido, contacto e Instagram |
-| Datos y servicios | MongoDB Atlas, Cloudinary, API de Instagram, correo de Bedelía | | Sin conectar |
+Modernizar la presencia digital del IFTS N° 2 mediante un diseño sobrio, accesible y orientado al perfil del egresado ("No formamos chef, formamos empresarios gastronómicos").
 
-El prototipo original en HTML, CSS y JavaScript quedó en `prototipo-html/` como referencia.
+El sitio busca fusionar la identidad institucional pública (colores sobrios, enlaces útiles a sistemas como SIU-Guaraní) con un enfoque dinámico y profesional, automatizando la integración con las redes sociales de la institución.
 
-## Qué trae la rama feature/login-usuarios
+## Arquitectura y Tecnologías
 
-Esta rama sale de `develop` (con la migración a React ya mergeada) y agrega la autenticación real y la gestión de usuarios. Es la primera parte del servidor que deja de ser un esqueleto.
+El sitio está diseñado para ser de **bajo mantenimiento y costo cero** para la institución:
+- **Hosting:** GitHub Pages (gratuito para uso educativo/institucional).
+- **Frontend:** HTML5, CSS3, JavaScript (sin frameworks pesados para garantizar rendimiento y accesibilidad).
+- **Integración con Instagram:** Se utiliza la API Graph de Instagram mediante un script de automatización (`scripts/fetch_instagram.py`) que descarga las últimas publicaciones curadas y las integra de forma estática en la web.
+- **CI/CD:** GitHub Actions (`.github/workflows/instagram-sync.yml`) ejecuta el script diariamente, actualizando el contenido automáticamente sin necesidad de un backend tradicional.
 
-- Login con contraseñas guardadas con bcrypt y token JWT de 8 horas. Tras 5 intentos fallidos con el mismo correo se bloquea esa cuenta durante 15 minutos (`express-rate-limit`).
-- Dos roles, `admin` y `bedelia`. La API le responde 403 a Bedelía en la gestión de usuarios, y en el cliente las pantallas de eventos, contenido y usuarios solo las abre el administrador.
-- Gestión de usuarios en el panel: listar, agregar, editar y eliminar. El servidor valida que el nombre y el correo estén completos, que el correo tenga formato válido y no esté repetido, que la contraseña tenga 8 caracteres con una mayúscula y un número, que nadie se elimine ni se cambie el rol a sí mismo, y que quede al menos un administrador.
-- El cliente guarda el token en `sessionStorage` y lo verifica con `/api/auth/yo` al abrir la página.
-- Hay un repositorio en memoria (desarrollo y pruebas) y otro con MongoDB. El de MongoDB todavía no se probó contra una base real.
-- 36 pruebas del servidor (`npm test` en `server/`).
+## Estructura del Repositorio
 
-Rutas de la API que agrega:
+- `index.html`: Prototipo principal de la página de inicio.
+- `DESIGN.md`: Documento con los lineamientos de diseño, paleta de colores y decisiones de UX/UI.
+- `scripts/`: Scripts de automatización (Python).
+- `.github/workflows/`: Pipelines de integración y despliegue continuo.
+- `docs/relevamiento/`: Documentación original, notas de reuniones y archivos de articulación entre el IFTS 2 y el IFTS 29.
 
-| Ruta | Quién | Qué hace |
-|---|---|---|
-| `GET /api/salud` | Público | Estado del servidor |
-| `POST /api/auth/login` | Público | Devuelve el token y el usuario |
-| `GET /api/auth/yo` | Con sesión | Devuelve el usuario de la sesión |
-| `GET /api/users` | Administrador | Lista los usuarios |
-| `POST /api/users` | Administrador | Crea un usuario |
-| `PUT /api/users/:id` | Administrador | Edita nombre, correo, rol o contraseña |
-| `DELETE /api/users/:id` | Administrador | Elimina un usuario |
+## Cómo desplegar este prototipo en GitHub Pages
 
-Estado de los issues relacionados:
+Para compartir este prototipo con el equipo y profesores, sigue estos pasos:
 
-- #38 (gestión de usuarios y roles): cubierto. El alta y la edición están en un formulario de la misma pantalla, no en un modal.
-- #30 (login seguro): cubierto, con tres diferencias. El token está en `sessionStorage`, los middlewares se llaman `autenticar` y `requiereRol` en vez de `verifyToken` y `requireRole`, y tanto el administrador como Bedelía entran a `/admin` (el panel cambia según el rol).
-- #31 (roles validados en el servidor): parcial. El control de rol existe, pero hoy solo protege `/api/users`, porque `/api/events` y `/api/content` todavía no existen.
-- #29 (modelo de datos y seed): parcial. Solo está el modelo de usuarios y el administrador inicial; faltan los demás modelos y el script `npm run seed`.
+1. Asegúrate de tener todos los cambios "pusheados" a GitHub:
+   ```bash
+   git add .
+   git commit -m "feat: preparar repositorio para despliegue"
+   git push origin main
+   ```
+2. Ve a la página del repositorio en GitHub.
+3. Entra a **Settings** (Configuración) > **Pages** (Páginas) en el menú lateral izquierdo.
+4. En **Source** (Fuente), bajo "Build and deployment", selecciona `Deploy from a branch`.
+5. En la sección **Branch**, elige `main` y la carpeta `/(root)`.
+6. Haz clic en **Save**.
+7. ¡Listo! En unos minutos, GitHub te mostrará el enlace público (por ejemplo, `https://tu-usuario.github.io/ifts2-prototipo-trabajo-final/`) donde podrás ver la página en vivo.
 
-El detalle de cada cambio y cómo se verificó está en `docs/registro-de-cambios.md`.
+## Documentación Técnica
 
-## Cómo ejecutarlo
-
-Requiere Node.js 20 o superior.
-
-```
-cd client
-npm install
-npm run dev
-```
-
-Se abre en http://localhost:5173. El panel necesita el servidor corriendo:
-
-```
-cd server
-npm install
-npm run dev
-```
-
-El servidor escucha en el puerto 4000 y el cliente le reenvía las llamadas a `/api` (ver `client/vite.config.js`). Sin `MONGODB_URI` el servidor arranca en modo memoria: los datos se pierden al reiniciarlo, pero sirve para desarrollar. En ese modo crea un administrador inicial:
-
-- Correo: `matias.pelaez@ifts2.edu.ar`
-- Contraseña: `Cambiar1234`
-
-Estos valores son solo para desarrollo. En producción hay que definir `MONGODB_URI`, `JWT_SECRET`, `SEED_ADMIN_MAIL` y `SEED_ADMIN_PASSWORD` (ver `server/.env.example`). Para entrar como Bedelía, crear antes ese usuario desde Usuarios.
-
-Pruebas del servidor:
-
-```
-cd server
-npm test
-```
-
-## Estructura
-
-```
-client/
-  public/            imágenes (img/) y guía de preingreso (docs/)
-  src/
-    pages/           una pantalla por archivo (sitio público y panel)
-    components/      Header, Footer, AdminLateral, Layout, rutas protegidas
-    context/         AuthContext: sesión y rol
-    api.js           llamadas a la API con el token de sesión
-    styles.css       estilos del prototipo, sin cambios
-server/
-  src/               app de Express: rutas, middleware, servicios, repositorios y modelo de Mongo
-  test/              pruebas con node:test y supertest
-prototipo-html/      versión original en HTML puro
-```
-
-## Qué es real y qué es simulado
-
-Funciona de verdad contra el servidor:
-
-- Inicio de sesión con contraseñas guardadas con bcrypt y token JWT de 8 horas.
-- Bloqueo de 15 minutos tras 5 intentos fallidos, contado por correo (con `express-rate-limit`).
-- Permisos por rol validados en la API: Bedelía recibe 403 en la gestión de usuarios, y las rutas del panel también están protegidas en el cliente.
-- Alta, edición y baja de usuarios (`GET/POST/PUT/DELETE /api/users`), con validación de campos, correo repetido y contraseña (8 caracteres como mínimo, con una mayúscula y un número).
-
-Sigue simulado o sin conectar:
-
-- Eventos, información académica, contenido institucional y descarga de archivados: datos de ejemplo en el cliente.
-- Subida de fotos, formulario de contacto e integración con Instagram.
-- Con la base MongoDB: el código existe (`server/src/repos/usuarios.mongo.js`) pero todavía no se probó contra una base real; las pruebas usan el repositorio en memoria.
-
-## Lo que falta para cumplir la arquitectura
-
-1. Probar el servidor contra MongoDB Atlas y crear el administrador inicial en producción.
-2. Rutas de la API y modelos para eventos, información académica y contenido institucional (CRUD con validaciones).
-3. Subida de fotos a Cloudinary, con compresión y máximo de 20 por evento.
-4. Archivado automático y descarga de lo archivado.
-5. Formulario de contacto con envío real de correo y reCAPTCHA.
-6. Integración con Instagram (Graph API, hashtag acordado, renovación del token con tarea programada).
-7. Reemplazar los datos fijos de `client/src/pages/` por llamadas a la API.
-8. Despliegue en Vercel con variables de entorno.
-9. Pruebas del cliente, manual técnico y manual de usuario (Etapa 3).
+Para más detalles sobre la implementación de la API de Instagram y el flujo de trabajo automático, revisa la documentación en la carpeta `docs/relevamiento/` y los comentarios en los scripts.

@@ -16,8 +16,8 @@ export function crearApp({
 } = {}) {
   const app = express();
 
-  app.use(helmet());
-  app.use(cors({ origin: config.clientUrl }));
+  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(cors({ origin: true, credentials: true }));
   app.use(express.json());
 
   app.get("/api/salud", (req, res) => {

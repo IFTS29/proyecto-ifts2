@@ -1,0 +1,8 @@
+{
+  "name": "Portal Web IFTS N.° 2",
+  "description": "Sitio web institucional y panel de administración para el IFTS N.° 2 (Gastronomía)",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
