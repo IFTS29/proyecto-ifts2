@@ -5,39 +5,50 @@ import { crearRepoUsuariosMemoria } from "../server/src/repos/usuarios.memoria.j
 import { crearRepoUsuariosMongo } from "../server/src/repos/usuarios.mongo.js";
 import { asegurarAdminInicial } from "../server/src/services/seed.js";
 
-let appPromise = null;
+let app = null;
+let conectadoMongo = false;
 
 async function obtenerApp() {
-  if (appPromise) return appPromise;
+  const config = leerConfig();
 
-  appPromise = (async () => {
-    const config = leerConfig();
-    let usuarios;
-
-    if (config.mongoUri) {
-      try {
-        await conectarDB();
-        console.log("Conectado a MongoDB");
-        usuarios = crearRepoUsuariosMongo();
-      } catch (err) {
-        console.warn("MongoDB no conectado, usando modo memoria:", err.message);
-        usuarios = crearRepoUsuariosMemoria();
-      }
-    } else {
-      console.warn("Sin MONGODB_URI: modo memoria. Los datos se pierden al reiniciar.");
-      usuarios = crearRepoUsuariosMemoria();
-    }
-
+  if (config.mongoUri && !conectadoMongo) {
     try {
-      await asegurarAdminInicial({ usuarios, config });
+      await conectarDB();
+      console.log("Conectado a MongoDB");
+      conectadoMongo = true;
+      const usuarios = crearRepoUsuariosMongo();
+      try {
+        await asegurarAdminInicial({ usuarios, config });
+      } catch (err) {
+        console.warn("Error asegurando admin en MongoDB:", err.message);
+      }
+      app = crearApp({ config, usuarios });
+      return app;
     } catch (err) {
-      console.warn("Error asegurando admin:", err.message);
+      console.warn("MongoDB no conectado, usando modo memoria:", err.message);
+      if (!app) {
+        const usuarios = crearRepoUsuariosMemoria();
+        try {
+          await asegurarAdminInicial({ usuarios, config });
+        } catch (e) {
+          console.warn("Error asegurando admin en memoria:", e.message);
+        }
+        app = crearApp({ config, usuarios });
+      }
+      return app;
     }
+  }
 
-    return crearApp({ config, usuarios });
-  })();
+  if (app) return app;
 
-  return appPromise;
+  const usuarios = crearRepoUsuariosMemoria();
+  try {
+    await asegurarAdminInicial({ usuarios, config });
+  } catch (err) {
+    console.warn("Error asegurando admin:", err.message);
+  }
+  app = crearApp({ config, usuarios });
+  return app;
 }
 
 export default async function handler(req, res) {
