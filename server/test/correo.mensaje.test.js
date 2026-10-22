@@ -47,6 +47,12 @@ test("el asunto y el texto incluyen el motivo y los datos de la consulta", () =>
   assert.match(armarCorreoConsulta(CONSULTA, CASILLAS).text, /Teléfono: \(no informado\)/);
 });
 
+test("el texto indica quién responde y que se use Responder a todos", () => {
+  const { text } = armarCorreoConsulta(CONSULTA, CASILLAS);
+  assert.match(text, /Responde la casilla que figura en "Para"/);
+  assert.match(text, /Usá "Responder a todos"/);
+});
+
 test("un nombre con saltos de línea no agrega líneas al asunto", () => {
   const correo = armarCorreoConsulta({ ...CONSULTA, nombre: "Ana\r\nBcc: otro@spam.com" }, CASILLAS);
   assert.ok(!/[\r\n]/.test(correo.subject));

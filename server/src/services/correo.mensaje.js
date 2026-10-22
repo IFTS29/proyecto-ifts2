@@ -36,8 +36,8 @@ export function armarCorreoConsulta(consulta, { correoBedelia, correoInstitucion
       "Mensaje:",
       consulta.mensaje,
       "",
-      "Para contestar, respondé este correo: la respuesta le llega directo a quien consultó.",
-      "Si la casilla en \"Para\" está de licencia, responde la que figura en copia.",
+      "Responde la casilla que figura en \"Para\". Si no está disponible, responde la que figura en copia.",
+      "Usá \"Responder a todos\": la respuesta le llega a quien consultó y la otra casilla sabe que ya se contestó.",
     ].join("\n"),
   };
 }
