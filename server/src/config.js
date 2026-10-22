@@ -20,6 +20,11 @@ export function leerConfig(env = process.env) {
     // Casillas que reciben las consultas del formulario (ver el reparto en services/correo.mensaje.js).
     correoBedelia: env.CORREO_BEDELIA || "",
     correoInstitucional: env.CORREO_INSTITUCIONAL || "",
+    // Cuenta que envía los correos del formulario (SMTP). Qué pasa si falta, en services/correo.smtp.js.
+    smtpHost: env.SMTP_HOST || "smtp.gmail.com",
+    smtpPuerto: Number(env.SMTP_PUERTO) || 465,
+    smtpUsuario: env.SMTP_USUARIO || "",
+    smtpClave: env.SMTP_CLAVE || "",
     // Primer administrador: solo se crea si la base está vacía y están cargadas las variables SEED_ADMIN_*.
     // No hay valores por defecto para el correo ni la contraseña, así no quedan credenciales en el código.
     seedNombre: env.SEED_ADMIN_NOMBRE || "Administrador",

@@ -7,7 +7,7 @@ import { crearRepoUsuariosMemoria } from "./repos/usuarios.memoria.js";
 import { crearRutasAuth } from "./routes/auth.js";
 import { crearRutasUsuarios } from "./routes/usuarios.js";
 import { crearRutasContacto } from "./routes/contacto.js";
-import { crearCorreoMemoria, crearCorreoNoConfigurado } from "./services/correo.memoria.js";
+import { crearServicioCorreo } from "./services/correo.smtp.js";
 import { crearLimitadorContacto } from "./services/limitador.contacto.js";
 
 // Las dependencias se reciben por parámetro: en producción son las de MongoDB,
@@ -16,7 +16,7 @@ export function crearApp({
   config = leerConfig(),
   usuarios = crearRepoUsuariosMemoria(),
   limitadorLogin = crearLimitadorLogin({ max: config.intentosMax, duracionMs: config.bloqueoMs }),
-  correo = config.produccion ? crearCorreoNoConfigurado() : crearCorreoMemoria(),
+  correo = crearServicioCorreo(config),
   limitadorContacto = crearLimitadorContacto({
     max: config.contactoMax,
     duracionMs: config.contactoVentanaMs,
