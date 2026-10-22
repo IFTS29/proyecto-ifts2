@@ -6,6 +6,8 @@ import { crearLimitadorLogin } from "./services/limitador.js";
 import { crearRepoUsuariosMemoria } from "./repos/usuarios.memoria.js";
 import { crearRutasAuth } from "./routes/auth.js";
 import { crearRutasUsuarios } from "./routes/usuarios.js";
+import { crearRutasContacto } from "./routes/contacto.js";
+import { crearCorreoMemoria, crearCorreoNoConfigurado } from "./services/correo.memoria.js";
 
 // Las dependencias se reciben por parámetro: en producción son las de MongoDB,
 // en desarrollo y en las pruebas pueden ser las de memoria.
@@ -13,6 +15,7 @@ export function crearApp({
   config = leerConfig(),
   usuarios = crearRepoUsuariosMemoria(),
   limitadorLogin = crearLimitadorLogin({ max: config.intentosMax, duracionMs: config.bloqueoMs }),
+  correo = config.produccion ? crearCorreoNoConfigurado() : crearCorreoMemoria(),
 } = {}) {
   const app = express();
 
@@ -26,8 +29,9 @@ export function crearApp({
 
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
+  app.use("/api/contact", crearRutasContacto({ correo }));
 
-  // Faltan montar: /api/events, /api/academic, /api/content, /api/contact, /api/instagram
+  // Faltan montar: /api/events, /api/academic, /api/content, /api/instagram
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });
