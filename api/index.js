@@ -1,62 +1,46 @@
 import { crearApp } from "../server/src/app.js";
 import { leerConfig } from "../server/src/config.js";
-import { conectarDB } from "../server/src/db.js";
-import { crearRepoUsuariosMemoria } from "../server/src/repos/usuarios.memoria.js";
-import { crearRepoUsuariosMongo } from "../server/src/repos/usuarios.mongo.js";
-import { asegurarAdminInicial } from "../server/src/services/seed.js";
+import { prepararDatos } from "../server/src/arranque.js";
 
-let app = null;
-let conectadoMongo = false;
+// Arma la función que recibe las peticiones en Vercel.
+// Cada instancia prepara la app una sola vez. Si MongoDB no está disponible, responde 503
+// y lo vuelve a intentar en la próxima petición, en lugar de seguir en memoria.
+export function crearHandler({ preparar = prepararDatos } = {}) {
+  let preparacion = null;
 
-async function obtenerApp() {
-  const config = leerConfig();
-
-  if (config.mongoUri && !conectadoMongo) {
-    try {
-      await conectarDB();
-      console.log("Conectado a MongoDB");
-      conectadoMongo = true;
-      const usuarios = crearRepoUsuariosMongo();
-      try {
-        await asegurarAdminInicial({ usuarios, config });
-      } catch (err) {
-        console.warn("Error asegurando admin en MongoDB:", err.message);
-      }
-      app = crearApp({ config, usuarios });
-      return app;
-    } catch (err) {
-      console.warn("MongoDB no conectado, usando modo memoria:", err.message);
-      if (!app) {
-        const usuarios = crearRepoUsuariosMemoria();
-        try {
-          await asegurarAdminInicial({ usuarios, config });
-        } catch (e) {
-          console.warn("Error asegurando admin en memoria:", e.message);
-        }
-        app = crearApp({ config, usuarios });
-      }
-      return app;
+  const obtenerApp = () => {
+    if (!preparacion) {
+      preparacion = (async () => {
+        const config = leerConfig();
+        const { usuarios } = await preparar(config);
+        return crearApp({ config, usuarios });
+      })().catch((err) => {
+        preparacion = null;
+        throw err;
+      });
     }
-  }
+    return preparacion;
+  };
 
-  if (app) return app;
+  return async function handler(req, res) {
+    // En Vercel, si la URL llega sin /api: se agrega para que coincida con las rutas de Express.
+    if (req.url && !req.url.startsWith("/api")) {
+      req.url = `/api${req.url}`;
+    }
 
-  const usuarios = crearRepoUsuariosMemoria();
-  try {
-    await asegurarAdminInicial({ usuarios, config });
-  } catch (err) {
-    console.warn("Error asegurando admin:", err.message);
-  }
-  app = crearApp({ config, usuarios });
-  return app;
+    let app;
+    try {
+      app = await obtenerApp();
+    } catch (err) {
+      console.error(err.message);
+      res.statusCode = 503;
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      const error = "El servicio no está disponible en este momento. Probá de nuevo en unos minutos.";
+      res.end(JSON.stringify({ error }));
+      return;
+    }
+    return app(req, res);
+  };
 }
 
-export default async function handler(req, res) {
-  // En Vercel, normalizamos la URL para que coincida con las rutas de Express (/api/*).
-  if (req.url && !req.url.startsWith("/api")) {
-    req.url = `/api${req.url}`;
-  }
-
-  const app = await obtenerApp();
-  return app(req, res);
-}
+export default crearHandler();

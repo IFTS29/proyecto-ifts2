@@ -5,37 +5,20 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { crearApp } from "./server/src/app.js";
 import { leerConfig } from "./server/src/config.js";
-import { conectarDB } from "./server/src/db.js";
-import { crearRepoUsuariosMemoria } from "./server/src/repos/usuarios.memoria.js";
-import { crearRepoUsuariosMongo } from "./server/src/repos/usuarios.mongo.js";
-import { asegurarAdminInicial } from "./server/src/services/seed.js";
+import { prepararDatos } from "./server/src/arranque.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const config = leerConfig();
+
+// En producción, si MongoDB no está disponible, el servidor no arranca (ver server/src/arranque.js).
 let usuarios;
-
-if (config.mongoUri) {
-  try {
-    await conectarDB();
-    console.log("Conectado a MongoDB");
-    usuarios = crearRepoUsuariosMongo();
-  } catch (err) {
-    console.warn("MongoDB no conectado, usando modo memoria:", err.message);
-    usuarios = crearRepoUsuariosMemoria();
-  }
-} else {
-  console.warn("Sin MONGODB_URI: modo memoria. Los datos se pierden al reiniciar el servidor.");
-  usuarios = crearRepoUsuariosMemoria();
-}
-
 try {
-  if (await asegurarAdminInicial({ usuarios, config })) {
-    console.log(`Se creó el administrador inicial (${config.seedMail}).`);
-  }
+  ({ usuarios } = await prepararDatos(config));
 } catch (err) {
-  console.warn("No se pudo inicializar admin:", err.message);
+  console.error(`No se puede iniciar el servidor. ${err.message}`);
+  process.exit(1);
 }
 
 const app = crearApp({ config, usuarios });

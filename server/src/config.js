@@ -9,6 +9,8 @@ export function leerConfig(env = process.env) {
     jwtDuracion: env.JWT_DURACION || "8h",
     clientUrl: env.CLIENT_URL || "http://localhost:5173",
     mongoUri: env.MONGODB_URI || "",
+    // En producción y en Vercel (que define VERCEL=1) no se permite trabajar sin MongoDB: ver arranque.js.
+    exigeBaseDeDatos: produccion || env.VERCEL === "1",    
     bcryptCosto: Number(env.BCRYPT_COSTO) || 10,
     intentosMax: 5,
     bloqueoMs: 15 * 60 * 1000,
