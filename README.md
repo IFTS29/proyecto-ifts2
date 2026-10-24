@@ -168,7 +168,9 @@ proyecto-ifts2/
 ```powershell
 git clone https://github.com/IFTS29/proyecto-ifts2.git
 cd proyecto-ifts2
-npm install
+# Instalar las dependencias con las versiones exactas fijadas en package-lock.json:
+npm ci --prefix server
+npm ci --prefix client
 Copy-Item .env.example .env
 npm run dev
 ```
@@ -176,6 +178,7 @@ npm run dev
 - En Linux o Mac, en lugar de `Copy-Item`: `cp .env.example .env`.
 - El sitio queda en `http://localhost:3000` y el panel en `http://localhost:3000/login`.
 - Si PowerShell no deja ejecutar npm: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- **¿Por qué `--prefix server` y `--prefix client`?** Tanto el backend (`server/`) como el frontend (`client/`) poseen sus propios archivos `package-lock.json` independientes. El modificador `--prefix` permite a `npm ci` leer e instalar en la subcarpeta correspondiente sin necesidad de cambiar de directorio con `cd`, asegurando que se instalen exactamente las versiones fijadas por el equipo.
 
 ### Scripts
 
