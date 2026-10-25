@@ -9,11 +9,18 @@ import { InstagramSync } from "../../models/InstagramSync.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const esServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.VERCEL_ENV ||
+  process.env.NOW_REGION ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  (typeof __dirname === "string" && __dirname.includes("/var/task"))
+);
+
 // En Vercel o serverless (/var/task de solo lectura) redirigimos el fallback a /tmp
-const DEFAULT_STORAGE_DIR =
-  process.env.VERCEL === "1"
-    ? path.join(os.tmpdir(), "instagram")
-    : path.resolve(__dirname, "../../../storage/instagram");
+const DEFAULT_STORAGE_DIR = esServerless
+  ? path.join(os.tmpdir(), "instagram")
+  : path.resolve(__dirname, "../../../storage/instagram");
 
 function enriquecerPost(post) {
   const parsed = parseCaption(post.caption);
