@@ -5,11 +5,69 @@ import { api } from "../api";
 
 function urlEmbedInstagram(url) {
   if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
-  let limpia = url.split("?")[0].replace(/\/$/, "");
-  if (!limpia.endsWith("/embed")) {
-    limpia = `${limpia}/embed`;
-  }
-  return limpia;
+  return url.split("?")[0].replace(/\/$/, "") + "/";
+}
+
+function InstagramEmbed({ url, titulo }) {
+  useEffect(() => {
+    const procesar = () => {
+      if (window.instgrm?.Embeds) {
+        window.instgrm.Embeds.process();
+      }
+    };
+
+    if (window.instgrm) {
+      procesar();
+    } else {
+      const scriptId = "instagram-embed-script";
+      let script = document.getElementById(scriptId);
+      if (!script) {
+        script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://www.instagram.com/embed.js";
+        script.async = true;
+        script.defer = true;
+        script.onload = procesar;
+        document.body.appendChild(script);
+      } else {
+        script.addEventListener("load", procesar);
+      }
+    }
+  }, [url]);
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "480px" }}>
+      <blockquote
+        key={url}
+        className="instagram-media"
+        data-instgrm-permalink={url}
+        data-instgrm-version="14"
+        style={{
+          background: "var(--blanco, #fff)",
+          border: "1px solid var(--borde, #e5e7eb)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+          margin: "0 auto",
+          maxWidth: "540px",
+          minWidth: "326px",
+          padding: "0",
+          width: "100%",
+        }}
+      >
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p style={{ margin: "0 0 1rem", color: "var(--suave)" }}>Cargando publicación oficial de Instagram...</p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--naranja)", fontWeight: "600" }}
+          >
+            Ver publicación en Instagram ↗
+          </a>
+        </div>
+      </blockquote>
+    </div>
+  );
 }
 
 export default function Evento() {
@@ -165,13 +223,7 @@ export default function Evento() {
             <div className="galeria">
               <div className="principal">
                 {urlEmbedInstagram(medioActivo.url) ? (
-                  <iframe
-                    src={urlEmbedInstagram(medioActivo.url)}
-                    title={titulo}
-                    style={{ width: "100%", minHeight: "520px", border: "none", borderRadius: "8px" }}
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
+                  <InstagramEmbed url={urlEmbedInstagram(medioActivo.url)} titulo={titulo} />
                 ) : isActivoVideo ? (
                   <video
                     controls
