@@ -11,7 +11,7 @@ export const CONFIG_CATEGORIAS_DEFECTO = {
   eventos: {
     id: "eventos",
     titulo: "Eventos y Prácticas",
-    hashtags: ["#eventos", "#ifts2eventos", "#talleres", "#hackathon", "#estudiantes", "#comunidad"],
+    hashtags: ["#eventosIFTS2"],
   },
 };
 

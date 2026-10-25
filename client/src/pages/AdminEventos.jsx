@@ -33,6 +33,24 @@ function formatearFecha(fechaIso) {
   }
 }
 
+function formatearHoraSincronizacion(fechaIso) {
+  if (!fechaIso) return "aún no se ha realizado";
+  try {
+    const d = new Date(fechaIso);
+    if (isNaN(d.getTime())) return "aún no se ha realizado";
+    const hoy = new Date();
+    const esHoy = d.toDateString() === hoy.toDateString();
+    const hora = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+    if (esHoy) {
+      return `hoy a las ${hora}`;
+    }
+    const fecha = d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return `el ${fecha} a las ${hora}`;
+  } catch {
+    return "aún no se ha realizado";
+  }
+}
+
 function renderEtiquetaEstado(estado) {
   switch (estado) {
     case "visible":
@@ -68,6 +86,26 @@ export default function AdminEventos() {
   });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [sincronizando, setSincronizando] = useState(false);
+  const [mensajeSync, setMensajeSync] = useState("");
+  const [syncStatus, setSyncStatus] = useState({
+    conectado: false,
+    cuenta: "@ifts_2_ok",
+    hashtag: "#eventosIFTS2",
+    ultimaSincronizacion: null,
+    estado: "sin_sincronizar",
+  });
+
+  const cargarStatus = useCallback(async () => {
+    try {
+      const data = await api("/instagram/status");
+      if (data) {
+        setSyncStatus(data);
+      }
+    } catch {
+      // Usar estado local por defecto
+    }
+  }, []);
 
   const cargarEventos = useCallback(async () => {
     setCargando(true);
@@ -91,11 +129,32 @@ export default function AdminEventos() {
 
   useEffect(() => {
     cargarEventos();
-  }, [cargarEventos]);
+    cargarStatus();
+  }, [cargarEventos, cargarStatus]);
 
   const cambiarAlcance = (valor) => {
     setAlcance(valor);
     setPeriodo(PERIODOS[valor][0]);
+  };
+
+  const sincronizar = async () => {
+    setSincronizando(true);
+    setMensajeSync("");
+    try {
+      const res = await api("/instagram/sync", { metodo: "POST" });
+      setMensajeSync(
+        res.success
+          ? `¡Sincronización completada! (${res.nuevos ?? res.count ?? 0} publicaciones procesadas)`
+          : `Resultado: ${res.mensaje || res.message || res.error || "Listo"}`
+      );
+      await Promise.all([cargarEventos(), cargarStatus()]);
+    } catch (err) {
+      setMensajeSync(`Error: ${err.message || "No se pudo sincronizar con Instagram."}`);
+      await cargarStatus();
+    } finally {
+      setSincronizando(false);
+      setTimeout(() => setMensajeSync(""), 7000);
+    }
   };
 
   const descargar = () =>
@@ -117,6 +176,28 @@ export default function AdminEventos() {
             <p>Eventos cargados desde el panel y publicaciones recibidas desde Instagram.</p>
           </div>
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <button
+              type="button"
+              className="boton boton-linea"
+              onClick={sincronizar}
+              disabled={sincronizando}
+              style={{ display: "inline-flex", gap: "0.5rem", alignItems: "center" }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+              </svg>
+              {sincronizando ? "Sincronizando..." : "Sincronizar Instagram"}
+            </button>
             <Link className="boton boton-verde" to="/admin-evento-nuevo">
               <svg
                 viewBox="0 0 24 24"
@@ -133,6 +214,21 @@ export default function AdminEventos() {
             </Link>
           </div>
         </div>
+        {mensajeSync && (
+          <div
+            style={{
+              padding: "0.875rem 1.25rem",
+              borderRadius: "8px",
+              marginBottom: "1rem",
+              background: mensajeSync.startsWith("Error") ? "#fef2f2" : "#f0fdf4",
+              color: mensajeSync.startsWith("Error") ? "#b91c1c" : "#15803d",
+              border: `1px solid ${mensajeSync.startsWith("Error") ? "#fecaca" : "#bbf7d0"}`,
+              fontWeight: "600",
+            }}
+          >
+            {mensajeSync}
+          </div>
+        )}
         <div
           className="caja"
           style={{
@@ -161,27 +257,35 @@ export default function AdminEventos() {
               </svg>
             </span>
             <div>
-              <strong>Instagram conectado: @ifts_2_ok</strong>
+              <strong>
+                Instagram {syncStatus.conectado ? "conectado" : "cuenta"}: {syncStatus.cuenta || "@ifts_2_ok"}
+              </strong>
               <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
-                Se incorporan las publicaciones con #IFTSEventos. Revisión diaria; la última fue hoy
-                a las 6:00.
+                Se incorporan las publicaciones con {syncStatus.hashtag || "#eventosIFTS2"}. Última sincronización:{" "}
+                {formatearHoraSincronizacion(syncStatus.ultimaSincronizacion)}.
               </p>
             </div>
           </div>
-          <span className="etiqueta et-verde">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-            Funcionando
-          </span>
+          {syncStatus.estado === "error" ? (
+            <span className="etiqueta et-roja">Error de conexión</span>
+          ) : syncStatus.conectado ? (
+            <span className="etiqueta et-verde">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              Funcionando
+            </span>
+          ) : (
+            <span className="etiqueta et-gris">Sin sincronizar</span>
+          )}
         </div>
         {esAdmin && (
           <div className="caja descarga-archivo">

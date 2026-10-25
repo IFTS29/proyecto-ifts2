@@ -16,13 +16,13 @@ import { appDePrueba, tokenDe, ADMIN, BEDELIA } from "./ayuda.js";
 // CP-IG-01: Publicación estándar con imagen (IMAGE)
 test("CP-IG-01: parseCaption separa título y cuerpo limpio, clasifica en eventos y formatea fecha", () => {
   const rawCaption =
-    "Jornada Gastronómica 2026\n\nEstudiantes de segundo año presentaron sus elaboraciones culinarias.\n\n#ifts2eventos #gastronomia";
+    "Jornada Gastronómica 2026\n\nEstudiantes de segundo año presentaron sus elaboraciones culinarias.\n\n#eventosIFTS2 #gastronomia";
   const parsed = parseCaption(rawCaption);
 
   assert.equal(parsed.title, "Jornada Gastronómica 2026");
   assert.match(parsed.summary, /Estudiantes de segundo año/);
-  assert.ok(parsed.hashtags.includes("#ifts2eventos"));
-  assert.ok(!parsed.cleanCaption.includes("#ifts2eventos"));
+  assert.ok(parsed.hashtags.includes("#eventosIFTS2"));
+  assert.ok(!parsed.cleanCaption.includes("#eventosIFTS2"));
 
   const categories = classifyPosts(rawCaption);
   assert.deepEqual(categories, ["eventos"]);
@@ -50,7 +50,7 @@ test("CP-IG-02: Publicación sin texto asigna título institucional por defecto 
 
 // CP-IG-03: Publicación con solo hashtags
 test("CP-IG-03: Publicación con solo hashtags clasifica en ambas categorías y asigna título por defecto", () => {
-  const caption = "#ifts2novedades #ifts2eventos";
+  const caption = "#ifts2novedades #eventosIFTS2";
   const parsed = parseCaption(caption);
 
   assert.equal(parsed.title, "Publicación Institucional");
@@ -63,13 +63,13 @@ test("CP-IG-03: Publicación con solo hashtags clasifica en ambas categorías y 
 
 // CP-IG-04: Texto extremo sin saltos de línea (>2000 caracteres)
 test("CP-IG-04: Texto extremo sin saltos de línea (>2.000 caracteres) se procesa sin bloqueo y trunca summary", () => {
-  const textoLargo = "A".repeat(2500) + " #ifts2eventos";
+  const textoLargo = "A".repeat(2500) + " #eventosIFTS2";
   const parsed = parseCaption(textoLargo);
 
   assert.ok(parsed.summary.length <= 115);
   assert.ok(parsed.summary.endsWith("..."));
   assert.equal(parsed.title.length > 100, true);
-  assert.ok(parsed.hashtags.includes("#ifts2eventos"));
+  assert.ok(parsed.hashtags.includes("#eventosIFTS2"));
 });
 
 // CP-IG-05: Álbum (CAROUSEL_ALBUM) con múltiples fotos
@@ -83,7 +83,7 @@ test("CP-IG-05: Álbum (CAROUSEL_ALBUM) preserva la colección de medios (childr
 
   const fakeMetaPost = {
     id: "album_123",
-    caption: "Muestra Anual #ifts2eventos",
+    caption: "Muestra Anual #eventosIFTS2",
     media_type: "CAROUSEL_ALBUM",
     permalink: "https://instagram.com/p/album123",
     timestamp: "2026-10-20T10:00:00Z",
@@ -141,7 +141,7 @@ test("CP-IG-06: Ruta /media/instagram devuelve placeholder SVG si el archivo no 
 test("CP-IG-07: Video sin miniatura asigna placeholder de respaldo", async () => {
   const fakeVideoPost = {
     id: "vid_999",
-    caption: "Práctica de cocina en video #ifts2eventos",
+    caption: "Práctica de cocina en video #eventosIFTS2",
     media_type: "VIDEO",
     media_url: "http://example.com/video.mp4",
     thumbnail_url: null, // Sin miniatura de Meta
@@ -197,8 +197,8 @@ test("CP-IG-08: deduplicateFeed no duplica publicaciones con mismo id o permalin
 // CP-IG-09: Sincronización omite publicaciones registradas en la lista de exclusión (descartadas)
 test("CP-IG-09: Sincronización omite publicaciones descartadas", async () => {
   const postsMeta = [
-    { id: "descartado_1", caption: "Evento viejo #ifts2eventos" },
-    { id: "activo_2", caption: "Evento nuevo #ifts2eventos" },
+    { id: "descartado_1", caption: "Evento viejo #eventosIFTS2" },
+    { id: "activo_2", caption: "Evento nuevo #eventosIFTS2" },
   ];
 
   let postsFinales = [];
@@ -224,7 +224,7 @@ test("CP-IG-09: Sincronización omite publicaciones descartadas", async () => {
 // CP-IG-10: Respuesta de Meta con error (400, 401, 429) no tira el servidor y preserva feed existente
 test("CP-IG-10: Error devuelto por Meta Graph API responde controlado y preserva el feed local", async () => {
   const feedExistente = [
-    { id: "existente_1", caption: "Evento existente #ifts2eventos" },
+    { id: "existente_1", caption: "Evento existente #eventosIFTS2" },
   ];
 
   const fakeFetch = async () => ({

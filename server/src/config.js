@@ -10,7 +10,7 @@ export function leerConfig(env = process.env) {
     clientUrl: env.CLIENT_URL || "http://localhost:5173",
     instagramToken: env.INSTAGRAM_TOKEN || env.INSTAGRAM_ACCESS_TOKEN || "",
     instagramAccountId: env.INSTAGRAM_ACCOUNT_ID || "",
-    instagramHashtag: env.INSTAGRAM_HASHTAG || "ifts2eventos",
+    instagramHashtag: env.INSTAGRAM_HASHTAG || "eventosIFTS2",
     mongoUri: env.MONGODB_URI || "",
     bcryptCosto: Number(env.BCRYPT_COSTO) || 10,
     intentosMax: 5,

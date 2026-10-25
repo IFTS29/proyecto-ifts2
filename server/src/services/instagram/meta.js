@@ -1,4 +1,4 @@
-import { getPostCategories } from "./parser.js";
+import { getPostCategories, parseCaption } from "./parser.js";
 import { guardarMedio } from "../media/index.js";
 import { crearRepoFeedInstagram } from "./feed.js";
 
@@ -10,6 +10,7 @@ export async function sincronizarInstagram({
   config = {},
   repoFeed = crearRepoFeedInstagram(),
   mediaService = { guardarMedio },
+  eventos = null,
   fetchFn = globalThis.fetch,
 } = {}) {
   const token = config.instagramToken || process.env.INSTAGRAM_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN;
@@ -18,11 +19,57 @@ export async function sincronizarInstagram({
 
   if (!token || token === "tu_token_de_larga_duracion_aqui") {
     const existing = await repoFeed.loadFeed();
+    if (eventos && Array.isArray(existing)) {
+      for (const post of existing) {
+        if (post.categories?.includes("eventos")) {
+          const existe = await eventos.buscarPorInstagramId(post.id);
+          const parsed = post.parsed || parseCaption(post.caption);
+          if (!existe) {
+            await eventos.crear({
+              origen: "instagram",
+              instagramId: String(post.id),
+              permalink: post.permalink,
+              titulo: parsed.title,
+              resumen: parsed.summary,
+              descripcion:
+                parsed.bodyParagraphs && parsed.bodyParagraphs.length > 0
+                  ? parsed.bodyParagraphs.join("\n\n")
+                  : post.caption || "",
+              captionOriginal: post.caption,
+              fechaEvento: post.timestamp || new Date().toISOString(),
+              fechaPublicacionOriginal: post.timestamp || null,
+              tipoMedio: post.mediaType || "IMAGE",
+              fotoPrincipal: post.localImage || post.fotoPrincipal || "/media/instagram/placeholder.svg",
+              videoUrl: post.localVideo || post.permalink,
+              videoThumbnail: post.localThumbnail || null,
+              medios: post.mediaItems || [],
+              cantidadMedios: post.mediaCount || (post.mediaItems?.length) || 1,
+              estado: "visible",
+              categorias: post.categories,
+            });
+          }
+        }
+      }
+    }
+
+    const syncStatus = {
+      conectado: false,
+      cuenta: "@ifts_2_ok",
+      hashtag: "#eventosIFTS2",
+      ultimaSincronizacion: new Date().toISOString(),
+      estado: "sin_sincronizar",
+      totalPosts: existing.length,
+    };
+    if (repoFeed.saveSyncStatus) {
+      await repoFeed.saveSyncStatus(syncStatus);
+    }
+
     return {
       success: true,
       mensaje: "Sin token de Instagram configurado. Se mantiene el feed persistido.",
       count: existing.length,
       posts: existing,
+      syncStatus,
     };
   }
 
@@ -33,6 +80,18 @@ export async function sincronizarInstagram({
       error: "Falta configurar INSTAGRAM_ACCOUNT_ID",
       posts: existing,
     };
+  }
+
+  let accountUsername = "@ifts_2_ok";
+  try {
+    const profileUrl = `https://graph.facebook.com/v26.0/${accountId}?fields=id,username,name&access_token=${token}`;
+    const profileRes = await fetchFn(profileUrl);
+    const profile = await profileRes.json();
+    if (profile && profile.username) {
+      accountUsername = `@${profile.username}`;
+    }
+  } catch {
+    // Preservar fallback institucional @ifts_2_ok
   }
 
   const fields =
@@ -47,6 +106,17 @@ export async function sincronizarInstagram({
       const errorMsg = result.error?.message || `Error HTTP ${res.status}`;
       console.warn(`[instagram.meta] Advertencia de Meta Graph API: ${errorMsg}`);
       const existing = await repoFeed.loadFeed();
+      if (repoFeed.saveSyncStatus) {
+        await repoFeed.saveSyncStatus({
+          conectado: false,
+          cuenta: accountUsername,
+          cuentaId: accountId,
+          hashtag: "#eventosIFTS2",
+          ultimaSincronizacion: (await repoFeed.loadSyncStatus?.())?.ultimaSincronizacion || null,
+          estado: "error",
+          error: errorMsg,
+        });
+      }
       return {
         success: false,
         error: errorMsg,
@@ -173,11 +243,63 @@ export async function sincronizarInstagram({
 
     if (mergedPosts.length > 0) {
       await repoFeed.saveFeed(mergedPosts);
+    }
+
+    // Ingestar en la colección de eventos institucionales cualquier publicación categorizada
+    if (eventos && Array.isArray(mergedPosts)) {
+      for (const post of mergedPosts) {
+        if (post.categories?.includes("eventos")) {
+          const existe = await eventos.buscarPorInstagramId(post.id);
+          const parsed = post.parsed || parseCaption(post.caption);
+          if (!existe) {
+            await eventos.crear({
+              origen: "instagram",
+              instagramId: String(post.id),
+              permalink: post.permalink,
+              titulo: parsed.title,
+              resumen: parsed.summary,
+              descripcion:
+                parsed.bodyParagraphs && parsed.bodyParagraphs.length > 0
+                  ? parsed.bodyParagraphs.join("\n\n")
+                  : post.caption || "",
+              captionOriginal: post.caption,
+              fechaEvento: post.timestamp || new Date().toISOString(),
+              fechaPublicacionOriginal: post.timestamp || null,
+              tipoMedio: post.mediaType || "IMAGE",
+              fotoPrincipal: post.localImage || post.fotoPrincipal || "/media/instagram/placeholder.svg",
+              videoUrl: post.localVideo || post.permalink,
+              videoThumbnail: post.localThumbnail || null,
+              medios: post.mediaItems || [],
+              cantidadMedios: post.mediaCount || (post.mediaItems?.length) || 1,
+              estado: "visible",
+              categorias: post.categories,
+            });
+          }
+        }
+      }
+    }
+
+    const syncStatus = {
+      conectado: true,
+      cuenta: accountUsername,
+      cuentaId: accountId,
+      hashtag: "#eventosIFTS2",
+      ultimaSincronizacion: new Date().toISOString(),
+      estado: "activo",
+      totalPosts: mergedPosts.length,
+      nuevos: feedResults.length,
+    };
+    if (repoFeed.saveSyncStatus) {
+      await repoFeed.saveSyncStatus(syncStatus);
+    }
+
+    if (mergedPosts.length > 0) {
       return {
         success: true,
         count: mergedPosts.length,
         nuevos: feedResults.length,
         posts: mergedPosts,
+        syncStatus,
       };
     }
 
@@ -186,10 +308,21 @@ export async function sincronizarInstagram({
       count: existingPosts.length,
       posts: existingPosts,
       notice: "Sin publicaciones nuevas coincidentes",
+      syncStatus,
     };
   } catch (err) {
     console.error("[instagram.meta] Error de red o ejecución:", err.message);
     const existing = await repoFeed.loadFeed();
+    if (repoFeed.saveSyncStatus) {
+      await repoFeed.saveSyncStatus({
+        conectado: false,
+        cuenta: accountUsername,
+        hashtag: "#eventosIFTS2",
+        ultimaSincronizacion: (await repoFeed.loadSyncStatus?.())?.ultimaSincronizacion || null,
+        estado: "error",
+        error: err.message,
+      });
+    }
     return {
       success: false,
       error: err.message,

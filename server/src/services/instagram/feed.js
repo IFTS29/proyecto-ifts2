@@ -11,10 +11,12 @@ export function crearRepoFeedInstagram({
   storageDir = DEFAULT_STORAGE_DIR,
   feedFilename = "feed.json",
   deletedFilename = "deleted-posts.json",
+  syncStatusFilename = "sync-status.json",
   maxPosts = 20,
 } = {}) {
   const feedPath = path.join(storageDir, feedFilename);
   const deletedPath = path.join(storageDir, deletedFilename);
+  const syncStatusPath = path.join(storageDir, syncStatusFilename);
 
   async function loadDeletedPostIds() {
     try {
@@ -125,11 +127,38 @@ export function crearRepoFeedInstagram({
     return { success: true, deletedId: targetId, total: remaining.length };
   }
 
+  async function loadSyncStatus() {
+    try {
+      const raw = await fs.readFile(syncStatusPath, "utf-8");
+      return JSON.parse(raw);
+    } catch {
+      return {
+        conectado: false,
+        cuenta: "@ifts_2_ok",
+        hashtag: "#eventosIFTS2",
+        ultimaSincronizacion: null,
+        estado: "sin_sincronizar",
+      };
+    }
+  }
+
+  async function saveSyncStatus(status = {}) {
+    try {
+      await fs.mkdir(storageDir, { recursive: true });
+      await fs.writeFile(syncStatusPath, JSON.stringify(status, null, 2), "utf-8");
+      return status;
+    } catch {
+      return status;
+    }
+  }
+
   return {
     loadFeed,
     saveFeed,
     loadDeletedPostIds,
     registerDeletedPostId,
     deletePostById,
+    loadSyncStatus,
+    saveSyncStatus,
   };
 }

@@ -92,7 +92,7 @@ export function crearApp({
   // Faltan montar: /api/academic, /api/content
   app.use(
     "/api/instagram",
-    crearRutasInstagram({ config, usuarios, repoFeed: repoFeedInstagram, mediaService }),
+    crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),
   );
 
   app.use("/api", (req, res) => {
