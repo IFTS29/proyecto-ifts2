@@ -90,7 +90,7 @@ export default function AdminEventos() {
   const [mensajeSync, setMensajeSync] = useState("");
   const [syncStatus, setSyncStatus] = useState({
     conectado: false,
-    cuenta: "@ifts_2_ok",
+    cuenta: "",
     hashtag: "#eventosIFTS2",
     ultimaSincronizacion: null,
     estado: "sin_sincronizar",
@@ -142,9 +142,12 @@ export default function AdminEventos() {
     setMensajeSync("");
     try {
       const res = await api("/instagram/sync", { metodo: "POST" });
+      const guardados = res.nuevos ?? 0;
       setMensajeSync(
         res.success
-          ? `¡Sincronización completada! (${res.nuevos ?? res.count ?? 0} publicaciones procesadas)`
+          ? guardados > 0
+            ? `¡Sincronización completada! (${guardados} ${guardados === 1 ? "nuevo evento guardado" : "nuevos eventos guardados"} en la base de datos)`
+            : `Sincronización completada: al día (sin nuevas publicaciones con #eventosIFTS2)`
           : `Resultado: ${res.mensaje || res.message || res.error || "Listo"}`
       );
       await Promise.all([cargarEventos(), cargarStatus()]);
@@ -258,7 +261,9 @@ export default function AdminEventos() {
             </span>
             <div>
               <strong>
-                Instagram {syncStatus.conectado ? "conectado" : "cuenta"}: {syncStatus.cuenta || "@ifts_2_ok"}
+                {syncStatus.conectado
+                  ? `Instagram conectado: ${syncStatus.cuenta || "Activo"}`
+                  : "Instagram: Sin conectar"}
               </strong>
               <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
                 Se incorporan las publicaciones con {syncStatus.hashtag || "#eventosIFTS2"}. Última sincronización:{" "}
