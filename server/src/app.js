@@ -4,9 +4,11 @@ import helmet from "helmet";
 import { leerConfig } from "./config.js";
 import { crearLimitadorLogin } from "./services/limitador.js";
 import { crearRepoUsuariosMemoria } from "./repos/usuarios.memoria.js";
+import { crearRepoEventosMemoria } from "./repos/eventos.memoria.js";
 import { crearRutasAuth } from "./routes/auth.js";
 import { crearRutasUsuarios } from "./routes/usuarios.js";
 import { crearRutasContacto } from "./routes/contacto.js";
+import { crearRutasEventos } from "./routes/eventos.js";
 import { crearServicioCorreo } from "./services/correo.smtp.js";
 import { crearLimitadorContacto } from "./services/limitador.contacto.js";
 import path from "node:path";
@@ -42,6 +44,7 @@ const INLINE_PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
 export function crearApp({
   config = leerConfig(),
   usuarios = crearRepoUsuariosMemoria(),
+  eventos = crearRepoEventosMemoria(),
   limitadorLogin = crearLimitadorLogin({ max: config.intentosMax, duracionMs: config.bloqueoMs }),
   correo = crearServicioCorreo(config),
   limitadorContacto = crearLimitadorContacto({
@@ -84,8 +87,9 @@ export function crearApp({
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
+  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos }));
 
-  // Faltan montar: /api/events, /api/academic, /api/content
+  // Faltan montar: /api/academic, /api/content
   app.use(
     "/api/instagram",
     crearRutasInstagram({ config, usuarios, repoFeed: repoFeedInstagram, mediaService }),
