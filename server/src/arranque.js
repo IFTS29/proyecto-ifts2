@@ -52,11 +52,7 @@ async function elegirRepositorios(config, conectar) {
   }
 
   try {
-// <<<<<<< HEAD
     await conectar(config.mongoUri);
-// =======
-//     await conectar();
-// >>>>>>> 24a97aa48c70e7309c6118d1789f5b126021bfec
     console.log("Conectado a MongoDB");
     return reposEnMongo();
   } catch (err) {
