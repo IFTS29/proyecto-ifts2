@@ -1,4 +1,6 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { crearApp } from "./app.js";
 import { leerConfig } from "./config.js";
 import { conectarDB } from "./db.js";
@@ -7,6 +9,11 @@ import { crearRepoUsuariosMongo } from "./repos/usuarios.mongo.js";
 import { crearRepoEventosMemoria } from "./repos/eventos.memoria.js";
 import { crearRepoEventosMongo } from "./repos/eventos.mongo.js";
 import { asegurarAdminInicial } from "./services/seed.js";
+
+// Cargar .env tanto si está en server/ como si está en la raíz del proyecto
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const config = leerConfig();
 let usuarios;

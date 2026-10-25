@@ -1,9 +1,16 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import { leerConfig } from "../src/config.js";
 import { conectarDB } from "../src/db.js";
 import { crearRepoUsuariosMongo } from "../src/repos/usuarios.mongo.js";
 import { hashear } from "../src/services/passwords.js";
+
+// Cargar .env tanto si está en server/ como si está en la raíz del proyecto
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 async function ejecutarSeedAdmin() {
   const config = leerConfig();
