@@ -178,23 +178,6 @@ Copy-Item .env.example .env
 - Si PowerShell no deja ejecutar npm: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - **¿Por qué `--prefix server` y `--prefix client`?** Tanto el backend (`server/`) como el frontend (`client/`) poseen sus propios archivos `package-lock.json` independientes. El modificador `--prefix` permite a `npm ci` leer e instalar en la subcarpeta correspondiente sin necesidad de cambiar de directorio con `cd`, asegurando que se instalen exactamente las versiones fijadas por el equipo.
 
-### Ejecución en Desarrollo
-
-Tanto el backend como el frontend cuentan con sus propios entornos independientes y se inician en terminales separadas:
-
-1. **Terminal 1 (Backend - API Express):**
-   ```powershell
-   npm run dev --prefix server
-   ```
-   *Escuchando en `http://localhost:4000`.*
-
-2. **Terminal 2 (Frontend - React + Vite):**
-   ```powershell
-   npm run dev --prefix client
-   ```
-   *Abre la aplicación en `http://localhost:5173`. Vite reenvía automáticamente las llamadas a `/api` y `/media` al puerto 4000 del backend.*
-   *El panel de administración queda en `http://localhost:5173/login`.*
-
 ### Scripts
 
 | Comando | Descripción |

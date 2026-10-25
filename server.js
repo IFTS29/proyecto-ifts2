@@ -48,7 +48,7 @@ const clientDistPath = path.resolve(__dirname, "client/dist");
 if (isProduction && fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api")) return next();
+    if (req.path.startsWith("/api") || req.path.startsWith("/media")) return next();
     res.sendFile(path.resolve(clientDistPath, "index.html"));
   });
 } else {

@@ -1,0 +1,207 @@
+[
+  {
+    "id": "test_1792858413914",
+    "caption": "Mateada Patria #IFTS2Eventos",
+    "mediaType": "CAROUSEL_ALBUM",
+    "permalink": "https://www.instagram.com/proyecto.404solutions.ifts2/",
+    "timestamp": "2026-10-24T16:13:33.914Z",
+    "categories": [
+      "eventos"
+    ],
+    "mediaCount": 6,
+    "mediaItems": [
+      {
+        "id": "test_1792858413914_1",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_1.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_1.svg"
+      },
+      {
+        "id": "test_1792858413914_2",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_2.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_2.svg"
+      },
+      {
+        "id": "test_1792858413914_3",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_3.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_3.svg"
+      },
+      {
+        "id": "test_1792858413914_4",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_4.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_4.svg"
+      },
+      {
+        "id": "test_1792858413914_5",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_5.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_5.svg"
+      },
+      {
+        "id": "test_1792858413914_6",
+        "mediaType": "IMAGE",
+        "url": "/media/instagram/test_1792858413914_6.svg",
+        "thumbnailUrl": "/media/instagram/test_1792858413914_6.svg"
+      }
+    ],
+    "localImage": "/media/instagram/test_1792858413914_1.svg"
+  },
+  {
+    "id": "mock_novedad_002",
+    "caption": "¡Inscripciones abiertas para el ciclo lectivo 2026! 🎓 Tecnicatura Superior en Desarrollo de Software. Educación superior pública, gratuita y con titulación oficial en la Ciudad de Buenos Aires. ¡Vení a formar parte del IFTS N.° 29! #novedades #inscripciones #institucional",
+    "mediaType": "IMAGE",
+    "permalink": "https://www.instagram.com/p/mock_inscripciones/",
+    "timestamp": "2026-10-22T15:00:00+0000",
+    "localImage": "/img/b-alumnos.jpg",
+    "categories": [
+      "novedades"
+    ]
+  },
+  {
+    "id": "mock_novedad_003",
+    "caption": "Masterclass abierta: \"Inteligencia Artificial en el Desarrollo de Software Moderno\" 🤖 Abordaremos modelos generativos, agentes autónomos y herramientas para potenciar la productividad profesional. Jueves 19 hs en el Aula Magna. #novedades #comunicado",
+    "mediaType": "IMAGE",
+    "permalink": "https://www.instagram.com/p/mock_ia/",
+    "timestamp": "2026-10-20T18:30:00+0000",
+    "localImage": "/img/img-47d91167.jpg",
+    "categories": [
+      "novedades"
+    ]
+  },
+  {
+    "id": "mock_evento_001",
+    "caption": "Llega la 4ta edición del Torneo de Programación & Hackathon estudiantil organizado por 404-Solutions y el IFTS N.° 29 🚀 48 horas continuas de resolución de desafíos, mentorías con profesionales del sector y premios para los mejores proyectos. ¡Anotá a tu equipo! #eventos #hackathon #estudiantes",
+    "mediaType": "IMAGE",
+    "permalink": "https://www.instagram.com/p/mock_hackathon/",
+    "timestamp": "2026-10-18T20:00:00+0000",
+    "localImage": "/img/b-carrera.jpg",
+    "categories": [
+      "eventos"
+    ]
+  },
+  {
+    "id": "mock_evento_002",
+    "caption": "Taller extracurricular intensivo: \"Git & GitHub para Trabajo en Equipo\" 💻 Aprendé flujos de trabajo reales: Gitflow, ramas de features, Pull Requests, Code Review y resolución de conflictos como en las mejores empresas. #eventos #talleres #estudiantes",
+    "mediaType": "IMAGE",
+    "permalink": "https://www.instagram.com/p/mock_git/",
+    "timestamp": "2026-10-15T19:00:00+0000",
+    "localImage": "/img/img-928eb3ce.jpg",
+    "categories": [
+      "eventos"
+    ]
+  },
+  {
+    "id": "mock_evento_003",
+    "caption": "Invitación especial a la Muestra Anual de Proyectos de Software del IFTS N.° 29 ✨ Nuestros estudiantes de 2do y 3er año exponen sus sistemas, aplicaciones móviles y desarrollos web ante la comunidad y empresas de la industria. ¡Entrada libre y gratuita! #eventos #comunidad",
+    "mediaType": "IMAGE",
+    "permalink": "https://www.instagram.com/p/mock_muestra/",
+    "timestamp": "2026-10-10T17:30:00+0000",
+    "localImage": "/img/b-plan.jpg",
+    "categories": [
+      "eventos"
+    ]
+  },
+  {
+    "id": "mock_evento_cuatrimestre",
+    "caption": "Cierre del 1.° cuatrimestre 📦\n\nMuestra de las producciones del primer cuatrimestre.\n\nPresentación de trabajos prácticos integradores, desarrollo de software y aplicaciones web creadas en laboratorios.\n\n#eventos #estudiantes #comunidad",
+    "mediaType": "CAROUSEL_ALBUM",
+    "permalink": "https://www.instagram.com/p/mock_cuatrimestre/",
+    "timestamp": "2026-07-10T19:00:00+0000",
+    "localImage": "/img/verduras.jpg",
+    "mediaCount": 4,
+    "mediaItems": [
+      {
+        "id": "c1",
+        "mediaType": "IMAGE",
+        "url": "/img/verduras.jpg",
+        "thumbnailUrl": "/img/verduras.jpg"
+      },
+      {
+        "id": "c2",
+        "mediaType": "IMAGE",
+        "url": "/img/img-47d91167.jpg",
+        "thumbnailUrl": "/img/img-47d91167.jpg"
+      },
+      {
+        "id": "c3",
+        "mediaType": "IMAGE",
+        "url": "/img/img-928eb3ce.jpg",
+        "thumbnailUrl": "/img/img-928eb3ce.jpg"
+      },
+      {
+        "id": "c4",
+        "mediaType": "IMAGE",
+        "url": "/img/img-c51d02b2.jpg",
+        "thumbnailUrl": "/img/img-c51d02b2.jpg"
+      }
+    ],
+    "categories": [
+      "eventos"
+    ]
+  },
+  {
+    "id": "mock_evento_gastronomia",
+    "caption": "Jornada de Gastronomía 🍽️\n\nJornada abierta con elaboraciones de los estudiantes.\n\nDegustación comunitaria y muestra de técnicas culinarias aplicadas en proyectos de integración social.\n\n#eventos #talleres #estudiantes",
+    "mediaType": "CAROUSEL_ALBUM",
+    "permalink": "https://www.instagram.com/p/mock_gastronomia/",
+    "timestamp": "2026-06-18T18:00:00+0000",
+    "localImage": "/img/morron.jpg",
+    "mediaCount": 8,
+    "mediaItems": [
+      {
+        "id": "g1",
+        "mediaType": "IMAGE",
+        "url": "/img/morron.jpg",
+        "thumbnailUrl": "/img/morron.jpg"
+      },
+      {
+        "id": "g2",
+        "mediaType": "IMAGE",
+        "url": "/img/plato.jpg",
+        "thumbnailUrl": "/img/plato.jpg"
+      },
+      {
+        "id": "g3",
+        "mediaType": "IMAGE",
+        "url": "/img/verduras.jpg",
+        "thumbnailUrl": "/img/verduras.jpg"
+      },
+      {
+        "id": "g4",
+        "mediaType": "IMAGE",
+        "url": "/img/b-eventos.jpg",
+        "thumbnailUrl": "/img/b-eventos.jpg"
+      },
+      {
+        "id": "g5",
+        "mediaType": "IMAGE",
+        "url": "/img/hero.jpg",
+        "thumbnailUrl": "/img/hero.jpg"
+      },
+      {
+        "id": "g6",
+        "mediaType": "IMAGE",
+        "url": "/img/b-carrera.jpg",
+        "thumbnailUrl": "/img/b-carrera.jpg"
+      },
+      {
+        "id": "g7",
+        "mediaType": "IMAGE",
+        "url": "/img/b-alumnos.jpg",
+        "thumbnailUrl": "/img/b-alumnos.jpg"
+      },
+      {
+        "id": "g8",
+        "mediaType": "IMAGE",
+        "url": "/img/autoridades.jpg",
+        "thumbnailUrl": "/img/autoridades.jpg"
+      }
+    ],
+    "categories": [
+      "eventos"
+    ]
+  }
+]
