@@ -174,89 +174,18 @@ export default function Eventos() {
                 );
               })
             ) : (
-              <>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  4 fotos
-                </span>
-                <img src={IMGS.VERDURAS} alt="Foto del evento Cierre del 1.° cuatrimestre" />
-                <div className="texto">
-                  <time>Julio 2026</time>
-                  <h3>Cierre del 1.° cuatrimestre</h3>
-                  <p>Muestra de las producciones del primer cuatrimestre.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  8 fotos
-                </span>
-                <img src={IMGS.MORRON} alt="Foto del evento Jornada de Gastronomía" />
-                <div className="texto">
-                  <time>Junio 2026</time>
-                  <h3>Jornada de Gastronomía</h3>
-                  <p>Jornada abierta con elaboraciones de los estudiantes.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  6 fotos
-                </span>
-                <img src={IMGS.PLATO} alt="Foto del evento Mateada Patria" />
-                <div className="texto">
-                  <time>Mayo 2026</time>
-                  <h3>Mateada Patria</h3>
-                  <p>Encuentro por el 25 de Mayo con estudiantes, docentes y familias.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-              </>
+              <li
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "3rem 1rem",
+                  listStyle: "none",
+                }}
+              >
+                <p style={{ color: "var(--suave)", fontSize: "1.125rem" }}>
+                  No hay eventos institucionales publicados por el momento.
+                </p>
+              </li>
             )}
           </ul>
           <details className="archivo">
