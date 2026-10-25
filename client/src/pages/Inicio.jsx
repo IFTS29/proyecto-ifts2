@@ -1,10 +1,26 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { api } from "../api";
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 
 export default function Inicio() {
   const carRef = useRef(null);
   const pausa = useRef(false);
+  const [eventos, setEventos] = useState([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    api("/instagram/feed?category=eventos")
+      .then((data) => {
+        if (!cancelado && Array.isArray(data) && data.length > 0) {
+          setEventos(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const mover = (d) => {
     const c = carRef.current;
@@ -590,6 +606,65 @@ export default function Inicio() {
             onFocus={() => (pausa.current = true)}
             onBlur={() => (pausa.current = false)}
           >
+            {eventos.length > 0 ? (
+              eventos.map((post) => {
+                const titulo = post.parsed?.title || post.caption || "Evento institucional";
+                const resumen = post.parsed?.summary || "";
+                const fecha = post.fechaFormateada || "Reciente";
+                const cantidad = post.cantidadMedios || 1;
+                const imagen =
+                  post.fotoPrincipal ||
+                  post.localImage ||
+                  post.localThumbnail ||
+                  "/media/instagram/placeholder.svg";
+
+                return (
+                  <li key={post.id}>
+                    <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
+                      <span className="cant">
+                        {post.isVideo ? (
+                          "🎬 Video"
+                        ) : (
+                          <>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <rect x="3" y="5" width="18" height="14" rx="2" />
+                              <circle cx="9" cy="10" r="2" />
+                              <path d="M21 16l-5-5-8 8" />
+                            </svg>
+                            {cantidad} {cantidad === 1 ? "foto" : "fotos"}
+                          </>
+                        )}
+                      </span>
+                      <img
+                        src={imagen}
+                        alt={`Foto del evento ${titulo}`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/media/instagram/placeholder.svg";
+                        }}
+                      />
+                      <div className="texto">
+                        <time>{fecha}</time>
+                        <h3>{titulo}</h3>
+                        <p>{resumen}</p>
+                        <span className="ver">
+                          {post.isVideo ? "Ver el video" : "Ver las fotos"}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })
+            ) : (
+              <>
             <li>
               <Link className="tarjeta" to="/evento">
                 <span className="cant">
@@ -698,6 +773,8 @@ export default function Inicio() {
                 </div>
               </Link>
             </li>
+              </>
+            )}
           </ul>
           <div className="pie-carrusel">
             <p>
