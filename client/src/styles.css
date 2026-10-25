@@ -1307,7 +1307,8 @@ p {
   font-weight: 600;
 }
 
-.pestanas button[aria-selected="true"] {
+  .pestanas button[aria-selected="true"],
+  .pestanas button[aria-pressed="true"] {
   background: var(--verde-boton);
   color: #fff;
   border-color: var(--verde-boton);
@@ -3142,4 +3143,355 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
 .aviso.error {
   margin-bottom: 14px;
+}
+
+/* ---- Información académica: horarios (#33) ---- */
+.boton:disabled,
+.boton-texto:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton-texto {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--verde);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-texto.peligro {
+  color: var(--rojo);
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.selector-periodo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.selector-periodo .campo,
+.otro-periodo .campo {
+  margin-bottom: 0;
+  min-width: 220px;
+}
+
+.otro-periodo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+
+.resumen-horarios,
+.seccion-horarios {
+  margin-top: 24px;
+}
+
+.estado-publicacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  color: var(--suave);
+}
+
+.aviso-cambios {
+  background: var(--naranja-suave);
+  color: var(--naranja-texto);
+}
+
+.aviso-vista-previa {
+  margin-top: 0;
+  background: var(--rojo-suave);
+  color: var(--rojo);
+}
+
+.tarjeta-accion {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding: 20px 24px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--superficie-2);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tarjeta-accion:hover {
+  border-color: var(--verde);
+}
+
+.tarjeta-accion svg {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  color: var(--verde);
+}
+
+.tarjeta-accion strong {
+  display: block;
+  font-family: var(--titulos);
+  font-size: 22px;
+}
+
+.tarjeta-accion .flecha {
+  margin-left: auto;
+  font-size: 26px;
+  color: var(--verde);
+}
+
+.resumen-horarios .ayuda,
+.ayuda-tabla {
+  margin-top: 12px;
+  color: var(--suave);
+  font-size: 15px;
+}
+
+.cabecera-tabla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 20px;
+}
+
+.cabecera-tabla h2 {
+  margin-bottom: 0;
+}
+
+.cabecera-tabla .acciones {
+  margin-top: 0;
+}
+
+.estado-vacio {
+  padding: 32px;
+  border: 1px dashed var(--borde);
+  border-radius: 16px;
+  text-align: center;
+  color: var(--suave);
+}
+
+.barra-tabla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.barra-tabla .campo {
+  margin-bottom: 0;
+  min-width: 220px;
+}
+
+.barra-tabla .pestanas {
+  margin-bottom: 0;
+}
+
+/* Tabla del panel: encabezados fijos al bajar, desplazamiento horizontal propio y la materia fija a la izquierda. */
+.tabla-horarios {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.tabla-horarios table {
+  min-width: 900px;
+}
+
+.tabla-horarios thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.tabla-horarios th:first-child,
+.tabla-horarios tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--superficie);
+  text-align: left;
+}
+
+.tabla-horarios thead th:first-child {
+  z-index: 3;
+  background: var(--superficie-2);
+}
+
+.tabla-horarios tbody th {
+  font-weight: 600;
+  color: var(--texto);
+  font-size: 16px;
+}
+
+.ordenar {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.boton-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--superficie);
+  color: var(--verde);
+  cursor: pointer;
+}
+
+.boton-icono svg {
+  width: 18px;
+  height: 18px;
+}
+
+.boton-icono.peligro {
+  color: var(--rojo);
+}
+
+.boton-icono:hover {
+  border-color: currentColor;
+}
+
+/* Ventanas modales */
+.modal {
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 28px;
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  box-shadow: var(--sombra);
+}
+
+.modal-ancha {
+  width: min(1000px, calc(100vw - 32px));
+}
+
+.modal::backdrop {
+  background: rgba(10, 38, 24, 0.5);
+}
+
+.modal-cabecera {
+  display: flex;
+  gap: 16px;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-cabecera h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.modal-cerrar {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--suave);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-cerrar:hover {
+  background: var(--superficie-2);
+}
+
+.modal .aviso:first-child {
+  margin-top: 0;
+}
+
+.dias-cursada {
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 0 0 8px;
+}
+
+.dias-cursada legend {
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.dia-cursada {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.dia-cursada .campo,
+.dia-cursada .boton {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 600px) {
+  .modal {
+    padding: 20px;
+  }
+
+  .modal .fila {
+    grid-template-columns: 1fr;
+  }
+
+  .dia-cursada {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dia-cursada .campo:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .tarjeta-accion {
+    padding: 16px;
+  }
+}
+
+/* Página de Alumnos: horarios publicados */
+.horarios-de-cursada h2,
+.proximamente h2 {
+  margin-bottom: 16px;
+}
+
+.campo-en-linea {
+  margin: 0 0 0 auto;
+  min-width: 220px;
+}
+
+.proximamente {
+  margin-top: 40px;
 }

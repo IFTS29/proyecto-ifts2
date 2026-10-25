@@ -9,8 +9,8 @@ import { hashear } from "../src/services/passwords.js";
 
 // Cargar .env tanto si está en server/ como si está en la raíz del proyecto
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
+dotenv.config({ path: path.resolve(__dirname, "../../.env"), override: true });
 
 async function ejecutarSeedAdmin() {
   const config = leerConfig();
