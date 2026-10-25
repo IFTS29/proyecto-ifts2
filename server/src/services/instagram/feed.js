@@ -129,8 +129,12 @@ export function crearRepoFeedInstagram({
         caption: postDetails?.caption || "",
         mediaType: postDetails?.mediaType || "",
       });
-      await fs.mkdir(storageDir, { recursive: true });
-      await fs.writeFile(deletedPath, JSON.stringify(records, null, 2), "utf-8");
+      try {
+        await fs.mkdir(storageDir, { recursive: true });
+        await fs.writeFile(deletedPath, JSON.stringify(records, null, 2), "utf-8");
+      } catch (err) {
+        console.warn("[repo-instagram] Aviso: no se pudo escribir deleted-posts en disco:", err.message);
+      }
     }
   }
 
@@ -186,8 +190,12 @@ export function crearRepoFeedInstagram({
       }
     }
 
-    await fs.mkdir(storageDir, { recursive: true });
-    await fs.writeFile(feedPath, JSON.stringify(trimmed, null, 2), "utf-8");
+    try {
+      await fs.mkdir(storageDir, { recursive: true });
+      await fs.writeFile(feedPath, JSON.stringify(trimmed, null, 2), "utf-8");
+    } catch (err) {
+      console.warn("[repo-instagram] Aviso: no se pudo escribir feed en disco:", err.message);
+    }
     return trimmed;
   }
 
