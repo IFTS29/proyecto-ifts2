@@ -5,13 +5,25 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const STORAGE_MEDIA_DIR =
-  process.env.VERCEL === "1"
-    ? path.join(os.tmpdir(), "instagram/media")
-    : path.resolve(__dirname, "../../../storage/instagram/media");
+
+const esServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.VERCEL_ENV ||
+  process.env.NOW_REGION ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  (typeof __dirname === "string" && __dirname.includes("/var/task"))
+);
+
+const STORAGE_MEDIA_DIR = esServerless
+  ? path.join(os.tmpdir(), "instagram/media")
+  : path.resolve(__dirname, "../../../storage/instagram/media");
 
 export async function asegurarDirectorioMedia() {
-  await fs.mkdir(STORAGE_MEDIA_DIR, { recursive: true });
+  try {
+    await fs.mkdir(STORAGE_MEDIA_DIR, { recursive: true });
+  } catch (err) {
+    console.warn("[media.local] Aviso: no se pudo crear directorio multimedia en disco:", err.message);
+  }
 }
 
 /**
