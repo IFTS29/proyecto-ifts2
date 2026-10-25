@@ -1,10 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const STORAGE_MEDIA_DIR = path.resolve(__dirname, "../../../storage/instagram/media");
+const STORAGE_MEDIA_DIR =
+  process.env.VERCEL === "1"
+    ? path.join(os.tmpdir(), "instagram/media")
+    : path.resolve(__dirname, "../../../storage/instagram/media");
 
 export async function asegurarDirectorioMedia() {
   await fs.mkdir(STORAGE_MEDIA_DIR, { recursive: true });

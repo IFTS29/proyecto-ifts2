@@ -1,11 +1,40 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
+import mongoose from "mongoose";
 import { parseCaption, formatMonthYear, deduplicateFeed } from "./parser.js";
+import { InstagramSync } from "../../models/InstagramSync.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DEFAULT_STORAGE_DIR = path.resolve(__dirname, "../../../storage/instagram");
+
+// En Vercel o serverless (/var/task de solo lectura) redirigimos el fallback a /tmp
+const DEFAULT_STORAGE_DIR =
+  process.env.VERCEL === "1"
+    ? path.join(os.tmpdir(), "instagram")
+    : path.resolve(__dirname, "../../../storage/instagram");
+
+function enriquecerPost(post) {
+  const parsed = parseCaption(post.caption);
+  const fechaFormateada = formatMonthYear(post.timestamp);
+  const isAlbum =
+    post.mediaType === "CAROUSEL_ALBUM" || (Array.isArray(post.mediaItems) && post.mediaItems.length > 1);
+  const isVideo = post.mediaType === "VIDEO";
+  const cantidadMedios = post.mediaCount || (Array.isArray(post.mediaItems) ? post.mediaItems.length : 1);
+
+  return {
+    ...post,
+    parsed,
+    fechaFormateada,
+    isAlbum,
+    isVideo,
+    cantidadMedios,
+    fotoPrincipal: isVideo
+      ? post.localThumbnail || post.thumbnailUrl || "/media/instagram/placeholder.svg"
+      : post.localImage || post.mediaItems?.[0]?.url || "/media/instagram/placeholder.svg",
+  };
+}
 
 export function crearRepoFeedInstagram({
   storageDir = DEFAULT_STORAGE_DIR,
@@ -18,7 +47,21 @@ export function crearRepoFeedInstagram({
   const deletedPath = path.join(storageDir, deletedFilename);
   const syncStatusPath = path.join(storageDir, syncStatusFilename);
 
+  const usaMongo = () => Boolean(mongoose.connection && mongoose.connection.readyState >= 1);
+
   async function loadDeletedPostIds() {
+    if (usaMongo()) {
+      try {
+        const doc = await InstagramSync.findOne({ clave: "global" }).lean();
+        if (!doc || !Array.isArray(doc.deletedPosts)) return [];
+        return doc.deletedPosts.map((item) =>
+          typeof item === "object" && item !== null && item.id ? String(item.id) : String(item),
+        );
+      } catch {
+        return [];
+      }
+    }
+
     try {
       const raw = await fs.readFile(deletedPath, "utf-8");
       const data = JSON.parse(raw);
@@ -36,6 +79,29 @@ export function crearRepoFeedInstagram({
   async function registerDeletedPostId(id, postDetails = null) {
     if (!id) return;
     const targetId = String(id);
+
+    if (usaMongo()) {
+      try {
+        await InstagramSync.findOneAndUpdate(
+          { clave: "global" },
+          {
+            $addToSet: {
+              deletedPosts: {
+                id: targetId,
+                discardedAt: new Date().toISOString(),
+                caption: postDetails?.caption || "",
+                mediaType: postDetails?.mediaType || "",
+              },
+            },
+          },
+          { upsert: true },
+        );
+        return;
+      } catch (err) {
+        console.warn("[repo-instagram] Error registrando post descartado en MongoDB:", err.message);
+      }
+    }
+
     let records = [];
     try {
       const raw = await fs.readFile(deletedPath, "utf-8");
@@ -62,6 +128,18 @@ export function crearRepoFeedInstagram({
   }
 
   async function loadFeed() {
+    if (usaMongo()) {
+      try {
+        const doc = await InstagramSync.findOne({ clave: "global" }).lean();
+        const posts = Array.isArray(doc?.feedCache) ? doc.feedCache : [];
+        const deletedIds = await loadDeletedPostIds();
+        const active = posts.filter((p) => !deletedIds.includes(String(p.id)));
+        return active.map(enriquecerPost);
+      } catch {
+        return [];
+      }
+    }
+
     let raw;
     try {
       raw = await fs.readFile(feedPath, "utf-8");
@@ -75,43 +153,33 @@ export function crearRepoFeedInstagram({
 
       const deletedIds = await loadDeletedPostIds();
       const active = posts.filter((p) => !deletedIds.includes(String(p.id)));
-
-      // Enriquecer con información procesada (título editorial, resumen, fecha formateada)
-      return active.map((post) => {
-        const parsed = parseCaption(post.caption);
-        const fechaFormateada = formatMonthYear(post.timestamp);
-        const isAlbum = post.mediaType === "CAROUSEL_ALBUM" || (Array.isArray(post.mediaItems) && post.mediaItems.length > 1);
-        const isVideo = post.mediaType === "VIDEO";
-        const cantidadMedios = post.mediaCount || (Array.isArray(post.mediaItems) ? post.mediaItems.length : 1);
-
-        return {
-          ...post,
-          parsed,
-          fechaFormateada,
-          isAlbum,
-          isVideo,
-          cantidadMedios,
-          // Asegurar fallback de imagen principal
-          fotoPrincipal: isVideo
-            ? (post.localThumbnail || post.thumbnailUrl || "/media/instagram/placeholder.svg")
-            : (post.localImage || (post.mediaItems?.[0]?.url) || "/media/instagram/placeholder.svg"),
-        };
-      });
+      return active.map(enriquecerPost);
     } catch {
       return [];
     }
   }
 
   async function saveFeed(posts = []) {
-    await fs.mkdir(storageDir, { recursive: true });
     const deduplicated = deduplicateFeed(posts);
-
-    // Ordenar cronológicamente descendente
     const sorted = [...deduplicated].sort(
       (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime(),
     );
-
     const trimmed = sorted.slice(0, maxPosts);
+
+    if (usaMongo()) {
+      try {
+        await InstagramSync.findOneAndUpdate(
+          { clave: "global" },
+          { $set: { feedCache: trimmed } },
+          { upsert: true },
+        );
+        return trimmed;
+      } catch (err) {
+        console.warn("[repo-instagram] Error guardando feed en MongoDB:", err.message);
+      }
+    }
+
+    await fs.mkdir(storageDir, { recursive: true });
     await fs.writeFile(feedPath, JSON.stringify(trimmed, null, 2), "utf-8");
     return trimmed;
   }
@@ -128,6 +196,37 @@ export function crearRepoFeedInstagram({
   }
 
   async function loadSyncStatus() {
+    if (usaMongo()) {
+      try {
+        const doc = await InstagramSync.findOne({ clave: "global" }).lean();
+        if (!doc) {
+          return {
+            conectado: false,
+            cuenta: null,
+            hashtag: "#eventosIFTS2",
+            ultimaSincronizacion: null,
+            estado: "sin_sincronizar",
+          };
+        }
+        return {
+          conectado: Boolean(doc.conectado),
+          cuenta: doc.cuenta || null,
+          hashtag: doc.hashtag || "#eventosIFTS2",
+          ultimaSincronizacion: doc.ultimaSincronizacion ? new Date(doc.ultimaSincronizacion).toISOString() : null,
+          estado: doc.estado || "activo",
+          error: doc.error || null,
+        };
+      } catch {
+        return {
+          conectado: false,
+          cuenta: null,
+          hashtag: "#eventosIFTS2",
+          ultimaSincronizacion: null,
+          estado: "sin_sincronizar",
+        };
+      }
+    }
+
     try {
       const raw = await fs.readFile(syncStatusPath, "utf-8");
       return JSON.parse(raw);
@@ -143,6 +242,30 @@ export function crearRepoFeedInstagram({
   }
 
   async function saveSyncStatus(status = {}) {
+    if (usaMongo()) {
+      try {
+        await InstagramSync.findOneAndUpdate(
+          { clave: "global" },
+          {
+            $set: {
+              conectado: Boolean(status.conectado),
+              cuenta: status.cuenta || null,
+              hashtag: status.hashtag || "#eventosIFTS2",
+              ultimaSincronizacion: status.ultimaSincronizacion
+                ? new Date(status.ultimaSincronizacion)
+                : new Date(),
+              estado: status.estado || "activo",
+              error: status.error || null,
+            },
+          },
+          { upsert: true },
+        );
+        return status;
+      } catch (err) {
+        console.warn("[repo-instagram] Error guardando estado de sincronización en MongoDB:", err.message);
+      }
+    }
+
     try {
       await fs.mkdir(storageDir, { recursive: true });
       await fs.writeFile(syncStatusPath, JSON.stringify(status, null, 2), "utf-8");

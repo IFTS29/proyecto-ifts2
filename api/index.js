@@ -3,6 +3,8 @@ import { leerConfig } from "../server/src/config.js";
 import { conectarDB } from "../server/src/db.js";
 import { crearRepoUsuariosMemoria } from "../server/src/repos/usuarios.memoria.js";
 import { crearRepoUsuariosMongo } from "../server/src/repos/usuarios.mongo.js";
+import { crearRepoEventosMemoria } from "../server/src/repos/eventos.memoria.js";
+import { crearRepoEventosMongo } from "../server/src/repos/eventos.mongo.js";
 import { asegurarAdminInicial } from "../server/src/services/seed.js";
 
 let app = null;
@@ -17,23 +19,25 @@ async function obtenerApp() {
       console.log("Conectado a MongoDB");
       conectadoMongo = true;
       const usuarios = crearRepoUsuariosMongo();
+      const eventos = crearRepoEventosMongo();
       try {
         await asegurarAdminInicial({ usuarios, config });
       } catch (err) {
         console.warn("Error asegurando admin en MongoDB:", err.message);
       }
-      app = crearApp({ config, usuarios });
+      app = crearApp({ config, usuarios, eventos });
       return app;
     } catch (err) {
       console.warn("MongoDB no conectado, usando modo memoria:", err.message);
       if (!app) {
         const usuarios = crearRepoUsuariosMemoria();
+        const eventos = crearRepoEventosMemoria();
         try {
           await asegurarAdminInicial({ usuarios, config });
         } catch (e) {
           console.warn("Error asegurando admin en memoria:", e.message);
         }
-        app = crearApp({ config, usuarios });
+        app = crearApp({ config, usuarios, eventos });
       }
       return app;
     }
@@ -42,12 +46,13 @@ async function obtenerApp() {
   if (app) return app;
 
   const usuarios = crearRepoUsuariosMemoria();
+  const eventos = crearRepoEventosMemoria();
   try {
     await asegurarAdminInicial({ usuarios, config });
   } catch (err) {
     console.warn("Error asegurando admin:", err.message);
   }
-  app = crearApp({ config, usuarios });
+  app = crearApp({ config, usuarios, eventos });
   return app;
 }
 
