@@ -1,7 +1,30 @@
 import { Router } from "express";
 import { autenticar, requiereRol } from "../middleware/auth.js";
+import { guardarMedio } from "../services/media/index.js";
 
 const ESTADOS_VALIDOS = ["para_revisar", "visible", "oculto", "archivado", "descartado"];
+
+async function extraerFotoInstagram(url) {
+  try {
+    if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+      },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(/property="og:image"\s+content="([^"]+)"/i);
+    if (!match || !match[1]) return null;
+    const cdnUrl = match[1].replaceAll("&amp;", "&");
+    const idMatch = url.match(/\/(p|reel)\/([^/?#]+)/i);
+    const shortcode = idMatch ? idMatch[2] : String(Date.now());
+    const localUrl = await guardarMedio(cdnUrl, `ig_post_${shortcode}.jpg`);
+    return localUrl || cdnUrl;
+  } catch {
+    return null;
+  }
+}
 
 export function crearRutasEventos({ config, usuarios, eventos }) {
   const router = Router();
