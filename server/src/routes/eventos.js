@@ -66,7 +66,7 @@ export function crearRutasEventos({ config, usuarios, eventos }) {
       const titulo = String(datos.titulo || "").trim();
       const descripcion = String(datos.descripcion || "").trim();
       const resumen = String(datos.resumen || "").trim();
-      const fotoPrincipal = String(datos.fotoPrincipal || "").trim() || "/media/instagram/placeholder.svg";
+      let fotoPrincipal = String(datos.fotoPrincipal || "").trim() || "/media/instagram/placeholder.svg";
 
       if (!titulo) {
         return res.status(400).json({ error: "El título del evento es obligatorio." });
@@ -86,11 +86,27 @@ export function crearRutasEventos({ config, usuarios, eventos }) {
 
       const estado = ESTADOS_VALIDOS.includes(datos.estado) ? datos.estado : "visible";
       const medios = Array.isArray(datos.medios) ? [...datos.medios] : [];
+      const tieneFotoManual = fotoPrincipal && !fotoPrincipal.includes("placeholder");
+      const urlVideo = datos.videoUrl ? String(datos.videoUrl).trim() : null;
+      const tieneFotosSubidas = medios.some((m) => m.tipo === "IMAGE" && m.url && !m.url.includes("placeholder"));
+
+      if (!tieneFotoManual && !tieneFotosSubidas && urlVideo && urlVideo.includes("instagram.com")) {
+        const fotoExtraida = await extraerFotoInstagram(urlVideo);
+        if (fotoExtraida) {
+          fotoPrincipal = fotoExtraida;
+          medios.length = 0;
+          medios.push({
+            tipo: "IMAGE",
+            url: fotoExtraida,
+          });
+        }
+      }
+
       if (medios.length === 0) {
-        if (datos.videoUrl) {
+        if (urlVideo) {
           medios.push({
             tipo: "VIDEO",
-            url: String(datos.videoUrl).trim(),
+            url: urlVideo,
           });
         } else if (fotoPrincipal) {
           medios.push({
