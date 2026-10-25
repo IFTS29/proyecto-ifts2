@@ -59,7 +59,7 @@ export function crearApp({
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors({ origin: true, credentials: true }));
-  app.use(express.json());
+  app.use(express.json({ limit: "15mb" }));
 
   // Ruta estática multimedia con fallback para Instagram (sirve desde storage o inline SVG)
   const mediaStorageDir = path.resolve(__dirname, "../storage/instagram/media");
@@ -103,6 +103,9 @@ export function crearApp({
   app.use((err, req, res, next) => {
     if (err.type === "entity.parse.failed") {
       return res.status(400).json({ error: "El cuerpo de la petición no es JSON válido." });
+    }
+    if (err.type === "entity.too.large") {
+      return res.status(413).json({ error: "Las fotos o el contenido exceden el tamaño máximo permitido (15MB)." });
     }
     console.error(err);
     res.status(500).json({ error: "Error interno del servidor" });

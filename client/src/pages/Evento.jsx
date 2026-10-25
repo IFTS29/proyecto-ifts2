@@ -3,6 +3,12 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
 
+function urlEmbedInstagram(url) {
+  if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
+  const limpia = url.split("?")[0].replace(/\/$/, "");
+  return `${limpia}/embed`;
+}
+
 export default function Evento() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -115,7 +121,15 @@ export default function Evento() {
           <div className="contenedor detalle">
             <div className="galeria">
               <div className="principal">
-                {isActivoVideo ? (
+                {urlEmbedInstagram(medioActivo.url) ? (
+                  <iframe
+                    src={urlEmbedInstagram(medioActivo.url)}
+                    title={titulo}
+                    style={{ width: "100%", minHeight: "520px", border: "none", borderRadius: "8px" }}
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : isActivoVideo ? (
                   <video
                     controls
                     playsInline
