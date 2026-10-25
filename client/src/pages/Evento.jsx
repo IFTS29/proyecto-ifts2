@@ -117,7 +117,14 @@ export default function Evento() {
     let fecha = post.fechaEvento
       ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
       : (post.fechaFormateada || "Reciente");
-    const igUrl = post.videoUrl || post.permalink;
+    const esVideoDirecto =
+      post.videoUrl &&
+      (post.videoUrl.endsWith(".mp4") ||
+        post.videoUrl.startsWith("/media/") ||
+        post.videoUrl.includes("res.cloudinary.com") ||
+        post.videoUrl.includes("blob:"));
+
+    const igUrl = !esVideoDirecto ? (post.videoUrl || post.permalink) : post.permalink;
     const tieneInstagram = Boolean(urlEmbedInstagram(igUrl));
     const fotosReales = (Array.isArray(post.medios) ? post.medios : [])
       .filter((m) => m?.url && !m.url.includes("placeholder") && !urlEmbedInstagram(m.url));
@@ -130,52 +137,53 @@ export default function Evento() {
         url: m.url,
         thumbnailUrl: m.thumbnailUrl || m.url,
       }));
+    } else if (esVideoDirecto || post.videoUrl || post.localVideo) {
+      items = [
+        {
+          id: "video-directo",
+          mediaType: "VIDEO",
+          url: post.videoUrl || post.localVideo,
+          thumbnailUrl:
+            post.videoThumbnail ||
+            post.localThumbnail ||
+            post.fotoPrincipal ||
+            "/media/instagram/placeholder.svg",
+        },
+      ];
     } else if (tieneInstagram) {
       items = [
         {
           id: "instagram-embed",
           mediaType: "VIDEO",
           url: igUrl,
-          thumbnailUrl: IMGS.B_EVENTOS,
+          thumbnailUrl:
+            post.videoThumbnail ||
+            post.localThumbnail ||
+            post.fotoPrincipal ||
+            "/media/instagram/placeholder.svg",
         },
       ];
-    } else if (post.videoUrl) {
-      items = [
-        {
-          id: "video-manual",
-          mediaType: "VIDEO",
-          url: post.videoUrl,
-          thumbnailUrl: IMGS.B_EVENTOS,
-        },
-      ];
-    } else if (Array.isArray(post.medios) && post.medios.length > 0) {
-      items = post.medios.map((m, idx) => ({
-        id: m.id || String(idx + 1),
-        mediaType: m.tipo || "IMAGE",
-        url: m.url,
-        thumbnailUrl: m.thumbnailUrl || m.url,
-      }));
-    } else if (Array.isArray(post.mediaItems) && post.mediaItems.length > 0) {
-      items = post.mediaItems;
     } else {
       items = [
         {
           id: post.id || "1",
-          mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
-          url: post.isVideo
-            ? post.localVideo || post.videoUrl || IMGS.B_EVENTOS
-            : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
+          mediaType: "IMAGE",
+          url: post.fotoPrincipal || post.localImage || "/media/instagram/placeholder.svg",
           thumbnailUrl:
-            post.localThumbnail ||
             post.fotoPrincipal ||
+            post.localThumbnail ||
             post.localImage ||
-            IMGS.B_EVENTOS,
+            "/media/instagram/placeholder.svg",
         },
       ];
     }
 
     const medioActivo = items[indiceFoto] || items[0];
-    const isActivoVideo = medioActivo.mediaType === "VIDEO";
+    const isActivoVideo =
+      medioActivo.mediaType?.toUpperCase() === "VIDEO" ||
+      medioActivo.url?.endsWith(".mp4") ||
+      post.tipoMedio?.toUpperCase() === "VIDEO" ||
+      post.isVideo;
     const cantidadTexto = tieneInstagram && fotosReales.length === 0
       ? "Instagram"
       : post.isVideo
@@ -185,7 +193,7 @@ export default function Evento() {
     const hashtagsTexto =
       Array.isArray(post.parsed?.hashtags) && post.parsed.hashtags.length > 0
         ? post.parsed.hashtags.join(" ")
-        : "#ifts2eventos";
+        : "#eventosIFTS2";
 
     // Banner institucional idéntico a develop: nunca usa un SVG/placeholder ni URL de Instagram como fondo
     const esFotoValida =
@@ -230,16 +238,15 @@ export default function Evento() {
                     playsInline
                     poster={medioActivo.thumbnailUrl}
                     src={medioActivo.url}
-                    style={{ width: "100%", borderRadius: "8px" }}
                   />
                 ) : (
                   <img
                     id="foto-principal"
                     alt={`Foto del evento ${titulo}`}
-                    src={medioActivo.url || IMGS.B_EVENTOS}
+                    src={medioActivo.url || "/media/instagram/placeholder.svg"}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = IMGS.B_EVENTOS;
+                      e.currentTarget.src = "/media/instagram/placeholder.svg";
                     }}
                   />
                 )}
@@ -254,11 +261,11 @@ export default function Evento() {
                       onClick={() => setIndiceFoto(idx)}
                     >
                       <img
-                        src={item.thumbnailUrl || item.url || IMGS.B_EVENTOS}
+                        src={item.thumbnailUrl || item.url || "/media/instagram/placeholder.svg"}
                         alt={`Miniatura ${idx + 1}`}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = IMGS.B_EVENTOS;
+                          e.currentTarget.src = "/media/instagram/placeholder.svg";
                         }}
                       />
                     </button>
@@ -338,120 +345,27 @@ export default function Evento() {
     );
   }
 
-  // Fallback estático cuando no hay evento dinámico seleccionado
+  // Estado cuando no hay evento seleccionado o no existe
   return (
     <div className="pagina activa">
-      <section className="banner" style={{ "--foto": `url(${IMGS.PLATO})` }}>
+      <section className="banner velo-suave" style={{ "--foto": `url(${IMGS.B_EVENTOS})` }}>
         <div className="contenedor">
           <p className="migas">
             <Link to="/eventos">Galería de eventos</Link>
           </p>
-          <h1>Mateada Patria</h1>
+          <h1>Evento no encontrado</h1>
           <span className="raya" aria-hidden="true" />
-          <p>Encuentro por el 25 de Mayo con estudiantes, docentes y familias.</p>
+          <p>La publicación que buscás no existe o fue retirada de la galería institucional.</p>
         </div>
       </section>
       <section className="seccion">
-        <div className="contenedor detalle">
-          <div className="galeria">
-            <div className="principal">
-              <img id="foto-principal" alt="Foto principal del evento" src={IMGS[fotoFallback]} />
-            </div>
-            <div className="miniaturas">
-              <button
-                type="button"
-                aria-pressed={fotoFallback === "PLATO"}
-                onClick={() => setFotoFallback("PLATO")}
-              >
-                <img src={IMGS.PLATO} alt="Foto 1 del evento" />
-              </button>
-              <button
-                type="button"
-                aria-pressed={fotoFallback === "VERDURAS"}
-                onClick={() => setFotoFallback("VERDURAS")}
-              >
-                <img src={IMGS.VERDURAS} alt="Foto 2 del evento" />
-              </button>
-              <button
-                type="button"
-                aria-pressed={fotoFallback === "MORRON"}
-                onClick={() => setFotoFallback("MORRON")}
-              >
-                <img src={IMGS.MORRON} alt="Foto 3 del evento" />
-              </button>
-              <button
-                type="button"
-                aria-pressed={fotoFallback === "ESTUDIO"}
-                onClick={() => setFotoFallback("ESTUDIO")}
-              >
-                <img src={IMGS.ESTUDIO} alt="Foto 4 del evento" />
-              </button>
-              <button
-                type="button"
-                aria-pressed={fotoFallback === "HERO"}
-                onClick={() => setFotoFallback("HERO")}
-              >
-                <img src={IMGS.HERO} alt="Foto 5 del evento" />
-              </button>
-            </div>
-          </div>
-          <div className="info-evento">
-            <div className="meta">
-              <span className="etiqueta et-naranja">Mayo 2026</span>
-              <span className="etiqueta et-gris">6 fotos</span>
-            </div>
-            <h2>Mateada Patria</h2>
-            <p>
-              Para celebrar el 25 de Mayo, estudiantes de todos los años prepararon pastelitos,
-              tortas fritas y mate cocido para compartir con docentes, familias y vecinos del
-              barrio.
-            </p>
-            <p>
-              Fue también una práctica real de organización de eventos: planificación de compras,
-              producción y atención del público.
-            </p>
-            <div className="caja-ig">
-              <strong style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <svg
-                  width="22"
-                  height="22"
-                  style={{ color: "var(--naranja)" }}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-                </svg>
-                Publicado desde Instagram
-              </strong>
-              <p>Esta publicación llegó al sitio con el hashtag #IFTSEventos.</p>
-              <Link className="enlace" to="/evento">
-                Ver la publicación en Instagram
-              </Link>
-            </div>
-            <div className="acciones">
-              <Link className="boton boton-linea" to="/eventos">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M15 6l-6 6 6 6" />
-                </svg>
-                Volver a eventos
-              </Link>
-            </div>
-          </div>
+        <div className="contenedor" style={{ textAlign: "center", padding: "3rem 1rem" }}>
+          <p style={{ color: "var(--suave)", fontSize: "1.125rem", marginBottom: "1.5rem" }}>
+            Podés explorar los eventos y actividades vigentes en la galería principal.
+          </p>
+          <Link className="boton boton-verde" to="/eventos">
+            Volver a eventos
+          </Link>
         </div>
       </section>
     </div>

@@ -134,7 +134,7 @@ export function crearRepoFeedInstagram({
     } catch {
       return {
         conectado: false,
-        cuenta: "@ifts_2_ok",
+        cuenta: null,
         hashtag: "#eventosIFTS2",
         ultimaSincronizacion: null,
         estado: "sin_sincronizar",

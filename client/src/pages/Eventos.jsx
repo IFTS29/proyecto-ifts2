@@ -121,7 +121,7 @@ export default function Eventos() {
 
                 const imagen = esFotoValida
                   ? post.fotoPrincipal
-                  : post.localImage || post.localThumbnail || IMGS.B_EVENTOS;
+                  : post.videoThumbnail || post.localThumbnail || post.localImage || "/media/instagram/placeholder.svg";
 
                 const esVideoOInstagram =
                   post.isVideo ||
@@ -158,7 +158,7 @@ export default function Eventos() {
                         alt={`Foto del evento ${titulo}`}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = IMGS.B_EVENTOS;
+                          e.currentTarget.src = "/media/instagram/placeholder.svg";
                         }}
                       />
                       <div className="texto">

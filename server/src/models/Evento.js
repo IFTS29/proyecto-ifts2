@@ -97,7 +97,7 @@ const eventoSchema = new mongoose.Schema(
     // 5. Estado y Moderación (Para el flujo de AdminEventos.jsx)
     estado: {
       type: String,
-      enum: ["para_revisar", "visible", "oculto", "archivado", "descartado"],
+      enum: ["visible", "oculto", "archivado"],
       default: "visible",
       index: true,
     },

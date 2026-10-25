@@ -19,6 +19,7 @@ export async function sincronizarInstagram({
 
   if (!token || token === "tu_token_de_larga_duracion_aqui") {
     const existing = await repoFeed.loadFeed();
+    let nuevosGuardados = 0;
     if (eventos && Array.isArray(existing)) {
       for (const post of existing) {
         if (post.categories?.includes("eventos")) {
@@ -39,7 +40,11 @@ export async function sincronizarInstagram({
               fechaEvento: post.timestamp || new Date().toISOString(),
               fechaPublicacionOriginal: post.timestamp || null,
               tipoMedio: post.mediaType || "IMAGE",
-              fotoPrincipal: post.localImage || post.fotoPrincipal || "/media/instagram/placeholder.svg",
+              fotoPrincipal:
+                post.localImage ||
+                post.localThumbnail ||
+                post.fotoPrincipal ||
+                "/media/instagram/placeholder.svg",
               videoUrl: post.localVideo || post.permalink,
               videoThumbnail: post.localThumbnail || null,
               medios: post.mediaItems || [],
@@ -47,6 +52,7 @@ export async function sincronizarInstagram({
               estado: "visible",
               categorias: post.categories,
             });
+            nuevosGuardados++;
           }
         }
       }
@@ -54,11 +60,12 @@ export async function sincronizarInstagram({
 
     const syncStatus = {
       conectado: false,
-      cuenta: "@ifts_2_ok",
+      cuenta: (await repoFeed.loadSyncStatus?.())?.cuenta || null,
       hashtag: "#eventosIFTS2",
       ultimaSincronizacion: new Date().toISOString(),
       estado: "sin_sincronizar",
       totalPosts: existing.length,
+      nuevos: nuevosGuardados,
     };
     if (repoFeed.saveSyncStatus) {
       await repoFeed.saveSyncStatus(syncStatus);
@@ -68,6 +75,7 @@ export async function sincronizarInstagram({
       success: true,
       mensaje: "Sin token de Instagram configurado. Se mantiene el feed persistido.",
       count: existing.length,
+      nuevos: nuevosGuardados,
       posts: existing,
       syncStatus,
     };
@@ -82,7 +90,7 @@ export async function sincronizarInstagram({
     };
   }
 
-  let accountUsername = "@ifts_2_ok";
+  let accountUsername = (await repoFeed.loadSyncStatus?.())?.cuenta || null;
   try {
     const profileUrl = `https://graph.facebook.com/v26.0/${accountId}?fields=id,username,name&access_token=${token}`;
     const profileRes = await fetchFn(profileUrl);
@@ -91,7 +99,7 @@ export async function sincronizarInstagram({
       accountUsername = `@${profile.username}`;
     }
   } catch {
-    // Preservar fallback institucional @ifts_2_ok
+    // Si falla la consulta del perfil, mantener la cuenta previa o null
   }
 
   const fields =
@@ -246,6 +254,7 @@ export async function sincronizarInstagram({
     }
 
     // Ingestar en la colección de eventos institucionales cualquier publicación categorizada
+    let nuevosGuardados = 0;
     if (eventos && Array.isArray(mergedPosts)) {
       for (const post of mergedPosts) {
         if (post.categories?.includes("eventos")) {
@@ -266,7 +275,11 @@ export async function sincronizarInstagram({
               fechaEvento: post.timestamp || new Date().toISOString(),
               fechaPublicacionOriginal: post.timestamp || null,
               tipoMedio: post.mediaType || "IMAGE",
-              fotoPrincipal: post.localImage || post.fotoPrincipal || "/media/instagram/placeholder.svg",
+              fotoPrincipal:
+                post.localImage ||
+                post.localThumbnail ||
+                post.fotoPrincipal ||
+                "/media/instagram/placeholder.svg",
               videoUrl: post.localVideo || post.permalink,
               videoThumbnail: post.localThumbnail || null,
               medios: post.mediaItems || [],
@@ -274,9 +287,12 @@ export async function sincronizarInstagram({
               estado: "visible",
               categorias: post.categories,
             });
+            nuevosGuardados++;
           }
         }
       }
+    } else {
+      nuevosGuardados = feedResults.filter((p) => !validExisting.some((e) => String(e.id) === String(p.id))).length;
     }
 
     const syncStatus = {
@@ -287,7 +303,8 @@ export async function sincronizarInstagram({
       ultimaSincronizacion: new Date().toISOString(),
       estado: "activo",
       totalPosts: mergedPosts.length,
-      nuevos: feedResults.length,
+      nuevos: nuevosGuardados,
+      totalLeidos: postsMeta.length,
     };
     if (repoFeed.saveSyncStatus) {
       await repoFeed.saveSyncStatus(syncStatus);
@@ -297,7 +314,8 @@ export async function sincronizarInstagram({
       return {
         success: true,
         count: mergedPosts.length,
-        nuevos: feedResults.length,
+        nuevos: nuevosGuardados,
+        totalLeidos: postsMeta.length,
         posts: mergedPosts,
         syncStatus,
       };
@@ -306,6 +324,8 @@ export async function sincronizarInstagram({
     return {
       success: true,
       count: existingPosts.length,
+      nuevos: nuevosGuardados,
+      totalLeidos: postsMeta.length,
       posts: existingPosts,
       notice: "Sin publicaciones nuevas coincidentes",
       syncStatus,

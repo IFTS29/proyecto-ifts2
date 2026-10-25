@@ -28,7 +28,7 @@ export function crearRutasInstagram({
 
       return res.json({
         conectado: statusGuardado?.conectado ?? tieneCredenciales,
-        cuenta: statusGuardado?.cuenta || "@ifts_2_ok",
+        cuenta: statusGuardado?.cuenta || null,
         hashtag: "#eventosIFTS2",
         ultimaSincronizacion: statusGuardado?.ultimaSincronizacion || null,
         estado: statusGuardado?.estado || (tieneCredenciales ? "activo" : "sin_sincronizar"),

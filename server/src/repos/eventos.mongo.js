@@ -56,7 +56,7 @@ export function crearRepoEventosMongo() {
     },
 
     async contarPorEstado() {
-      const estados = ["para_revisar", "visible", "oculto", "archivado", "descartado"];
+      const estados = ["visible", "oculto", "archivado"];
       const conteos = await Promise.all(
         estados.map((estado) => Evento.countDocuments({ estado })),
       );
