@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
+import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 
@@ -10,6 +11,45 @@ const PERIODOS = {
   "Un evento": ["Noche de los Museos"],
 };
 
+const PESTANAS = [
+  { id: "todos", label: "Todos" },
+  { id: "para_revisar", label: "Para revisar" },
+  { id: "visible", label: "Visibles" },
+  { id: "oculto", label: "Ocultos" },
+  { id: "archivado", label: "Archivados" },
+];
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  try {
+    const d = new Date(fechaIso);
+    const meses = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    return `${meses[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return "";
+  }
+}
+
+function renderEtiquetaEstado(estado) {
+  switch (estado) {
+    case "visible":
+      return <span className="etiqueta et-verde">Visible</span>;
+    case "para_revisar":
+      return <span className="etiqueta et-naranja">Para revisar</span>;
+    case "oculto":
+      return <span className="etiqueta et-gris">Oculto</span>;
+    case "archivado":
+      return <span className="etiqueta et-gris">Archivado</span>;
+    case "descartado":
+      return <span className="etiqueta et-roja">Descartado</span>;
+    default:
+      return <span className="etiqueta et-gris">{estado}</span>;
+  }
+}
+
 export default function AdminEventos() {
   const { esAdmin, usuario } = useAuth();
 
@@ -17,10 +57,47 @@ export default function AdminEventos() {
   const [periodo, setPeriodo] = useState(PERIODOS["Por año"][0]);
   const [msg, setMsg] = useState("");
 
+  const [pestanaActiva, setPestanaActiva] = useState("todos");
+  const [eventos, setEventos] = useState([]);
+  const [conteos, setConteos] = useState({
+    todos: 0,
+    para_revisar: 0,
+    visible: 0,
+    oculto: 0,
+    archivado: 0,
+  });
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  const cargarEventos = useCallback(async () => {
+    setCargando(true);
+    setError("");
+    try {
+      const ruta =
+        pestanaActiva === "todos"
+          ? "/events/admin"
+          : `/events/admin?estado=${pestanaActiva}`;
+      const data = await api(ruta);
+      setEventos(data.eventos || []);
+      if (data.conteos) {
+        setConteos(data.conteos);
+      }
+    } catch (err) {
+      setError(err.message || "Error al cargar los eventos.");
+    } finally {
+      setCargando(false);
+    }
+  }, [pestanaActiva]);
+
+  useEffect(() => {
+    cargarEventos();
+  }, [cargarEventos]);
+
   const cambiarAlcance = (valor) => {
     setAlcance(valor);
     setPeriodo(PERIODOS[valor][0]);
   };
+
   const descargar = () =>
     setMsg("Se preparó la descarga: " + alcance.toLowerCase() + ", " + periodo + ".");
 
@@ -39,7 +116,7 @@ export default function AdminEventos() {
             <h1>Eventos</h1>
             <p>Eventos cargados desde el panel y publicaciones recibidas desde Instagram.</p>
           </div>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
             <Link className="boton boton-verde" to="/admin-evento-nuevo">
               <svg
                 viewBox="0 0 24 24"
@@ -61,13 +138,13 @@ export default function AdminEventos() {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "16px",
+            gap: "1rem",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: "24px",
+            marginBottom: "1.5rem",
           }}
         >
-          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "0.875rem", alignItems: "center" }}>
             <span className="icono ic-naranja">
               <svg
                 viewBox="0 0 24 24"
@@ -85,7 +162,7 @@ export default function AdminEventos() {
             </span>
             <div>
               <strong>Instagram conectado: @ifts_2_ok</strong>
-              <p style={{ color: "var(--suave)", fontSize: "15px" }}>
+              <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
                 Se incorporan las publicaciones con #IFTSEventos. Revisión diaria; la última fue hoy
                 a las 6:00.
               </p>
@@ -110,7 +187,7 @@ export default function AdminEventos() {
           <div className="caja descarga-archivo">
             <div>
               <strong>Descargar lo archivado</strong>
-              <p style={{ color: "var(--suave)", fontSize: "15px" }}>
+              <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
                 Guardá una copia de los eventos archivados en tu computadora para llevarla a un
                 Drive o a un disco externo.
               </p>
@@ -153,11 +230,20 @@ export default function AdminEventos() {
           </div>
         )}
         <div className="pestanas">
-          <button aria-selected="true">Todos (5)</button>
-          <button aria-selected="false">Para revisar (1)</button>
-          <button aria-selected="false">Visibles (3)</button>
-          <button aria-selected="false">Ocultos (0)</button>
-          <button aria-selected="false">Archivados (1)</button>
+          {PESTANAS.map((p) => {
+            const cantidad = p.id === "todos" ? conteos.todos : conteos[p.id] || 0;
+            const seleccionada = pestanaActiva === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                aria-selected={seleccionada}
+                onClick={() => setPestanaActiva(p.id)}
+              >
+                {p.label} ({cantidad})
+              </button>
+            );
+          })}
         </div>
         <div className="tabla-caja">
           <table>
@@ -171,327 +257,71 @@ export default function AdminEventos() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <img className="miniatura" src={IMGS.MORRON} alt="" />
-                </td>
-                <td>
-                  <strong>Clase de pastelería básica</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Septiembre 2026, 3 fotos
-                  </span>
-                </td>
-                <td>
-                  <span className="etiqueta et-naranja">Instagram</span>
-                </td>
-                <td>
-                  <span className="etiqueta et-naranja">Para revisar</span>
-                </td>
-                <td>
-                  <div className="acciones-fila">
-                    <button className="boton boton-verde boton-chico" type="button">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                      Aprobar
-                    </button>
-                    <button className="boton boton-linea boton-chico" type="button">
-                      Descartar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <img className="miniatura" src={IMGS.PLATO} alt="" />
-                </td>
-                <td>
-                  <strong>Mateada Patria</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Mayo 2026, 6 fotos
-                  </span>
-                </td>
-                <td>
-                  <span className="etiqueta et-naranja">Instagram</span>
-                </td>
-                <td>
-                  <span className="etiqueta et-verde">Visible</span>
-                </td>
-                <td>
-                  <div className="acciones-fila">
-                    <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 20h4L19 9l-4-4L4 16z" />
-                      </svg>
-                      Editar
-                    </Link>
-                    <button className="boton boton-linea boton-chico" type="button">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      Ocultar
-                    </button>
-                    <button
-                      className="boton boton-linea boton-chico"
-                      type="button"
-                      aria-label="Eliminar Mateada Patria"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <img className="miniatura" src={IMGS.MORRON} alt="" />
-                </td>
-                <td>
-                  <strong>Jornada de Gastronomía</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Junio 2026, 8 fotos
-                  </span>
-                </td>
-                <td>
-                  <span className="etiqueta et-gris">Manual</span>
-                </td>
-                <td>
-                  <span className="etiqueta et-verde">Visible</span>
-                </td>
-                <td>
-                  <div className="acciones-fila">
-                    <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 20h4L19 9l-4-4L4 16z" />
-                      </svg>
-                      Editar
-                    </Link>
-                    <button className="boton boton-linea boton-chico" type="button">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      Ocultar
-                    </button>
-                    <button
-                      className="boton boton-linea boton-chico"
-                      type="button"
-                      aria-label="Eliminar Jornada de Gastronomía"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <img className="miniatura" src={IMGS.ESTUDIO} alt="" />
-                </td>
-                <td>
-                  <strong>Noche de los Museos</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Noviembre 2025, 5 fotos
-                  </span>
-                </td>
-                <td>
-                  <span className="etiqueta et-naranja">Instagram</span>
-                </td>
-                <td>
-                  <span className="etiqueta et-gris">Archivado</span>
-                </td>
-                <td>
-                  <div className="acciones-fila">
-                    <button
-                      className="boton boton-linea boton-chico"
-                      type="button"
-                      aria-label="Descargar Noche de los Museos"
-                      onClick={() =>
-                        setMsg("Se preparó la descarga del evento Noche de los Museos.")
-                      }
-                    >
-                      Descargar
-                    </button>
-                    <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 20h4L19 9l-4-4L4 16z" />
-                      </svg>
-                      Editar
-                    </Link>
-                    <button className="boton boton-linea boton-chico" type="button">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      Ocultar
-                    </button>
-                    <button
-                      className="boton boton-linea boton-chico"
-                      type="button"
-                      aria-label="Eliminar Noche de los Museos"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <img className="miniatura" src={IMGS.VERDURAS} alt="" />
-                </td>
-                <td>
-                  <strong>Cierre del 1.° cuatrimestre</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Julio 2026, 4 fotos
-                  </span>
-                </td>
-                <td>
-                  <span className="etiqueta et-gris">Manual</span>
-                </td>
-                <td>
-                  <span className="etiqueta et-verde">Visible</span>
-                </td>
-                <td>
-                  <div className="acciones-fila">
-                    <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 20h4L19 9l-4-4L4 16z" />
-                      </svg>
-                      Editar
-                    </Link>
-                    <button className="boton boton-linea boton-chico" type="button">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      Ocultar
-                    </button>
-                    <button
-                      className="boton boton-linea boton-chico"
-                      type="button"
-                      aria-label="Eliminar Cierre del 1.° cuatrimestre"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              {cargando ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "var(--suave)" }}>
+                    Cargando eventos...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "var(--rojo, #dc2626)" }}>
+                    {error}
+                  </td>
+                </tr>
+              ) : eventos.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "var(--suave)" }}>
+                    No hay eventos en esta sección.
+                  </td>
+                </tr>
+              ) : (
+                eventos.map((ev) => (
+                  <tr key={ev.id}>
+                    <td>
+                      <img
+                        className="miniatura"
+                        src={ev.fotoPrincipal || IMGS.PLATO}
+                        alt=""
+                        onError={(e) => {
+                          e.currentTarget.src = IMGS.PLATO;
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <strong>{ev.titulo}</strong>
+                      <br />
+                      <span style={{ color: "var(--suave)", fontSize: "0.875rem" }}>
+                        {formatearFecha(ev.fechaEvento)}, {ev.cantidadMedios || (ev.medios && ev.medios.length) || 1} fotos
+                      </span>
+                    </td>
+                    <td>
+                      <span className={"etiqueta " + (ev.origen === "instagram" ? "et-naranja" : "et-gris")}>
+                        {ev.origen === "instagram" ? "Instagram" : "Manual"}
+                      </span>
+                    </td>
+                    <td>{renderEtiquetaEstado(ev.estado)}</td>
+                    <td>
+                      <div className="acciones-fila">
+                        <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M4 20h4L19 9l-4-4L4 16z" />
+                          </svg>
+                          Editar
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
