@@ -52,3 +52,32 @@ export async function api(ruta, { metodo = "GET", cuerpo } = {}) {
   }
   return datos;
 }
+
+// Descarga un archivo de la API que exige sesión (por ejemplo, el PDF de vista previa).
+// Un enlace común no manda el token; acá se pide con fetch y se ofrece como descarga.
+export async function descargar(ruta, nombreArchivo) {
+  const token = leerToken();
+  let res;
+  try {
+    res = await fetch(`/api${ruta}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  } catch {
+    throw new Error("No se pudo conectar con el servidor. Probá de nuevo en unos minutos.");
+  }
+  if (!res.ok) {
+    let mensaje = "No se pudo descargar el archivo.";
+    try {
+      mensaje = (await res.json()).error || mensaje;
+    } catch {
+      /* respuesta sin cuerpo JSON */
+    }
+    throw new Error(mensaje);
+  }
+  const url = URL.createObjectURL(await res.blob());
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = nombreArchivo;
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

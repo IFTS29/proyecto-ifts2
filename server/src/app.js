@@ -11,6 +11,9 @@ import { crearRutasContacto } from "./routes/contacto.js";
 import { crearRutasEventos } from "./routes/eventos.js";
 import { crearServicioCorreo } from "./services/correo.smtp.js";
 import { crearLimitadorContacto } from "./services/limitador.contacto.js";
+import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
+import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
+import { crearRutasAcademica } from "./routes/academica.js";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -54,6 +57,8 @@ export function crearApp({
   }),
   repoFeedInstagram = crearRepoFeedInstagram(),
   mediaService,
+  horarios = crearRepoAcademicoMemoria(),
+  publicacionesHorarios = crearRepoPublicacionesMemoria(),
 } = {}) {
   const app = express();
 
@@ -88,12 +93,13 @@ export function crearApp({
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
   app.use("/api/events", crearRutasEventos({ config, usuarios, eventos }));
-
-  // Faltan montar: /api/academic, /api/content
+  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios }));
   app.use(
     "/api/instagram",
     crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),
   );
+
+  // Falta montar: /api/content
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });
