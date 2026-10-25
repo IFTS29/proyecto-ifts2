@@ -1140,10 +1140,12 @@ p {
   background: #111;
 }
 
-.galeria .principal img {
+.galeria .principal img,
+.galeria .principal video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .miniaturas {
