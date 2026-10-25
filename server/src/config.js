@@ -1,3 +1,16 @@
+// Dirección pública del sitio, para el enlace a Contacto de los PDF. No se arma con los encabezados
+// de la petición (Host, X-Forwarded-Proto), porque los manda el navegador y se pueden falsear.
+// Orden: SITIO_URL si está cargada; en Vercel, las variables que define Vercel; si no, la de desarrollo.
+function direccionDelSitio(env) {
+  const configurada = env.SITIO_URL?.trim().replace(/\/+$/, "");
+  if (configurada) return configurada;
+  if (env.VERCEL_ENV === "production" && env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`;
+  return `http://localhost:${env.PORT || 3000}`;
+}
+
 // Lee la configuración desde las variables de entorno (ver .env.example).
 export function leerConfig(env = process.env) {
   const produccion = env.NODE_ENV === "production";
@@ -8,9 +21,10 @@ export function leerConfig(env = process.env) {
     jwtSecret,
     jwtDuracion: env.JWT_DURACION || "8h",
     clientUrl: env.CLIENT_URL || "http://localhost:5173",
+    sitioUrl: direccionDelSitio(env),
     mongoUri: env.MONGODB_URI || "",
     // En producción y en Vercel (que define VERCEL=1) no se permite trabajar sin MongoDB: ver arranque.js.
-    exigeBaseDeDatos: produccion || env.VERCEL === "1",    
+    exigeBaseDeDatos: produccion || env.VERCEL === "1",
     bcryptCosto: Number(env.BCRYPT_COSTO) || 10,
     intentosMax: 5,
     bloqueoMs: 15 * 60 * 1000,

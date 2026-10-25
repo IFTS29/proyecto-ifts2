@@ -32,10 +32,12 @@ test("desarrollo sin MONGODB_URI: trabaja en memoria y los datos se pueden usar"
   assert.equal((await usuarios.buscarPorId(creado.id)).mail, "prueba@ifts2.edu.ar");
 });
 
-test("desarrollo con MongoDB caído: sigue en memoria", async () => {
+test("desarrollo con MongoDB caído: todos los repositorios siguen en memoria", async () => {
   const config = leerConfig({ MONGODB_URI: "mongodb://base-de-prueba" });
-  const { usuarios } = await prepararDatos(config, { conectar: baseCaida });
+  const { usuarios, horarios, publicacionesHorarios } = await prepararDatos(config, { conectar: baseCaida });
   assert.deepEqual(await usuarios.listar(), []);
+  assert.deepEqual(await horarios.listar(), []);
+  assert.deepEqual(await publicacionesHorarios.listar(), []);
 });
 
 // Simula una petición de Vercel a la función de api/index.js, sin servidor real.

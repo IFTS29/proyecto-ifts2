@@ -12,8 +12,8 @@ export function crearHandler({ preparar = prepararDatos } = {}) {
     if (!preparacion) {
       preparacion = (async () => {
         const config = leerConfig();
-        const { usuarios } = await preparar(config);
-        return crearApp({ config, usuarios });
+        const repos = await preparar(config);
+        return crearApp({ config, ...repos });
       })().catch((err) => {
         preparacion = null;
         throw err;

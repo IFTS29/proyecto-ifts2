@@ -9,13 +9,14 @@ export const ADMIN = { nombre: "Matías Peláez", mail: "matias@ifts2.edu.ar", p
 export const BEDELIA = { nombre: "Bedelía", mail: "bedelia@ifts2.edu.ar", password: "Bedel1234" };
 
 // App con repositorio en memoria y dos usuarios cargados (costo de bcrypt bajo para que las pruebas sean rápidas).
-export async function appDePrueba({ bloqueoMs } = {}) {
+// "dependencias" permite reemplazar otras piezas de crearApp, por ejemplo la configuración del sitio.
+export async function appDePrueba({ bloqueoMs, ...dependencias } = {}) {
   const config = { ...leerConfig({}), bcryptCosto: 4 };
   const usuarios = crearRepoUsuariosMemoria();
   await usuarios.crear({ ...ADMIN, rol: "admin", passwordHash: await hashear(ADMIN.password, 4) });
   await usuarios.crear({ ...BEDELIA, rol: "bedelia", passwordHash: await hashear(BEDELIA.password, 4) });
   const limitadorLogin = crearLimitadorLogin({ max: config.intentosMax, duracionMs: bloqueoMs ?? config.bloqueoMs });
-  const app = crearApp({ config, usuarios, limitadorLogin });
+  const app = crearApp({ config, usuarios, limitadorLogin, ...dependencias });
   return { app, usuarios, config };
 }
 

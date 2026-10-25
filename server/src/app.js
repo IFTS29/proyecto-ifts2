@@ -9,6 +9,9 @@ import { crearRutasUsuarios } from "./routes/usuarios.js";
 import { crearRutasContacto } from "./routes/contacto.js";
 import { crearServicioCorreo } from "./services/correo.smtp.js";
 import { crearLimitadorContacto } from "./services/limitador.contacto.js";
+import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
+import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
+import { crearRutasAcademica } from "./routes/academica.js";
 
 // Las dependencias se reciben por parámetro: en producción son las de MongoDB,
 // en desarrollo y en las pruebas pueden ser las de memoria.
@@ -22,6 +25,8 @@ export function crearApp({
     duracionMs: config.contactoVentanaMs,
     detrasDeVercel: config.detrasDeVercel,
   }),
+  horarios = crearRepoAcademicoMemoria(),
+  publicacionesHorarios = crearRepoPublicacionesMemoria(),
 } = {}) {
   const app = express();
 
@@ -36,8 +41,9 @@ export function crearApp({
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
+  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios }));
 
-  // Faltan montar: /api/events, /api/academic, /api/content, /api/instagram
+  // Faltan montar: /api/events, /api/content, /api/instagram
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });

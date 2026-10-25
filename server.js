@@ -13,15 +13,15 @@ const __dirname = path.dirname(__filename);
 const config = leerConfig();
 
 // En producción, si MongoDB no está disponible, el servidor no arranca (ver server/src/arranque.js).
-let usuarios;
+let repos;
 try {
-  ({ usuarios } = await prepararDatos(config));
+  repos = await prepararDatos(config);
 } catch (err) {
   console.error(`No se puede iniciar el servidor. ${err.message}`);
   process.exit(1);
 }
 
-const app = crearApp({ config, usuarios });
+const app = crearApp({ config, ...repos });
 const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0";
 
