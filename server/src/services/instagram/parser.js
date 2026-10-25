@@ -3,14 +3,9 @@
  */
 
 export const CONFIG_CATEGORIAS_DEFECTO = {
-  novedades: {
-    id: "novedades",
-    titulo: "Novedades Institucionales",
-    hashtags: ["#novedades", "#ifts2novedades", "#comunicado", "#institucional", "#inscripciones", "#test"],
-  },
   eventos: {
     id: "eventos",
-    titulo: "Eventos y Prácticas",
+    titulo: "Eventos Institucionales",
     hashtags: ["#eventosIFTS2"],
   },
 };

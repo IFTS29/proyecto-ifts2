@@ -49,16 +49,15 @@ test("CP-IG-02: Publicación sin texto asigna título institucional por defecto 
 });
 
 // CP-IG-03: Publicación con solo hashtags
-test("CP-IG-03: Publicación con solo hashtags clasifica en ambas categorías y asigna título por defecto", () => {
-  const caption = "#ifts2novedades #eventosIFTS2";
+test("CP-IG-03: Publicación con solo hashtags clasifica en eventos y asigna título por defecto", () => {
+  const caption = "#eventosIFTS2";
   const parsed = parseCaption(caption);
 
   assert.equal(parsed.title, "Publicación Institucional");
   assert.equal(parsed.summary, "");
 
   const categories = classifyPosts(caption);
-  assert.ok(categories.includes("novedades"));
-  assert.ok(categories.includes("eventos"));
+  assert.deepEqual(categories, ["eventos"]);
 });
 
 // CP-IG-04: Texto extremo sin saltos de línea (>2000 caracteres)
