@@ -58,31 +58,20 @@ export function crearApp({
   app.use(cors({ origin: true, credentials: true }));
   app.use(express.json());
 
-  // Ruta estática multimedia con fallback para Instagram (soporta storage local y seed versionado)
+  // Ruta estática multimedia con fallback para Instagram (sirve desde storage o inline SVG)
   const mediaStorageDir = path.resolve(__dirname, "../storage/instagram/media");
-  const seedMediaDir = path.resolve(__dirname, "data/seed-media");
   const placeholderPath = path.join(mediaStorageDir, "placeholder.svg");
-  const seedPlaceholderPath = path.join(seedMediaDir, "placeholder.svg");
 
   app.use("/media/instagram", (req, res) => {
     const safeFilename = path.basename(req.path);
     const targetFile = path.join(mediaStorageDir, safeFilename);
-    const seedTargetFile = path.join(seedMediaDir, safeFilename);
 
     if (safeFilename && fs.existsSync(targetFile) && fs.statSync(targetFile).isFile()) {
       return res.sendFile(targetFile);
     }
 
-    if (safeFilename && fs.existsSync(seedTargetFile) && fs.statSync(seedTargetFile).isFile()) {
-      return res.sendFile(seedTargetFile);
-    }
-
     if (fs.existsSync(placeholderPath)) {
       return res.type("image/svg+xml").sendFile(placeholderPath);
-    }
-
-    if (fs.existsSync(seedPlaceholderPath)) {
-      return res.type("image/svg+xml").sendFile(seedPlaceholderPath);
     }
 
     return res.type("image/svg+xml").send(INLINE_PLACEHOLDER_SVG);

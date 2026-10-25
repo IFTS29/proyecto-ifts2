@@ -15,7 +15,6 @@ export function crearRepoFeedInstagram({
 } = {}) {
   const feedPath = path.join(storageDir, feedFilename);
   const deletedPath = path.join(storageDir, deletedFilename);
-  const seedPath = path.resolve(__dirname, "../../data/instagram-seed.json");
 
   async function loadDeletedPostIds() {
     try {
@@ -65,13 +64,7 @@ export function crearRepoFeedInstagram({
     try {
       raw = await fs.readFile(feedPath, "utf-8");
     } catch {
-      try {
-        raw = await fs.readFile(seedPath, "utf-8");
-        await fs.mkdir(storageDir, { recursive: true });
-        await fs.writeFile(feedPath, raw, "utf-8");
-      } catch {
-        return [];
-      }
+      return [];
     }
 
     try {
