@@ -86,3 +86,40 @@ Acá se anota, en orden cronológico, qué se cambió en el proyecto y por qué.
 - #30: el token se guarda en `sessionStorage`; el issue pide "almacenado de forma segura" y no se evaluaron alternativas. Los middlewares se llaman `autenticar` y `requiereRol`, no `verifyToken` y `requireRole`.
 - #31: el control de rol solo se aplica a `/api/users`; `/api/events` y `/api/content` todavía no existen.
 - Todo lo que depende de MongoDB sigue sin probarse contra una base real.
+
+
+## 2026-10-22: formulario de contacto con envío real de correo y protección anti-spam (Issue #37)
+
+**Motivo.** Cumplir con la historia de usuario US-08 (RF07) para que los visitantes puedan enviar consultas directamente desde el portal hacia las casillas oficiales de Bedelía o institucional, sin exponer credenciales en el cliente.
+
+**Qué se hizo en `server/`**
+- Servicio de correo modular con Nodemailer (`services/correo.smtp.js` y `services/correo.mensaje.js`) con soporte de envío simulado en desarrollo y pruebas.
+- Endpoint `POST /api/contacto` con validación estricta de campos (nombre, correo con formato válido, motivo predefinido y mensaje).
+- Protección anti-spam mediante campo trampa (*honeypot*) y limitador de velocidad por IP (`services/limitador.contacto.js`), compatible con Vercel (`x-real-ip`) y redes IPv6 agrupadas por `/64`.
+
+**Qué se hizo en `client/`**
+- Conexión del formulario en `Contacto.jsx` hacia la API, con manejo de estados de carga, mensajes de éxito y errores claros.
+
+**Cómo se comprobó**
+- 38 pruebas automatizadas añadidas en `server/test/contacto.test.js` cubriendo validaciones, límites de tasa, honeypot y fallback SMTP. Total acumulado: 81 pruebas en verde.
+
+## 2026-10-24: integración de Instagram Graph API, carrusel responsivo y visor modal (Issues #62, #64, #39)
+
+**Motivo.** Cumplir con la US-10 (RF13) y la UI-02 para reflejar automáticamente las publicaciones y eventos de Instagram en la página principal y galerías sin duplicar trabajo de carga editorial.
+
+**Qué se hizo en `server/`**
+- Cliente oficial de Meta Graph API v26.0 (`services/instagram/meta.js`) con soporte para imágenes (`IMAGE`), videos MP4 (`VIDEO`) y álbumes (`CAROUSEL_ALBUM`).
+- Endpoints `GET /api/instagram/feed` (con filtro opcional `?category=eventos` o `novedades`) y `POST /api/instagram/sync` protegido estrictamente con JWT y rol `admin`.
+- Parser editorial inteligente (`services/instagram/parser.js`) que delimita automáticamente títulos mediante emojis institucionales (💻, 🚀, 🎓, ✨, 🍽️) o saltos de línea, separando el encabezado del cuerpo y eliminando hashtags redundantes.
+- Persistencia local y arquitectura Adapter en `services/media/` para alternar transparentemente entre almacenamiento local y Cloudinary.
+
+**Qué se hizo en `client/`**
+- `Inicio.jsx`: Carrusel adaptable con tarjetas normalizadas (`16/10`), scroll snap y controles de navegación. Si no hay publicaciones disponibles, activa automáticamente el fallback institucional con tarjetas fijas.
+- `Eventos.jsx`: Galería pública con selector de vista (cuadrícula / lista).
+- `Evento.jsx`: Vista detallada de publicación con banner institucional fotográfico, tira interactiva de miniaturas para álbumes y reproductor nativo con poster de respaldo para videos.
+- Migración de estilos a unidades relativas (`rem`, `em`, `clamp()`) para máxima adaptabilidad mobile sin desbordes horizontales.
+
+**Cómo se comprobó**
+- 13 pruebas unitarias y de integración añadidas en `server/test/instagram.test.js` cubriendo casos borde defensivos (posts sin texto, captions de >2.000 caracteres, álbumes de múltiples medios, videos sin poster y deduplicación por ID).
+- Total del servidor: **94 de 94 pruebas aprobadas (100% verde)** en 1.2 segundos.
+- Compilación de producción con `vite build` en el cliente con 0 errores y 0 advertencias.
