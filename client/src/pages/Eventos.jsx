@@ -95,15 +95,29 @@ export default function Eventos() {
           <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
             {eventos.length > 0 ? (
               eventos.map((post) => {
-                const titulo = post.parsed?.title || post.caption || "Evento institucional";
-                const resumen = post.parsed?.summary || "";
+                const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
+                let titulo = post.parsed?.title || "";
+                let resumen = post.parsed?.summary || "";
+
+                if (!titulo || titulo.length > 70) {
+                  const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
+                  if (emojiMatch && emojiMatch.index > 5) {
+                    titulo = rawText.slice(0, emojiMatch.index).trim();
+                    resumen = rawText.slice(emojiMatch.index + emojiMatch[0].length).trim();
+                  }
+                }
+                if (!titulo) titulo = rawText || "Evento institucional";
+                if (resumen && resumen.length > 110) {
+                  resumen = resumen.slice(0, 110).trim().replace(/[\s,;.]+$/, "") + "...";
+                }
+
                 const fecha = post.fechaFormateada || "Reciente";
                 const cantidad = post.cantidadMedios || 1;
                 const imagen =
                   post.fotoPrincipal ||
                   post.localImage ||
                   post.localThumbnail ||
-                  "/media/instagram/placeholder.svg";
+                  IMGS.B_EVENTOS;
 
                 return (
                   <li key={post.id}>
@@ -135,7 +149,7 @@ export default function Eventos() {
                         alt={`Foto del evento ${titulo}`}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/media/instagram/placeholder.svg";
+                          e.currentTarget.src = IMGS.B_EVENTOS;
                         }}
                       />
                       <div className="texto">

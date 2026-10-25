@@ -13,7 +13,7 @@ export default function Evento() {
   const [fotoFallback, setFotoFallback] = useState("PLATO");
 
   useEffect(() => {
-    if (!post && postId) {
+    if (postId) {
       api("/instagram/feed")
         .then((data) => {
           if (Array.isArray(data)) {
@@ -23,12 +23,31 @@ export default function Evento() {
         })
         .catch(() => {});
     }
-  }, [post, postId]);
+  }, [postId]);
 
   // Si hay publicación de Instagram cargada
   if (post) {
-    const titulo = post.parsed?.title || post.caption || "Evento institucional";
-    const subtitulo = post.parsed?.summary || "";
+    const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
+    let titulo = post.parsed?.title || "";
+    let parrafos = Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
+      ? post.parsed.bodyParagraphs
+      : [];
+
+    // Si el título es muy largo o contiene un emoji demarcador (ej. 💻, 🚀, 🎓), separarlo limpiamente del cuerpo
+    if (!titulo || parrafos.length === 0 || titulo.length > 70) {
+      const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
+      if (emojiMatch && emojiMatch.index > 5) {
+        titulo = rawText.slice(0, emojiMatch.index).trim();
+        const resto = rawText.slice(emojiMatch.index + emojiMatch[0].length).trim();
+        if (resto) parrafos = [resto];
+      }
+    }
+    if (!titulo) titulo = rawText || "Evento institucional";
+    if (parrafos.length === 0 && rawText && rawText !== titulo) {
+      parrafos = [rawText];
+    }
+
+    const subtitulo = post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
     const fecha = post.fechaFormateada || "Reciente";
     const items =
       Array.isArray(post.mediaItems) && post.mediaItems.length > 0
@@ -38,13 +57,13 @@ export default function Evento() {
               id: post.id,
               mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
               url: post.isVideo
-                ? post.localVideo || "/media/instagram/placeholder.svg"
-                : post.fotoPrincipal || post.localImage || "/media/instagram/placeholder.svg",
+                ? post.localVideo || IMGS.B_EVENTOS
+                : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
               thumbnailUrl:
                 post.localThumbnail ||
                 post.fotoPrincipal ||
                 post.localImage ||
-                "/media/instagram/placeholder.svg",
+                IMGS.B_EVENTOS,
             },
           ];
 
@@ -59,18 +78,14 @@ export default function Evento() {
         ? post.parsed.hashtags.join(" ")
         : "#ifts2eventos";
 
-    const parrafos =
-      Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
-        ? post.parsed.bodyParagraphs
-        : [subtitulo || post.caption || ""];
-
-    // Banner institucional idéntico a develop (evita que el placeholder SVG colisione con el texto)
-    const tieneFotoPropia =
+    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder como fondo
+    const esFotoValida =
       items[0]?.url &&
       !items[0].url.endsWith(".mp4") &&
-      !items[0].url.includes("placeholder.svg");
+      !items[0].url.endsWith(".svg") &&
+      !items[0].url.includes("placeholder");
 
-    const fotoBanner = tieneFotoPropia ? items[0].url : IMGS.B_EVENTOS;
+    const fotoBanner = esFotoValida ? items[0].url : IMGS.B_EVENTOS;
 
     const esSubtituloDistinto =
       subtitulo &&
@@ -109,10 +124,10 @@ export default function Evento() {
                   <img
                     id="foto-principal"
                     alt={`Foto del evento ${titulo}`}
-                    src={medioActivo.url || "/media/instagram/placeholder.svg"}
+                    src={medioActivo.url || IMGS.B_EVENTOS}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = "/media/instagram/placeholder.svg";
+                      e.currentTarget.src = IMGS.B_EVENTOS;
                     }}
                   />
                 )}
@@ -127,11 +142,11 @@ export default function Evento() {
                       onClick={() => setIndiceFoto(idx)}
                     >
                       <img
-                        src={item.thumbnailUrl || item.url}
+                        src={item.thumbnailUrl || item.url || IMGS.B_EVENTOS}
                         alt={`Miniatura ${idx + 1}`}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/media/instagram/placeholder.svg";
+                          e.currentTarget.src = IMGS.B_EVENTOS;
                         }}
                       />
                     </button>
