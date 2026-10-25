@@ -14,12 +14,9 @@ export default function Evento() {
 
   useEffect(() => {
     if (postId) {
-      api("/instagram/feed")
+      api(`/events/${postId}`)
         .then((data) => {
-          if (Array.isArray(data)) {
-            const encontrado = data.find((p) => String(p.id) === String(postId));
-            if (encontrado) setPost(encontrado);
-          }
+          if (data?.evento) setPost(data.evento);
         })
         .catch(() => {});
     }
@@ -28,8 +25,10 @@ export default function Evento() {
   // Si hay publicación de Instagram cargada
   if (post) {
     const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
-    let titulo = post.parsed?.title || "";
-    let parrafos = Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
+    let titulo = post.titulo || post.parsed?.title || "";
+    let parrafos = post.descripcion
+      ? post.descripcion.split(/\r?\n/).map((p) => p.trim()).filter(Boolean)
+      : Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
       ? post.parsed.bodyParagraphs
       : [];
 
@@ -47,10 +46,14 @@ export default function Evento() {
       parrafos = [rawText];
     }
 
-    const subtitulo = post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
-    const fecha = post.fechaFormateada || "Reciente";
+    const subtitulo = post.resumen || post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
+    let fecha = post.fechaEvento
+      ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
+      : (post.fechaFormateada || "Reciente");
     const items =
-      Array.isArray(post.mediaItems) && post.mediaItems.length > 0
+      Array.isArray(post.medios) && post.medios.length > 0
+        ? post.medios.map((m, idx) => ({ id: m.id || String(idx + 1), mediaType: m.tipo || "IMAGE", url: m.url, thumbnailUrl: m.thumbnailUrl || m.url }))
+        : Array.isArray(post.mediaItems) && post.mediaItems.length > 0
         ? post.mediaItems
         : [
             {

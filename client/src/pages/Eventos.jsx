@@ -9,10 +9,11 @@ export default function Eventos() {
 
   useEffect(() => {
     let cancelado = false;
-    api("/instagram/feed?category=eventos")
+    api("/events")
       .then((data) => {
-        if (!cancelado && Array.isArray(data) && data.length > 0) {
-          setEventos(data);
+        const lista = data?.eventos || (Array.isArray(data) ? data : []);
+        if (!cancelado && lista.length > 0) {
+          setEventos(lista);
         }
       })
       .catch(() => {});
@@ -96,8 +97,8 @@ export default function Eventos() {
             {eventos.length > 0 ? (
               eventos.map((post) => {
                 const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
-                let titulo = post.parsed?.title || "";
-                let resumen = post.parsed?.summary || "";
+                let titulo = post.titulo || post.parsed?.title || "";
+                let resumen = post.resumen || post.parsed?.summary || "";
 
                 if (!titulo || titulo.length > 70) {
                   const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
@@ -111,7 +112,7 @@ export default function Eventos() {
                   resumen = resumen.slice(0, 110).trim().replace(/[\s,;.]+$/, "") + "...";
                 }
 
-                const fecha = post.fechaFormateada || "Reciente";
+                const fecha = post.fechaEvento ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : (post.fechaFormateada || "Reciente");
                 const cantidad = post.cantidadMedios || 1;
                 const imagen =
                   post.fotoPrincipal ||

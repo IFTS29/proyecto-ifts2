@@ -1,54 +1,55 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { IMGS } from "../imagenes";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
-
-const FOTOS_PREDETERMINADAS = [
-  { id: "1", url: IMGS.PLATO, nombre: "Plato gastronómico" },
-  { id: "2", url: IMGS.VERDURAS, nombre: "Taller de vegetales" },
-  { id: "3", url: IMGS.MORRON, nombre: "Práctica de cocina" },
-  { id: "4", url: IMGS.ESTUDIO, nombre: "Laboratorio sensorial" },
-];
 
 export default function AdminEventoNuevo() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
 
-  const [titulo, setTitulo] = useState("Jornada de Gastronomía 2026");
+  const [titulo, setTitulo] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [videoUrl, setVideoUrl] = useState("");
-  const [descripcion, setDescripcion] = useState(
-    "Jornada abierta con elaboraciones de los estudiantes de los tres años.",
-  );
+  const [descripcion, setDescripcion] = useState("");
   const [visible, setVisible] = useState(true);
-  const [fotosSeleccionadas, setFotosSeleccionadas] = useState([
-    IMGS.PLATO,
-    IMGS.VERDURAS,
-    IMGS.MORRON,
-    IMGS.ESTUDIO,
-  ]);
-  const [fotoRutaManual, setFotoRutaManual] = useState("");
+  const [fotos, setFotos] = useState([]);
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
   const [mensajeOk, setMensajeOk] = useState("");
 
-  const toggleFoto = (url) => {
-    setFotosSeleccionadas((prev) =>
-      prev.includes(url) ? prev.filter((item) => item !== url) : [...prev, url],
-    );
+  const manejarArchivos = (e) => {
+    const archivos = Array.from(e.target.files || []);
+    if (!archivos.length) return;
+
+    archivos.forEach((archivo) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFotos((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            url: reader.result,
+            nombre: archivo.name,
+          },
+        ]);
+      };
+      reader.readAsDataURL(archivo);
+    });
+    // Limpiar el input para permitir volver a elegir el mismo archivo si fue eliminado
+    e.target.value = "";
   };
 
-  const agregarRutaLocal = (e) => {
-    e.preventDefault();
-    const ruta = fotoRutaManual.trim();
-    if (!ruta) return;
-    if (!fotosSeleccionadas.includes(ruta)) {
-      setFotosSeleccionadas((prev) => [...prev, ruta]);
-    }
-    setFotoRutaManual("");
+  const quitarFoto = (id) => {
+    setFotos((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  // Determinar tipo de medio según lo cargado
+  const calcularTipoMedio = () => {
+    if (videoUrl.trim()) return "VIDEO";
+    if (fotos.length > 1) return "CAROUSEL_ALBUM";
+    return "IMAGE";
   };
 
   const enviar = async (e) => {
@@ -64,26 +65,30 @@ export default function AdminEventoNuevo() {
       setError("Por favor completá la descripción del evento.");
       return;
     }
+    if (fotos.length === 0 && !videoUrl.trim()) {
+      setError("Por favor seleccioná al menos una foto o ingresá un video.");
+      return;
+    }
 
     setEnviando(true);
     try {
-      const fotosParaGuardar =
-        fotosSeleccionadas.length > 0
-          ? fotosSeleccionadas
-          : ["/media/instagram/placeholder.svg"];
+      const tipoMedio = calcularTipoMedio();
+      const fotosUrls = fotos.map((f) => f.url);
+      const fotoPrincipal = fotosUrls[0] || "/media/instagram/placeholder.svg";
 
       const payload = {
         titulo: titulo.trim(),
         descripcion: descripcion.trim(),
         fechaEvento: fecha ? new Date(fecha).toISOString() : new Date().toISOString(),
+        tipoMedio,
         videoUrl: videoUrl.trim() || null,
-        fotoPrincipal: fotosParaGuardar[0],
-        medios: fotosParaGuardar.map((url, idx) => ({
+        fotoPrincipal,
+        medios: fotosUrls.map((url, idx) => ({
           id: String(idx + 1),
           tipo: "IMAGE",
           url,
         })),
-        cantidadMedios: fotosParaGuardar.length,
+        cantidadMedios: fotosUrls.length || 1,
         estado: visible ? "visible" : "oculto",
         origen: "manual",
       };
@@ -103,6 +108,8 @@ export default function AdminEventoNuevo() {
       setEnviando(false);
     }
   };
+
+  const tipoMedioActual = calcularTipoMedio();
 
   return (
     <div className="admin activa">
@@ -149,7 +156,7 @@ export default function AdminEventoNuevo() {
                   id="e-video"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="Enlace al video en Instagram"
+                  placeholder="Enlace al video o reel en Instagram"
                 />
                 <span className="ayuda">Pegá el enlace a la publicación o reel de Instagram.</span>
               </div>
@@ -161,57 +168,101 @@ export default function AdminEventoNuevo() {
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={4}
+                placeholder="Escribí una descripción detallada de la jornada o muestra..."
                 required
               />
             </div>
+
             <div className="campo">
-              <span style={{ fontWeight: "700" }}>Galería de fotos (rutas locales y predeterminadas)</span>
-              <p style={{ color: "var(--suave)", fontSize: "0.875rem", margin: "0.25rem 0 0.75rem" }}>
-                Hacé clic en las fotos predeterminadas para incluirlas o excluirlas, o agregá una ruta local simulada (ej. <code>/media/eventos/foto1.jpg</code>).
-              </p>
-              <div className="previas" style={{ marginBottom: "1rem" }}>
-                {FOTOS_PREDETERMINADAS.map((foto) => {
-                  const activa = fotosSeleccionadas.includes(foto.url);
-                  return (
-                    <button
-                      key={foto.id}
-                      type="button"
-                      onClick={() => toggleFoto(foto.url)}
-                      title={`${activa ? "Quitar" : "Agregar"} ${foto.nombre}`}
-                      style={{
-                        padding: 0,
-                        border: activa ? "2px solid var(--verde)" : "2px dashed var(--borde)",
-                        opacity: activa ? 1 : 0.45,
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        background: "none",
-                        lineHeight: 0,
-                      }}
-                    >
-                      <img src={foto.url} alt={foto.nombre} />
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                <input
-                  type="text"
-                  placeholder="Simular otra ruta: /media/eventos/mi-foto.jpg"
-                  value={fotoRutaManual}
-                  onChange={(e) => setFotoRutaManual(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <button
-                  type="button"
-                  className="boton boton-linea boton-chico"
-                  onClick={agregarRutaLocal}
+              <label htmlFor="e-archivos" style={{ fontWeight: "700" }}>
+                Galería de fotos
+              </label>
+
+              <input
+                id="e-archivos"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={manejarArchivos}
+                style={{ display: "none" }}
+              />
+
+              <label
+                htmlFor="e-archivos"
+                className="zona-fotos"
+                style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  Agregar ruta
-                </button>
+                  <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+                </svg>
+                <strong>Hacé clic acá para examinar fotos en tu computadora</strong>
+                <span>Podés seleccionar una o varias imágenes (JPG, PNG, WebP).</span>
+              </label>
+
+              {fotos.length > 0 && (
+                <div style={{ marginTop: "1rem" }}>
+                  <p style={{ fontSize: "0.875rem", color: "var(--suave)", marginBottom: "0.5rem" }}>
+                    Fotos seleccionadas ({fotos.length}): la primera será la portada.
+                  </p>
+                  <div className="previas">
+                    {fotos.map((f, i) => (
+                      <div
+                        key={f.id}
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                          border: i === 0 ? "2px solid var(--verde)" : "1px solid var(--borde)",
+                          borderRadius: "4px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <img src={f.url} alt={f.nombre} style={{ display: "block" }} />
+                        <button
+                          type="button"
+                          onClick={() => quitarFoto(f.id)}
+                          title="Quitar foto"
+                          style={{
+                            position: "absolute",
+                            top: "4px",
+                            right: "4px",
+                            background: "rgba(0, 0, 0, 0.65)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "22px",
+                            height: "22px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            lineHeight: "22px",
+                            padding: 0,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "var(--suave)" }}>
+                Tipo resultante:{" "}
+                <strong style={{ color: "var(--texto)" }}>
+                  {tipoMedioActual === "VIDEO"
+                    ? "🎬 Video (VIDEO)"
+                    : tipoMedioActual === "CAROUSEL_ALBUM"
+                    ? `📸 Carrusel de fotos (CAROUSEL_ALBUM - ${fotos.length} fotos)`
+                    : "🖼️ Foto única (IMAGE)"}
+                </strong>
               </div>
-              <span className="ayuda" style={{ marginTop: "0.5rem", display: "block" }}>
-                Fotos seleccionadas para este evento: {fotosSeleccionadas.length}
-              </span>
             </div>
           </div>
           <div className="caja">
