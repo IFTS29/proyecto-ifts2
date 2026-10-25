@@ -62,12 +62,19 @@ export function crearRutasEventos({ config, usuarios, eventos }) {
       }
 
       const estado = ESTADOS_VALIDOS.includes(datos.estado) ? datos.estado : "visible";
-      const medios = Array.isArray(datos.medios) ? datos.medios : [];
-      if (medios.length === 0 && fotoPrincipal) {
-        medios.push({
-          tipo: "IMAGE",
-          url: fotoPrincipal,
-        });
+      const medios = Array.isArray(datos.medios) ? [...datos.medios] : [];
+      if (medios.length === 0) {
+        if (datos.videoUrl) {
+          medios.push({
+            tipo: "VIDEO",
+            url: String(datos.videoUrl).trim(),
+          });
+        } else if (fotoPrincipal) {
+          medios.push({
+            tipo: "IMAGE",
+            url: fotoPrincipal,
+          });
+        }
       }
 
       const nuevo = await eventos.crear({

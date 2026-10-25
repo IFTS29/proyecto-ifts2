@@ -114,18 +114,26 @@ export default function Eventos() {
 
                 const fecha = post.fechaEvento ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : (post.fechaFormateada || "Reciente");
                 const cantidad = post.cantidadMedios || 1;
-                const imagen =
-                  post.fotoPrincipal ||
-                  post.localImage ||
-                  post.localThumbnail ||
-                  IMGS.B_EVENTOS;
+                const esFotoValida =
+                  post.fotoPrincipal &&
+                  !post.fotoPrincipal.includes("placeholder") &&
+                  !post.fotoPrincipal.includes("instagram.com");
+
+                const imagen = esFotoValida
+                  ? post.fotoPrincipal
+                  : post.localImage || post.localThumbnail || IMGS.B_EVENTOS;
+
+                const esVideoOInstagram =
+                  post.isVideo ||
+                  post.tipoMedio === "VIDEO" ||
+                  Boolean(post.videoUrl);
 
                 return (
                   <li key={post.id}>
                     <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
                       <span className="cant">
-                        {post.isVideo ? (
-                          "🎬 Video"
+                        {esVideoOInstagram ? (
+                          post.videoUrl?.includes("instagram.com") ? "🎬 Instagram" : "🎬 Video"
                         ) : (
                           <>
                             <svg

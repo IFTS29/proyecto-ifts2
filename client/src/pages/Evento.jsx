@@ -5,8 +5,11 @@ import { api } from "../api";
 
 function urlEmbedInstagram(url) {
   if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
-  const limpia = url.split("?")[0].replace(/\/$/, "");
-  return `${limpia}/embed`;
+  let limpia = url.split("?")[0].replace(/\/$/, "");
+  if (!limpia.endsWith("/embed")) {
+    limpia = `${limpia}/embed`;
+  }
+  return limpia;
 }
 
 export default function Evento() {
@@ -56,29 +59,68 @@ export default function Evento() {
     let fecha = post.fechaEvento
       ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
       : (post.fechaFormateada || "Reciente");
-    const items =
-      Array.isArray(post.medios) && post.medios.length > 0
-        ? post.medios.map((m, idx) => ({ id: m.id || String(idx + 1), mediaType: m.tipo || "IMAGE", url: m.url, thumbnailUrl: m.thumbnailUrl || m.url }))
-        : Array.isArray(post.mediaItems) && post.mediaItems.length > 0
-        ? post.mediaItems
-        : [
-            {
-              id: post.id,
-              mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
-              url: post.isVideo
-                ? post.localVideo || IMGS.B_EVENTOS
-                : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
-              thumbnailUrl:
-                post.localThumbnail ||
-                post.fotoPrincipal ||
-                post.localImage ||
-                IMGS.B_EVENTOS,
-            },
-          ];
+    const igUrl = post.videoUrl || post.permalink;
+    const tieneInstagram = Boolean(urlEmbedInstagram(igUrl));
+    const fotosReales = (Array.isArray(post.medios) ? post.medios : [])
+      .filter((m) => m?.url && !m.url.includes("placeholder") && !urlEmbedInstagram(m.url));
+
+    let items;
+    if (fotosReales.length > 0) {
+      items = fotosReales.map((m, idx) => ({
+        id: m.id || String(idx + 1),
+        mediaType: m.tipo || "IMAGE",
+        url: m.url,
+        thumbnailUrl: m.thumbnailUrl || m.url,
+      }));
+    } else if (tieneInstagram) {
+      items = [
+        {
+          id: "instagram-embed",
+          mediaType: "VIDEO",
+          url: igUrl,
+          thumbnailUrl: IMGS.B_EVENTOS,
+        },
+      ];
+    } else if (post.videoUrl) {
+      items = [
+        {
+          id: "video-manual",
+          mediaType: "VIDEO",
+          url: post.videoUrl,
+          thumbnailUrl: IMGS.B_EVENTOS,
+        },
+      ];
+    } else if (Array.isArray(post.medios) && post.medios.length > 0) {
+      items = post.medios.map((m, idx) => ({
+        id: m.id || String(idx + 1),
+        mediaType: m.tipo || "IMAGE",
+        url: m.url,
+        thumbnailUrl: m.thumbnailUrl || m.url,
+      }));
+    } else if (Array.isArray(post.mediaItems) && post.mediaItems.length > 0) {
+      items = post.mediaItems;
+    } else {
+      items = [
+        {
+          id: post.id || "1",
+          mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
+          url: post.isVideo
+            ? post.localVideo || post.videoUrl || IMGS.B_EVENTOS
+            : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
+          thumbnailUrl:
+            post.localThumbnail ||
+            post.fotoPrincipal ||
+            post.localImage ||
+            IMGS.B_EVENTOS,
+        },
+      ];
+    }
 
     const medioActivo = items[indiceFoto] || items[0];
     const isActivoVideo = medioActivo.mediaType === "VIDEO";
-    const cantidadTexto = post.isVideo
+    const cantidadTexto = tieneInstagram && fotosReales.length === 0
+      ? "Instagram"
+      : post.isVideo
       ? "Video"
       : `${items.length} ${items.length === 1 ? "foto" : "fotos"}`;
 
@@ -87,9 +129,10 @@ export default function Evento() {
         ? post.parsed.hashtags.join(" ")
         : "#ifts2eventos";
 
-    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder como fondo
+    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder ni URL de Instagram como fondo
     const esFotoValida =
       items[0]?.url &&
+      !urlEmbedInstagram(items[0].url) &&
       !items[0].url.endsWith(".mp4") &&
       !items[0].url.endsWith(".svg") &&
       !items[0].url.includes("placeholder");
@@ -200,11 +243,15 @@ export default function Evento() {
                   </svg>
                   Publicado desde Instagram
                 </strong>
-                <p>Esta publicación llegó al sitio con el hashtag {hashtagsTexto}.</p>
-                {post.permalink ? (
+                {post.origen === "instagram" ? (
+                  <p>Esta publicación llegó al sitio con el hashtag {hashtagsTexto}.</p>
+                ) : (
+                  <p>Publicación institucional vinculada con Instagram.</p>
+                )}
+                {post.permalink || post.videoUrl ? (
                   <a
                     className="enlace"
-                    href={post.permalink}
+                    href={post.permalink || post.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

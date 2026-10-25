@@ -66,7 +66,7 @@ export default function AdminEventoNuevo() {
       return;
     }
     if (fotos.length === 0 && !videoUrl.trim()) {
-      setError("Por favor seleccioná al menos una foto o ingresá un video.");
+      setError("Por favor seleccioná al menos una foto o ingresá un enlace a una publicación de Instagram / video.");
       return;
     }
 
@@ -83,12 +83,22 @@ export default function AdminEventoNuevo() {
         tipoMedio,
         videoUrl: videoUrl.trim() || null,
         fotoPrincipal,
-        medios: fotosUrls.map((url, idx) => ({
-          id: String(idx + 1),
-          tipo: "IMAGE",
-          url,
-        })),
-        cantidadMedios: fotosUrls.length || 1,
+        medios: fotosUrls.length > 0
+          ? fotosUrls.map((url, idx) => ({
+              id: String(idx + 1),
+              tipo: "IMAGE",
+              url,
+            }))
+          : videoUrl.trim()
+          ? [
+              {
+                id: "1",
+                tipo: "VIDEO",
+                url: videoUrl.trim(),
+              },
+            ]
+          : [],
+        cantidadMedios: fotosUrls.length || (videoUrl.trim() ? 1 : 0),
         estado: visible ? "visible" : "oculto",
         origen: "manual",
       };
@@ -151,14 +161,14 @@ export default function AdminEventoNuevo() {
                 />
               </div>
               <div className="campo">
-                <label htmlFor="e-video">Video (opcional)</label>
+                <label htmlFor="e-video">Publicación o video de Instagram (opcional)</label>
                 <input
                   id="e-video"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="Enlace al video o reel en Instagram"
+                  placeholder="https://www.instagram.com/p/... o reel"
                 />
-                <span className="ayuda">Pegá el enlace a la publicación o reel de Instagram.</span>
+                <span className="ayuda">Pegá el enlace de Instagram (se embebe automáticamente si no subís fotos).</span>
               </div>
             </div>
             <div className="campo">
