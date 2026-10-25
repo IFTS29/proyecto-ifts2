@@ -3,6 +3,73 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
 
+function urlEmbedInstagram(url) {
+  if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
+  return url.split("?")[0].replace(/\/$/, "") + "/";
+}
+
+function InstagramEmbed({ url, titulo }) {
+  useEffect(() => {
+    const procesar = () => {
+      if (window.instgrm?.Embeds) {
+        window.instgrm.Embeds.process();
+      }
+    };
+
+    if (window.instgrm) {
+      procesar();
+    } else {
+      const scriptId = "instagram-embed-script";
+      let script = document.getElementById(scriptId);
+      if (!script) {
+        script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://www.instagram.com/embed.js";
+        script.async = true;
+        script.defer = true;
+        script.onload = procesar;
+        document.body.appendChild(script);
+      } else {
+        script.addEventListener("load", procesar);
+      }
+    }
+  }, [url]);
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "480px" }}>
+      <blockquote
+        key={url}
+        className="instagram-media"
+        data-instgrm-permalink={url}
+        data-instgrm-version="14"
+        style={{
+          background: "var(--blanco, #fff)",
+          border: "1px solid var(--borde, #e5e7eb)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+          margin: "0 auto",
+          maxWidth: "540px",
+          minWidth: "326px",
+          padding: "0",
+          width: "100%",
+        }}
+      >
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p style={{ margin: "0 0 1rem", color: "var(--suave)" }}>Cargando publicación oficial de Instagram...</p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--naranja)", fontWeight: "600" }}
+          >
+            Ver publicación en Instagram ↗
+          </a>
+        </div>
+      </blockquote>
+    </div>
+  );
+}
+
 export default function Evento() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -14,12 +81,9 @@ export default function Evento() {
 
   useEffect(() => {
     if (postId) {
-      api("/instagram/feed")
+      api(`/events/${postId}`)
         .then((data) => {
-          if (Array.isArray(data)) {
-            const encontrado = data.find((p) => String(p.id) === String(postId));
-            if (encontrado) setPost(encontrado);
-          }
+          if (data?.evento) setPost(data.evento);
         })
         .catch(() => {});
     }
@@ -28,8 +92,10 @@ export default function Evento() {
   // Si hay publicación de Instagram cargada
   if (post) {
     const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
-    let titulo = post.parsed?.title || "";
-    let parrafos = Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
+    let titulo = post.titulo || post.parsed?.title || "";
+    let parrafos = post.descripcion
+      ? post.descripcion.split(/\r?\n/).map((p) => p.trim()).filter(Boolean)
+      : Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
       ? post.parsed.bodyParagraphs
       : [];
 
@@ -47,29 +113,72 @@ export default function Evento() {
       parrafos = [rawText];
     }
 
-    const subtitulo = post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
-    const fecha = post.fechaFormateada || "Reciente";
-    const items =
-      Array.isArray(post.mediaItems) && post.mediaItems.length > 0
-        ? post.mediaItems
-        : [
-            {
-              id: post.id,
-              mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
-              url: post.isVideo
-                ? post.localVideo || IMGS.B_EVENTOS
-                : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
-              thumbnailUrl:
-                post.localThumbnail ||
-                post.fotoPrincipal ||
-                post.localImage ||
-                IMGS.B_EVENTOS,
-            },
-          ];
+    const subtitulo = post.resumen || post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
+    let fecha = post.fechaEvento
+      ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
+      : (post.fechaFormateada || "Reciente");
+    const igUrl = post.videoUrl || post.permalink;
+    const tieneInstagram = Boolean(urlEmbedInstagram(igUrl));
+    const fotosReales = (Array.isArray(post.medios) ? post.medios : [])
+      .filter((m) => m?.url && !m.url.includes("placeholder") && !urlEmbedInstagram(m.url));
+
+    let items;
+    if (fotosReales.length > 0) {
+      items = fotosReales.map((m, idx) => ({
+        id: m.id || String(idx + 1),
+        mediaType: m.tipo || "IMAGE",
+        url: m.url,
+        thumbnailUrl: m.thumbnailUrl || m.url,
+      }));
+    } else if (tieneInstagram) {
+      items = [
+        {
+          id: "instagram-embed",
+          mediaType: "VIDEO",
+          url: igUrl,
+          thumbnailUrl: IMGS.B_EVENTOS,
+        },
+      ];
+    } else if (post.videoUrl) {
+      items = [
+        {
+          id: "video-manual",
+          mediaType: "VIDEO",
+          url: post.videoUrl,
+          thumbnailUrl: IMGS.B_EVENTOS,
+        },
+      ];
+    } else if (Array.isArray(post.medios) && post.medios.length > 0) {
+      items = post.medios.map((m, idx) => ({
+        id: m.id || String(idx + 1),
+        mediaType: m.tipo || "IMAGE",
+        url: m.url,
+        thumbnailUrl: m.thumbnailUrl || m.url,
+      }));
+    } else if (Array.isArray(post.mediaItems) && post.mediaItems.length > 0) {
+      items = post.mediaItems;
+    } else {
+      items = [
+        {
+          id: post.id || "1",
+          mediaType: post.mediaType || (post.isVideo ? "VIDEO" : "IMAGE"),
+          url: post.isVideo
+            ? post.localVideo || post.videoUrl || IMGS.B_EVENTOS
+            : post.fotoPrincipal || post.localImage || IMGS.B_EVENTOS,
+          thumbnailUrl:
+            post.localThumbnail ||
+            post.fotoPrincipal ||
+            post.localImage ||
+            IMGS.B_EVENTOS,
+        },
+      ];
+    }
 
     const medioActivo = items[indiceFoto] || items[0];
     const isActivoVideo = medioActivo.mediaType === "VIDEO";
-    const cantidadTexto = post.isVideo
+    const cantidadTexto = tieneInstagram && fotosReales.length === 0
+      ? "Instagram"
+      : post.isVideo
       ? "Video"
       : `${items.length} ${items.length === 1 ? "foto" : "fotos"}`;
 
@@ -78,9 +187,10 @@ export default function Evento() {
         ? post.parsed.hashtags.join(" ")
         : "#ifts2eventos";
 
-    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder como fondo
+    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder ni URL de Instagram como fondo
     const esFotoValida =
       items[0]?.url &&
+      !urlEmbedInstagram(items[0].url) &&
       !items[0].url.endsWith(".mp4") &&
       !items[0].url.endsWith(".svg") &&
       !items[0].url.includes("placeholder");
@@ -112,7 +222,9 @@ export default function Evento() {
           <div className="contenedor detalle">
             <div className="galeria">
               <div className="principal">
-                {isActivoVideo ? (
+                {urlEmbedInstagram(medioActivo.url) ? (
+                  <InstagramEmbed url={urlEmbedInstagram(medioActivo.url)} titulo={titulo} />
+                ) : isActivoVideo ? (
                   <video
                     controls
                     playsInline
@@ -183,11 +295,15 @@ export default function Evento() {
                   </svg>
                   Publicado desde Instagram
                 </strong>
-                <p>Esta publicación llegó al sitio con el hashtag {hashtagsTexto}.</p>
-                {post.permalink ? (
+                {post.origen === "instagram" ? (
+                  <p>Esta publicación llegó al sitio con el hashtag {hashtagsTexto}.</p>
+                ) : (
+                  <p>Publicación institucional vinculada con Instagram.</p>
+                )}
+                {post.permalink || post.videoUrl ? (
                   <a
                     className="enlace"
-                    href={post.permalink}
+                    href={post.permalink || post.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

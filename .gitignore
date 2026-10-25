@@ -11,6 +11,7 @@ AGENTS.md
 
 # Se versiona la guia de preingreso que usa el sitio
 !client/public/docs/guia-de-preingreso.pdf
+.agents/
 
 server/storage/
 AGENTS.md

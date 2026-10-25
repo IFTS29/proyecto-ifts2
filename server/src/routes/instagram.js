@@ -6,6 +6,7 @@ import { autenticar, requiereRol } from "../middleware/auth.js";
 export function crearRutasInstagram({
   config = {},
   usuarios,
+  eventos,
   repoFeed = crearRepoFeedInstagram(),
   mediaService = { guardarMedio },
 } = {}) {
@@ -13,6 +14,30 @@ export function crearRutasInstagram({
   const middlewaresAuth = usuarios
     ? [autenticar({ config, usuarios }), requiereRol("admin")]
     : [];
+
+  // GET /api/instagram/status (Información dinámica del estado de sincronización y cuenta conectada)
+  router.get("/status", async (req, res) => {
+    try {
+      const statusGuardado = repoFeed.loadSyncStatus
+        ? await repoFeed.loadSyncStatus()
+        : null;
+
+      const tieneCredenciales = Boolean(
+        config.instagramToken || process.env.INSTAGRAM_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN,
+      );
+
+      return res.json({
+        conectado: statusGuardado?.conectado ?? tieneCredenciales,
+        cuenta: statusGuardado?.cuenta || "@ifts_2_ok",
+        hashtag: "#eventosIFTS2",
+        ultimaSincronizacion: statusGuardado?.ultimaSincronizacion || null,
+        estado: statusGuardado?.estado || (tieneCredenciales ? "activo" : "sin_sincronizar"),
+        error: statusGuardado?.error || null,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
 
   // GET /api/instagram/feed?category=eventos (Público para el portal institucional)
   router.get("/feed", async (req, res) => {
@@ -41,6 +66,7 @@ export function crearRutasInstagram({
         config,
         repoFeed,
         mediaService,
+        eventos,
       });
 
       if (!resultado.success) {
