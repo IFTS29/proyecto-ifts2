@@ -98,11 +98,9 @@ export function crearRepoEventosMemoria(datosIniciales = []) {
     async contarPorEstado() {
       const conteo = {
         todos: lista.length,
-        para_revisar: 0,
         visible: 0,
         oculto: 0,
         archivado: 0,
-        descartado: 0,
       };
       for (const e of lista) {
         if (conteo[e.estado] !== undefined) {

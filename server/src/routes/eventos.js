@@ -2,7 +2,7 @@ import { Router } from "express";
 import { autenticar, requiereRol } from "../middleware/auth.js";
 import { guardarMedio } from "../services/media/index.js";
 
-const ESTADOS_VALIDOS = ["para_revisar", "visible", "oculto", "archivado", "descartado"];
+const ESTADOS_VALIDOS = ["visible", "oculto", "archivado"];
 
 async function extraerFotoInstagram(url) {
   try {
