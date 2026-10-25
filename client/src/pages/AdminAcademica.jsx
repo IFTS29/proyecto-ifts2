@@ -1,11 +1,183 @@
-import { useState } from "react";
-import { anio } from "../utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api, descargar } from "../api.js";
+import { codigoPeriodo, leerPeriodo, periodoActual, textoMaterias, textoPeriodo } from "../academica.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import Modal from "../components/Modal.jsx";
+import FormHorario from "../components/FormHorario.jsx";
+import FormReutilizar from "../components/FormReutilizar.jsx";
+import ResumenHorarios from "../components/ResumenHorarios.jsx";
+import TablaHorarios from "../components/TablaHorarios.jsx";
+import HorariosPublicos from "../components/HorariosPublicos.jsx";
 
+const OTRO = "otro";
+
+// Información académica → Horarios de cursada.
+// Se trabaja de a un período: Resumen (estado y publicación) y Tabla (cargar y corregir materias).
+// Guardar cambia solo los datos de trabajo; los alumnos ven lo publicado hasta que se publique o actualice.
 export default function AdminAcademica() {
-  const [ok, setOk] = useState({});
   const { usuario } = useAuth();
+  const [periodos, setPeriodos] = useState([]);
+  const [periodo, setPeriodo] = useState("");
+  const [otro, setOtro] = useState(null); // { cicloLectivo, cuatrimestre } mientras se elige "Otro período…"
+  const [estado, setEstado] = useState(null);
+  const [vista, setVista] = useState("resumen");
+  const [modal, setModal] = useState(null); // { tipo: "materia" | "reutilizar" | "cambios" | "vista", horario }
+  const [aviso, setAviso] = useState({ texto: "", error: false });
+  const [ocupado, setOcupado] = useState(false);
+  const [modalOcupado, setModalOcupado] = useState(false); // mientras un formulario guarda, no se puede cerrar
+  const formSucio = useRef(false);
+
+  const avisar = (texto, error = false) => setAviso({ texto, error });
+
+  const cargarPeriodos = useCallback(async () => {
+    const { periodos: lista } = await api("/academic/periodos");
+    setPeriodos(lista);
+    return lista;
+  }, []);
+
+  // Si se cambia de período rápido, las respuestas pueden llegar en otro orden.
+  // Solo se muestra la del último pedido, para que la pantalla siempre corresponda al período elegido.
+  const ultimoPedido = useRef(0);
+  const cargarEstado = useCallback(async (codigo) => {
+    const pedido = ++ultimoPedido.current;
+    try {
+      const datos = await api(`/academic/periodos/${codigo}`);
+      if (pedido === ultimoPedido.current) setEstado(datos);
+    } catch (err) {
+      if (pedido === ultimoPedido.current) throw err;
+    }
+  }, []);
+
+  // Al entrar: el período más reciente con datos; si no hay ninguno, el período en curso.
+  useEffect(() => {
+    cargarPeriodos()
+      .then((lista) => setPeriodo(lista[0]?.periodo ?? codigoPeriodo(periodoActual())))
+      .catch((err) => avisar(err.message, true));
+  }, [cargarPeriodos]);
+
+  useEffect(() => {
+    if (!periodo) return;
+    setEstado(null);
+    cargarEstado(periodo).catch((err) => avisar(err.message, true));
+  }, [periodo, cargarEstado]);
+
+  const recargar = () => Promise.all([cargarPeriodos(), cargarEstado(periodo)]);
+
+  // Corre una acción del panel: muestra el resultado o el error y vuelve a leer los datos.
+  async function ejecutar(accion, mensajeExito) {
+    setOcupado(true);
+    avisar("");
+    try {
+      const resultado = await accion();
+      await recargar();
+      avisar(typeof mensajeExito === "function" ? mensajeExito(resultado) : mensajeExito);
+    } catch (err) {
+      avisar(err.message, true);
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  const elegirPeriodo = (valor) => {
+    avisar("");
+    setVista("resumen");
+    if (valor === OTRO) return setOtro(periodoActual());
+    setOtro(null);
+    setPeriodo(valor);
+  };
+
+  const abrirOtro = (e) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(String(otro.cicloLectivo))) return avisar("Escribí el ciclo lectivo, por ejemplo 2027.", true);
+    setPeriodo(codigoPeriodo(otro));
+    setOtro(null);
+  };
+
+  const cerrarModal = () => {
+    if (!modalOcupado) setModal(null);
+  };
+
+  // Cerrar el formulario de una materia: si hay cambios sin guardar, se pregunta antes.
+  const cerrarFormulario = () => {
+    if (modalOcupado) return;
+    if (formSucio.current && !window.confirm("Hay cambios sin guardar. ¿Querés descartarlos?")) return;
+    formSucio.current = false;
+    setModal(null);
+  };
+
+  const marcarSucio = useCallback((sucio) => {
+    formSucio.current = sucio;
+  }, []);
+
+  const guardarMateria = async (datos) => {
+    const editando = modal.horario;
+    const { horario } = editando
+      ? await api(`/academic/horarios/${editando.id}`, { metodo: "PUT", cuerpo: datos })
+      : await api("/academic/horarios", { metodo: "POST", cuerpo: datos });
+    await recargar();
+    const cuando = estado.publicado ? " Los alumnos lo van a ver cuando actualices la publicación." : "";
+    avisar(`Se guardó «${horario.materia}».${cuando}`);
+    return horario;
+  };
+
+  const eliminar = (h) => {
+    const sigueVisible = estado.publicado
+      ? " Si estaba publicada, los alumnos la siguen viendo hasta que actualices la publicación."
+      : "";
+    if (!window.confirm(`¿Eliminar «${h.materia}» del ${textoPeriodo(estado)}?${sigueVisible}`)) return;
+    ejecutar(() => api(`/academic/horarios/${h.id}`, { metodo: "DELETE" }), `Se eliminó «${h.materia}».`);
+  };
+
+  const publicar = () => {
+    const del = textoPeriodo(estado);
+    const materias = textoMaterias(estado.horarios.length);
+    const pregunta = estado.publicado
+      ? `¿Actualizar la publicación del ${del}? Los alumnos van a ver lo guardado (${materias}).`
+      : `¿Publicar los horarios del ${del}? Los alumnos van a ver ${materias}.`;
+    if (!window.confirm(pregunta)) return;
+    const mensaje = estado.publicado ? "Se actualizó la publicación." : "Se publicaron los horarios.";
+    ejecutar(() => api(`/academic/periodos/${periodo}/publicar`, { metodo: "POST" }), mensaje);
+  };
+
+  const retirar = () => {
+    const del = textoPeriodo(estado);
+    const pregunta = `¿Retirar la publicación del ${del}? Los alumnos dejan de verla. No se borra nada.`;
+    if (!window.confirm(pregunta)) return;
+    ejecutar(() => api(`/academic/periodos/${periodo}/retirar`, { metodo: "POST" }), "Se retiró la publicación.");
+  };
+
+  const reutilizar = async (origen) => {
+    const resultado = await api(`/academic/periodos/${periodo}/reutilizar`, { metodo: "POST", cuerpo: { origen } });
+    await recargar(); // la ventana se cierra cuando la tabla ya muestra lo que se trajo
+    setModal(null);
+    setVista("tabla");
+    const yaEstaban = resultado.yaEstaban ? ` (${resultado.yaEstaban} ya estaban cargadas)` : "";
+    const agregadas = textoMaterias(resultado.agregadas);
+    avisar(`Se agregaron ${agregadas} del ${textoPeriodo(leerPeriodo(origen))}${yaEstaban}. No se publicó nada.`);
+  };
+
+  // El error se muestra dentro de la vista previa, junto al botón: el aviso de la página queda detrás.
+  const [descarga, setDescarga] = useState({ enCurso: false, error: "" });
+  const descargarVistaPrevia = async () => {
+    const { cicloLectivo, cuatrimestre } = leerPeriodo(periodo);
+    setDescarga({ enCurso: true, error: "" });
+    try {
+      await descargar(
+        `/academic/periodos/${periodo}/vista-previa.pdf`,
+        `vista-previa-horarios-${cuatrimestre}-cuatrimestre-${cicloLectivo}.pdf`,
+      );
+      setDescarga({ enCurso: false, error: "" });
+    } catch (err) {
+      setDescarga({ enCurso: false, error: err.message });
+    }
+  };
+
+  // El período abierto aparece en el selector aunque todavía no tenga datos.
+  const opciones = periodos.some((p) => p.periodo === periodo)
+    ? periodos
+    : [...(periodo ? [{ periodo, ...leerPeriodo(periodo), nuevo: true }] : []), ...periodos];
+  const aulas = [...new Set((estado?.horarios ?? []).map((h) => h.aula).filter(Boolean))].sort();
 
   return (
     <div className="admin activa">
@@ -20,196 +192,199 @@ export default function AdminAcademica() {
         <div className="cab-admin">
           <div>
             <h1>Información académica</h1>
-            <p>
-              Horarios, mesas de examen, inscripciones y calendario de ingreso del período vigente.
-            </p>
+            <p>Horarios de cursada de cada cuatrimestre. Guardar no cambia el sitio: los alumnos ven lo publicado.</p>
           </div>
         </div>
-        <div className="form-admin">
-          <form
-            className="caja"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setOk((o) => ({ ...o, "ok-acad": true }));
-            }}
-          >
-            <h2>Publicar información nueva</h2>
-            <div className="fila">
+
+        <div className="selector-periodo">
+          <div className="campo">
+            <label htmlFor="a-periodo">Período</label>
+            <select
+              id="a-periodo"
+              value={otro ? OTRO : periodo}
+              disabled={ocupado}
+              onChange={(e) => elegirPeriodo(e.target.value)}
+            >
+              {opciones.map((p) => (
+                <option key={p.periodo} value={p.periodo}>
+                  {textoPeriodo(p)}
+                  {p.nuevo ? " (sin datos)" : p.publicado ? " · Publicado" : " · No publicado"}
+                </option>
+              ))}
+              <option value={OTRO}>Otro período…</option>
+            </select>
+          </div>
+          {otro && (
+            <form className="otro-periodo" onSubmit={abrirOtro}>
               <div className="campo">
-                <label htmlFor="a-tipo">Tipo</label>
-                <select id="a-tipo">
-                  <option>Horarios de cursada</option>
-                  <option>Mesas de examen</option>
-                  <option>Inscripciones a materias y mesas</option>
-                </select>
+                <label htmlFor="a-ciclo">Ciclo lectivo</label>
+                <input
+                  id="a-ciclo"
+                  type="number"
+                  min="2020"
+                  max="2100"
+                  value={otro.cicloLectivo}
+                  onChange={(e) => setOtro({ ...otro, cicloLectivo: e.target.value })}
+                />
               </div>
               <div className="campo">
-                <label htmlFor="a-per">Período</label>
-                <select id="a-per">
-                  <option>1.° cuatrimestre 2027</option>
-                  <option>2.° cuatrimestre 2026</option>
-                </select>
-              </div>
-            </div>
-            <div className="campo">
-              <span style={{ fontWeight: "700" }}>Archivo</span>
-              <div className="zona-fotos">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+                <label htmlFor="a-cuatrimestre">Cuatrimestre</label>
+                <select
+                  id="a-cuatrimestre"
+                  value={otro.cuatrimestre}
+                  onChange={(e) => setOtro({ ...otro, cuatrimestre: e.target.value })}
                 >
-                  <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
-                </svg>
-                <strong>Subí la planilla o el PDF</strong>
-                <span>Excel o PDF</span>
+                  <option value="1">1.° cuatrimestre</option>
+                  <option value="2">2.° cuatrimestre</option>
+                </select>
+              </div>
+              <button className="boton boton-verde boton-chico" type="submit" disabled={ocupado}>
+                Abrir
+              </button>
+            </form>
+          )}
+        </div>
+
+        <p className={"aviso" + (aviso.texto ? " visible" : "") + (aviso.error ? " error" : "")} role="status">
+          {aviso.texto}
+        </p>
+
+        {!estado && !aviso.error && <p>Cargando…</p>}
+
+        {estado && vista === "resumen" && (
+          <ResumenHorarios
+            estado={estado}
+            ocupado={ocupado}
+            alAbrirTabla={() => setVista("tabla")}
+            alVerCambios={() => setModal({ tipo: "cambios" })}
+            alVistaPrevia={() => {
+              setDescarga({ enCurso: false, error: "" });
+              setModal({ tipo: "vista" });
+            }}
+            alPublicar={publicar}
+            alRetirar={retirar}
+          />
+        )}
+
+        {estado && vista === "tabla" && (
+          <section className="caja seccion-horarios" aria-labelledby="titulo-tabla">
+            <button className="boton-texto" type="button" onClick={() => setVista("resumen")}>
+              ← Volver al resumen
+            </button>
+            <div className="cabecera-tabla">
+              <h2 id="titulo-tabla">Horarios · {textoPeriodo(estado)}</h2>
+              <div className="acciones">
+                <button className="boton boton-verde" type="button" onClick={() => setModal({ tipo: "materia" })}>
+                  + Agregar materia
+                </button>
+                <button className="boton boton-linea" type="button" onClick={() => setModal({ tipo: "reutilizar" })}>
+                  Reutilizar horarios
+                </button>
               </div>
             </div>
-            <button className="boton boton-verde" type="submit">
-              Publicar como vigente
-            </button>
-            <p id="ok-acad" role="status" className={"aviso" + (ok["ok-acad"] ? " visible" : "")}>
-              Información publicada. El período anterior pasó al archivo.
-            </p>
-          </form>
-          <div className="caja">
-            <h2>Vigente ahora</h2>
-            <ul className="actividad">
-              <li>
-                <span>
-                  <strong>Horarios</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    2.° cuatrimestre 2026
-                  </span>
-                </span>
-                <span className="etiqueta et-verde">Vigente</span>
-              </li>
-              <li>
-                <span>
-                  <strong>Mesas de examen</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Turno noviembre-diciembre 2026
-                  </span>
-                </span>
-                <span className="etiqueta et-verde">Vigente</span>
-              </li>
-              <li>
-                <span>
-                  <strong>Calendario de ingreso</strong>
-                  <br />
-                  <span style={{ color: "var(--suave)", fontSize: "14px" }}>
-                    Ingreso <span>{anio(0)}</span>
-                  </span>
-                </span>
-                <span className="etiqueta et-verde">Vigente</span>
-              </li>
-            </ul>
-            <h2 style={{ marginTop: "24px" }}>Archivo</h2>
-            <ul className="actividad">
-              <li>
-                <span>
-                  Calendario de ingreso <span>{anio(-1)}</span>
-                </span>
-                <span className="etiqueta et-gris">Archivado</span>
-              </li>
-              <li>
-                <span>Horarios 1.° cuatrimestre 2026</span>
-                <span className="etiqueta et-gris">Archivado</span>
-              </li>
-              <li>
-                <span>Mesas julio-agosto 2026</span>
-                <span className="etiqueta et-gris">Archivado</span>
-              </li>
-              <li>
-                <span>Horarios 2.° cuatrimestre 2025</span>
-                <span className="etiqueta et-gris">Archivado</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <form
-          className="caja calendario"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setOk((o) => ({ ...o, "ok-cal": true }));
-          }}
+            {estado.horarios.length === 0 ? (
+              <div className="estado-vacio">
+                <p>
+                  <strong>Todavía no hay horarios cargados.</strong>
+                </p>
+                <p>Agregá las materias una por una o traelas de otro período con "Reutilizar horarios".</p>
+              </div>
+            ) : (
+              <TablaHorarios
+                horarios={estado.horarios}
+                alEditar={(h) => setModal({ tipo: "materia", horario: h })}
+                alEliminar={eliminar}
+              />
+            )}
+          </section>
+        )}
+
+        <Modal
+          abierto={modal?.tipo === "materia"}
+          titulo={modal?.horario ? "Editar materia" : `Agregar materia · ${estado ? textoPeriodo(estado) : ""}`}
+          alCerrar={cerrarFormulario}
+          bloqueado={modalOcupado}
         >
-          <h2>Calendario de ingreso</h2>
-          <div className="fila">
-            <div className="campo">
-              <label htmlFor="c-ciclo">Ciclo lectivo</label>
-              <input id="c-ciclo" defaultValue={anio(0)} />
-              <span className="ayuda">Se completa con el año del próximo ingreso.</span>
-            </div>
-            <div className="campo">
-              <label htmlFor="c-fuente">Fuente de las fechas</label>
-              <input id="c-fuente" defaultValue="Agencia de Habilidades para el Futuro" />
-            </div>
-          </div>
+          <FormHorario
+            periodo={leerPeriodo(periodo)}
+            horario={modal?.horario}
+            aulas={aulas}
+            alGuardar={guardarMateria}
+            alTerminar={() => {
+              formSucio.current = false;
+              setModal(null);
+            }}
+            alCancelar={cerrarFormulario}
+            alCambiarSucio={marcarSucio}
+            alCambiarOcupado={setModalOcupado}
+          />
+        </Modal>
+
+        <Modal
+          abierto={modal?.tipo === "reutilizar"}
+          titulo="Reutilizar horarios"
+          alCerrar={cerrarModal}
+          bloqueado={modalOcupado}
+        >
+          <FormReutilizar
+            destino={leerPeriodo(periodo)}
+            periodos={periodos}
+            alConfirmar={reutilizar}
+            alCancelar={cerrarModal}
+            alCambiarOcupado={setModalOcupado}
+          />
+        </Modal>
+
+        <Modal abierto={modal?.tipo === "cambios"} titulo="Cambios sin publicar" alCerrar={cerrarModal} ancha>
+          <p>Lo que van a ver los alumnos cuando actualices la publicación.</p>
           <div className="tabla-caja">
             <table>
               <thead>
                 <tr>
-                  <th>Etapa</th>
-                  <th>Desde</th>
-                  <th>Hasta</th>
+                  <th scope="col">Materia</th>
+                  <th scope="col">Qué cambió</th>
+                  <th scope="col">Publicado</th>
+                  <th scope="col">Guardado</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Preinscripción</td>
-                  <td>
-                    <input defaultValue="6/11" aria-label="Desde" />
-                  </td>
-                  <td>
-                    <input defaultValue="5/3" aria-label="Hasta" />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Curso de preparación</td>
-                  <td>
-                    <input defaultValue="6/11" aria-label="Desde" />
-                  </td>
-                  <td>
-                    <input defaultValue="7/3" aria-label="Hasta" />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Exámenes obligatorios</td>
-                  <td>
-                    <input defaultValue="3/2" aria-label="Desde" />
-                  </td>
-                  <td>
-                    <input defaultValue="7/3" aria-label="Hasta" />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Confirmación de vacante</td>
-                  <td>
-                    <input defaultValue="12/3" aria-label="Desde" />
-                  </td>
-                  <td>
-                    <input defaultValue="" aria-label="Hasta" />
-                  </td>
-                </tr>
+                {estado?.cambios.map((c, i) => (
+                  <tr key={`${c.id}-${i}`}>
+                    <td>{c.materia}</td>
+                    <td>{c.cambio}</td>
+                    <td>{c.publicado ?? "—"}</td>
+                    <td>{c.guardado ?? "—"}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
+        </Modal>
+
+        <Modal
+          abierto={modal?.tipo === "vista"}
+          titulo={`Vista previa · ${estado ? textoPeriodo(estado) : ""}`}
+          alCerrar={cerrarModal}
+          ancha
+        >
+          <p className="aviso visible aviso-vista-previa">
+            Vista previa — Versión de trabajo. Así se vería la página de Alumnos con lo guardado. No es lo publicado.
+          </p>
+          {estado && <HorariosPublicos horarios={estado.horarios} />}
           <div className="acciones">
-            <button className="boton boton-verde" type="submit">
-              Publicar calendario
+            <button
+              className="boton boton-linea"
+              type="button"
+              disabled={descarga.enCurso}
+              onClick={descargarVistaPrevia}
+            >
+              {descarga.enCurso ? "Descargando…" : "Descargar PDF de vista previa"}
             </button>
           </div>
-          <p id="ok-cal" role="status" className={"aviso" + (ok["ok-cal"] ? " visible" : "")}>
-            Calendario publicado. El del año anterior pasó al archivo.
+          <p className={"aviso" + (descarga.error ? " visible error" : "")} role="alert">
+            {descarga.error}
           </p>
-        </form>
+        </Modal>
       </main>
     </div>
   );
