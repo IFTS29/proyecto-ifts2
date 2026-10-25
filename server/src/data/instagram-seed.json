@@ -55,7 +55,7 @@
     "mediaType": "IMAGE",
     "permalink": "https://www.instagram.com/p/mock_inscripciones/",
     "timestamp": "2026-10-22T15:00:00+0000",
-    "localImage": "/media/instagram/mock_inscripciones.svg",
+    "localImage": "/img/b-alumnos.jpg",
     "categories": [
       "novedades"
     ]
@@ -66,7 +66,7 @@
     "mediaType": "IMAGE",
     "permalink": "https://www.instagram.com/p/mock_ia/",
     "timestamp": "2026-10-20T18:30:00+0000",
-    "localImage": "/media/instagram/mock_ia.svg",
+    "localImage": "/img/img-47d91167.jpg",
     "categories": [
       "novedades"
     ]
@@ -77,7 +77,7 @@
     "mediaType": "IMAGE",
     "permalink": "https://www.instagram.com/p/mock_hackathon/",
     "timestamp": "2026-10-18T20:00:00+0000",
-    "localImage": "/media/instagram/mock_hackathon.svg",
+    "localImage": "/img/b-carrera.jpg",
     "categories": [
       "eventos"
     ]
@@ -88,7 +88,7 @@
     "mediaType": "IMAGE",
     "permalink": "https://www.instagram.com/p/mock_git/",
     "timestamp": "2026-10-15T19:00:00+0000",
-    "localImage": "/media/instagram/mock_git.svg",
+    "localImage": "/img/img-928eb3ce.jpg",
     "categories": [
       "eventos"
     ]
@@ -99,7 +99,7 @@
     "mediaType": "IMAGE",
     "permalink": "https://www.instagram.com/p/mock_muestra/",
     "timestamp": "2026-10-10T17:30:00+0000",
-    "localImage": "/media/instagram/mock_muestra.svg",
+    "localImage": "/img/b-plan.jpg",
     "categories": [
       "eventos"
     ]
@@ -110,32 +110,32 @@
     "mediaType": "CAROUSEL_ALBUM",
     "permalink": "https://www.instagram.com/p/mock_cuatrimestre/",
     "timestamp": "2026-07-10T19:00:00+0000",
-    "localImage": "/media/instagram/mock_cuatrimestre_1.svg",
+    "localImage": "/img/verduras.jpg",
     "mediaCount": 4,
     "mediaItems": [
       {
         "id": "c1",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_cuatrimestre_1.svg",
-        "thumbnailUrl": "/media/instagram/mock_cuatrimestre_1.svg"
+        "url": "/img/verduras.jpg",
+        "thumbnailUrl": "/img/verduras.jpg"
       },
       {
         "id": "c2",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_git.svg",
-        "thumbnailUrl": "/media/instagram/mock_git.svg"
+        "url": "/img/img-47d91167.jpg",
+        "thumbnailUrl": "/img/img-47d91167.jpg"
       },
       {
         "id": "c3",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_ia.svg",
-        "thumbnailUrl": "/media/instagram/mock_ia.svg"
+        "url": "/img/img-928eb3ce.jpg",
+        "thumbnailUrl": "/img/img-928eb3ce.jpg"
       },
       {
         "id": "c4",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_hackathon.svg",
-        "thumbnailUrl": "/media/instagram/mock_hackathon.svg"
+        "url": "/img/img-c51d02b2.jpg",
+        "thumbnailUrl": "/img/img-c51d02b2.jpg"
       }
     ],
     "categories": [
@@ -148,56 +148,56 @@
     "mediaType": "CAROUSEL_ALBUM",
     "permalink": "https://www.instagram.com/p/mock_gastronomia/",
     "timestamp": "2026-06-18T18:00:00+0000",
-    "localImage": "/media/instagram/mock_gastro_1.svg",
+    "localImage": "/img/morron.jpg",
     "mediaCount": 8,
     "mediaItems": [
       {
         "id": "g1",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_gastro_1.svg",
-        "thumbnailUrl": "/media/instagram/mock_gastro_1.svg"
+        "url": "/img/morron.jpg",
+        "thumbnailUrl": "/img/morron.jpg"
       },
       {
         "id": "g2",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_mateada_2.svg",
-        "thumbnailUrl": "/media/instagram/mock_mateada_2.svg"
+        "url": "/img/plato.jpg",
+        "thumbnailUrl": "/img/plato.jpg"
       },
       {
         "id": "g3",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_mateada_3.svg",
-        "thumbnailUrl": "/media/instagram/mock_mateada_3.svg"
+        "url": "/img/verduras.jpg",
+        "thumbnailUrl": "/img/verduras.jpg"
       },
       {
         "id": "g4",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_mateada_4.svg",
-        "thumbnailUrl": "/media/instagram/mock_mateada_4.svg"
+        "url": "/img/b-eventos.jpg",
+        "thumbnailUrl": "/img/b-eventos.jpg"
       },
       {
         "id": "g5",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_mateada_5.svg",
-        "thumbnailUrl": "/media/instagram/mock_mateada_5.svg"
+        "url": "/img/hero.jpg",
+        "thumbnailUrl": "/img/hero.jpg"
       },
       {
         "id": "g6",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_mateada_6.svg",
-        "thumbnailUrl": "/media/instagram/mock_mateada_6.svg"
+        "url": "/img/b-carrera.jpg",
+        "thumbnailUrl": "/img/b-carrera.jpg"
       },
       {
         "id": "g7",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_hackathon.svg",
-        "thumbnailUrl": "/media/instagram/mock_hackathon.svg"
+        "url": "/img/b-alumnos.jpg",
+        "thumbnailUrl": "/img/b-alumnos.jpg"
       },
       {
         "id": "g8",
         "mediaType": "IMAGE",
-        "url": "/media/instagram/mock_muestra.svg",
-        "thumbnailUrl": "/media/instagram/mock_muestra.svg"
+        "url": "/img/autoridades.jpg",
+        "thumbnailUrl": "/img/autoridades.jpg"
       }
     ],
     "categories": [

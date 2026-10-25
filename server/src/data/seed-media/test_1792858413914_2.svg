@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg_m2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#854d0e"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg_m2)"/>
+  <circle cx="400" cy="230" r="100" fill="rgba(255,255,255,0.12)" stroke="#fef08a" stroke-width="3"/>
+  <text x="400" y="250" font-size="70" text-anchor="middle">🥐</text>
+  <rect x="250" y="380" width="300" height="36" rx="18" fill="#fef08a"/>
+  <text x="400" y="404" fill="#713f12" font-family="sans-serif" font-size="16" font-weight="900" text-anchor="middle">MATEADA PATRIA — FOTO 2/6</text>
+  <text x="400" y="460" fill="#ffffff" font-family="sans-serif" font-size="32" font-weight="900" text-anchor="middle">Producción de Tortas Fritas</text>
+  <text x="400" y="500" fill="#fef08a" font-family="sans-serif" font-size="18" text-anchor="middle">Práctica de elaboración por estudiantes de 1.° y 2.° año</text>
+</svg>

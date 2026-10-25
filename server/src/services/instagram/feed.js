@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseCaption, formatMonthYear, deduplicateFeed } from "./instagram.parser.js";
+import { parseCaption, formatMonthYear, deduplicateFeed } from "./parser.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DEFAULT_STORAGE_DIR = path.resolve(__dirname, "../../storage/instagram");
+const DEFAULT_STORAGE_DIR = path.resolve(__dirname, "../../../storage/instagram");
 
 export function crearRepoFeedInstagram({
   storageDir = DEFAULT_STORAGE_DIR,
@@ -15,7 +15,7 @@ export function crearRepoFeedInstagram({
 } = {}) {
   const feedPath = path.join(storageDir, feedFilename);
   const deletedPath = path.join(storageDir, deletedFilename);
-  const seedPath = path.resolve(__dirname, "../data/instagram-seed.json");
+  const seedPath = path.resolve(__dirname, "../../data/instagram-seed.json");
 
   async function loadDeletedPostIds() {
     try {

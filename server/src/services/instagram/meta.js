@@ -1,6 +1,6 @@
-import { getPostCategories } from "./instagram.parser.js";
-import { guardarMedio } from "./media.local.js";
-import { crearRepoFeedInstagram } from "./instagram.feed.js";
+import { getPostCategories } from "./parser.js";
+import { guardarMedio } from "../media/index.js";
+import { crearRepoFeedInstagram } from "./feed.js";
 
 /**
  * Cliente de sincronización con Meta Graph API (v26.0).

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const STORAGE_MEDIA_DIR = path.resolve(__dirname, "../../storage/instagram/media");
+const STORAGE_MEDIA_DIR = path.resolve(__dirname, "../../../storage/instagram/media");
 
 export async function asegurarDirectorioMedia() {
   await fs.mkdir(STORAGE_MEDIA_DIR, { recursive: true });

@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { crearRepoFeedInstagram } from "../services/instagram.feed.js";
-import { sincronizarInstagram } from "../services/instagram.meta.js";
-import { guardarMedio } from "../services/media.local.js";
+import { crearRepoFeedInstagram, sincronizarInstagram } from "../services/instagram/index.js";
+import { guardarMedio } from "../services/media/index.js";
 import { autenticar, requiereRol } from "../middleware/auth.js";
 
 export function crearRutasInstagram({

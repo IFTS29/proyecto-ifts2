@@ -118,15 +118,38 @@ export function parseCaption(rawCaption) {
   let title = defaultTitle;
   let bodyParagraphs = [];
 
-  if (paragraphs.length > 0) {
-    const firstP = paragraphs[0];
-    const firstLines = firstP.split(/\n+/).map((l) => l.trim()).filter(Boolean);
-    title = firstLines[0] || defaultTitle;
+  if (paragraphs.length > 1) {
+    // Si el autor formateó la publicación con saltos de línea (título y cuerpo separados)
+    title = paragraphs[0].replace(/\s*\p{Extended_Pictographic}\s*$/u, "").trim() || defaultTitle;
+    bodyParagraphs = paragraphs.slice(1);
+  } else if (paragraphs.length === 1) {
+    const singleText = paragraphs[0];
 
-    if (firstLines.length > 1) {
-      bodyParagraphs = [firstLines.slice(1).join(" "), ...paragraphs.slice(1)];
-    } else {
-      bodyParagraphs = paragraphs.slice(1);
+    // Si todo viene en un solo bloque sin saltos de línea:
+    // Buscar si hay un emoji separador (ej. 💻, 🚀, 🎓, ✨, 🤖, 🍽️, 📦)
+    const emojiMatch = singleText.match(/\s*(\p{Extended_Pictographic})\s*/u);
+    if (emojiMatch && emojiMatch.index > 5) {
+      const candidateTitle = singleText.slice(0, emojiMatch.index).trim();
+      const candidateBody = singleText.slice(emojiMatch.index + emojiMatch[0].length).trim();
+
+      if (candidateTitle.length > 0 && candidateBody.length > 0) {
+        title = candidateTitle;
+        bodyParagraphs = [candidateBody];
+      }
+    }
+
+    // Si no hubo emoji separador o era muy corto, probar separación por fin de primera oración
+    if (bodyParagraphs.length === 0) {
+      const sentenceMatch = singleText.match(/([.!?])\s+/);
+      if (sentenceMatch && sentenceMatch.index > 10 && sentenceMatch.index < 100) {
+        title = singleText.slice(0, sentenceMatch.index + 1).trim();
+        const candidateBody = singleText.slice(sentenceMatch.index + sentenceMatch[0].length).trim();
+        if (candidateBody) {
+          bodyParagraphs = [candidateBody];
+        }
+      } else {
+        title = singleText;
+      }
     }
   }
 
@@ -147,7 +170,7 @@ export function parseCaption(rawCaption) {
   return {
     title,
     summary,
-    bodyParagraphs: bodyParagraphs.length > 0 ? bodyParagraphs : (summary ? [summary] : []),
+    bodyParagraphs: bodyParagraphs.length > 0 ? bodyParagraphs : (summary && summary !== title ? [summary] : []),
     hashtags,
     cleanCaption: textWithoutTags,
   };
@@ -185,15 +208,14 @@ export function deduplicateFeed(posts = []) {
 
   for (const post of posts) {
     if (!post) continue;
-    const idKey = post.id ? String(post.id) : null;
-    const linkKey = post.permalink ? String(post.permalink).toLowerCase().trim() : null;
+    const id = post.id ? String(post.id) : null;
+    const permalink = post.permalink ? String(post.permalink).trim().toLowerCase() : null;
 
-    if (idKey && seenIds.has(idKey)) continue;
-    if (linkKey && seenPermalinks.has(linkKey)) continue;
+    if (id && seenIds.has(id)) continue;
+    if (permalink && seenPermalinks.has(permalink)) continue;
 
-    if (idKey) seenIds.add(idKey);
-    if (linkKey) seenPermalinks.add(linkKey);
-
+    if (id) seenIds.add(id);
+    if (permalink) seenPermalinks.add(permalink);
     result.push(post);
   }
 

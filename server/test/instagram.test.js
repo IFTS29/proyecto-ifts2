@@ -7,9 +7,9 @@ import {
   getPostCategories,
   classifyPosts,
   deduplicateFeed,
-} from "../src/services/instagram.parser.js";
-import { crearRepoFeedInstagram } from "../src/services/instagram.feed.js";
-import { sincronizarInstagram } from "../src/services/instagram.meta.js";
+  crearRepoFeedInstagram,
+  sincronizarInstagram,
+} from "../src/services/instagram/index.js";
 import { crearApp } from "../src/app.js";
 import { appDePrueba, tokenDe, ADMIN, BEDELIA } from "./ayuda.js";
 
