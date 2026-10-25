@@ -34,8 +34,9 @@ test("desarrollo sin MONGODB_URI: trabaja en memoria y los datos se pueden usar"
 
 test("desarrollo con MongoDB caído: todos los repositorios siguen en memoria", async () => {
   const config = leerConfig({ MONGODB_URI: "mongodb://base-de-prueba" });
-  const { usuarios, horarios, publicacionesHorarios } = await prepararDatos(config, { conectar: baseCaida });
+  const { usuarios, eventos, horarios, publicacionesHorarios } = await prepararDatos(config, { conectar: baseCaida });
   assert.deepEqual(await usuarios.listar(), []);
+  assert.deepEqual(await eventos.listar(), []);
   assert.deepEqual(await horarios.listar(), []);
   assert.deepEqual(await publicacionesHorarios.listar(), []);
 });

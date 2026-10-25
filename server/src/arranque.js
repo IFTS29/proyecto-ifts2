@@ -1,6 +1,8 @@
 import { conectarDB } from "./db.js";
 import { crearRepoUsuariosMemoria } from "./repos/usuarios.memoria.js";
 import { crearRepoUsuariosMongo } from "./repos/usuarios.mongo.js";
+import { crearRepoEventosMemoria } from "./repos/eventos.memoria.js";
+import { crearRepoEventosMongo } from "./repos/eventos.mongo.js";
 import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
 import { crearRepoAcademicoMongo } from "./repos/academica.mongo.js";
 import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
@@ -28,12 +30,14 @@ export async function prepararDatos(config, { conectar = conectarDB } = {}) {
 // Todos los repositorios salen de la misma fuente: o todos en MongoDB o todos en memoria.
 const reposEnMemoria = () => ({
   usuarios: crearRepoUsuariosMemoria(),
+  eventos: crearRepoEventosMemoria(),
   horarios: crearRepoAcademicoMemoria(),
   publicacionesHorarios: crearRepoPublicacionesMemoria(),
 });
 
 const reposEnMongo = () => ({
   usuarios: crearRepoUsuariosMongo(),
+  eventos: crearRepoEventosMongo(),
   horarios: crearRepoAcademicoMongo(Horario),
   publicacionesHorarios: crearRepoPublicacionesMongo(),
 });

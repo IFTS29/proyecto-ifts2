@@ -1,9 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
+import { api } from "../api";
 
 export default function Eventos() {
   const [vista, setVista] = useState("grilla");
+  const [eventos, setEventos] = useState([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    api("/events")
+      .then((data) => {
+        const lista = data?.eventos || (Array.isArray(data) ? data : []);
+        if (!cancelado && lista.length > 0) {
+          setEventos(lista);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   return (
     <div className="pagina activa">
@@ -77,87 +94,99 @@ export default function Eventos() {
             </div>
           </div>
           <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  4 fotos
-                </span>
-                <img src={IMGS.VERDURAS} alt="Foto del evento Cierre del 1.° cuatrimestre" />
-                <div className="texto">
-                  <time>Julio 2026</time>
-                  <h3>Cierre del 1.° cuatrimestre</h3>
-                  <p>Muestra de las producciones del primer cuatrimestre.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  8 fotos
-                </span>
-                <img src={IMGS.MORRON} alt="Foto del evento Jornada de Gastronomía" />
-                <div className="texto">
-                  <time>Junio 2026</time>
-                  <h3>Jornada de Gastronomía</h3>
-                  <p>Jornada abierta con elaboraciones de los estudiantes.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  6 fotos
-                </span>
-                <img src={IMGS.PLATO} alt="Foto del evento Mateada Patria" />
-                <div className="texto">
-                  <time>Mayo 2026</time>
-                  <h3>Mateada Patria</h3>
-                  <p>Encuentro por el 25 de Mayo con estudiantes, docentes y familias.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
+            {eventos.length > 0 ? (
+              eventos.map((post) => {
+                const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
+                let titulo = post.titulo || post.parsed?.title || "";
+                let resumen = post.resumen || post.parsed?.summary || "";
+
+                if (!titulo || titulo.length > 70) {
+                  const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
+                  if (emojiMatch && emojiMatch.index > 5) {
+                    titulo = rawText.slice(0, emojiMatch.index).trim();
+                    resumen = rawText.slice(emojiMatch.index + emojiMatch[0].length).trim();
+                  }
+                }
+                if (!titulo) titulo = rawText || "Evento institucional";
+                if (resumen && resumen.length > 110) {
+                  resumen = resumen.slice(0, 110).trim().replace(/[\s,;.]+$/, "") + "...";
+                }
+
+                const fecha = post.fechaEvento ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : (post.fechaFormateada || "Reciente");
+                const cantidad = post.cantidadMedios || 1;
+                const esFotoValida =
+                  post.fotoPrincipal &&
+                  !post.fotoPrincipal.includes("placeholder") &&
+                  !post.fotoPrincipal.includes("instagram.com");
+
+                const imagen = esFotoValida
+                  ? post.fotoPrincipal
+                  : post.videoThumbnail || post.localThumbnail || post.localImage || "/media/instagram/placeholder.svg";
+
+                const esVideoOInstagram =
+                  post.isVideo ||
+                  post.tipoMedio === "VIDEO" ||
+                  Boolean(post.videoUrl);
+
+                return (
+                  <li key={post.id}>
+                    <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
+                      <span className="cant">
+                        {esVideoOInstagram ? (
+                          post.videoUrl?.includes("instagram.com") ? "🎬 Instagram" : "🎬 Video"
+                        ) : (
+                          <>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <rect x="3" y="5" width="18" height="14" rx="2" />
+                              <circle cx="9" cy="10" r="2" />
+                              <path d="M21 16l-5-5-8 8" />
+                            </svg>
+                            {cantidad} {cantidad === 1 ? "foto" : "fotos"}
+                          </>
+                        )}
+                      </span>
+                      <img
+                        src={imagen}
+                        alt={`Foto del evento ${titulo}`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/media/instagram/placeholder.svg";
+                        }}
+                      />
+                      <div className="texto">
+                        <time>{fecha}</time>
+                        <h3>{titulo}</h3>
+                        <p>{resumen}</p>
+                        <span className="ver">
+                          {post.isVideo ? "Ver el video" : "Ver las fotos"}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })
+            ) : (
+              <li
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "3rem 1rem",
+                  listStyle: "none",
+                }}
+              >
+                <p style={{ color: "var(--suave)", fontSize: "1.125rem" }}>
+                  No hay eventos institucionales publicados por el momento.
+                </p>
+              </li>
+            )}
           </ul>
           <details className="archivo">
             <summary>

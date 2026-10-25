@@ -22,6 +22,9 @@ export function leerConfig(env = process.env) {
     jwtDuracion: env.JWT_DURACION || "8h",
     clientUrl: env.CLIENT_URL || "http://localhost:5173",
     sitioUrl: direccionDelSitio(env),
+    instagramToken: env.INSTAGRAM_TOKEN || env.INSTAGRAM_ACCESS_TOKEN || "",
+    instagramAccountId: env.INSTAGRAM_ACCOUNT_ID || "",
+    instagramHashtag: env.INSTAGRAM_HASHTAG || "eventosIFTS2",
     mongoUri: env.MONGODB_URI || "",
     // En producción y en Vercel (que define VERCEL=1) no se permite trabajar sin MongoDB: ver arranque.js.
     exigeBaseDeDatos: produccion || env.VERCEL === "1",

@@ -82,7 +82,7 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 | Eventos institucionales con galería | #34 | ⏳ |
 | Archivado de contenidos sin borrado | #35 | ⏳ |
 | Contenido institucional editable | #36 | ⏳ |
-| Integración con Instagram o carga manual | #39, #55 | 🔬 En evaluación |
+| Integración con Instagram o carga manual | #39, #55 | ✅ Feed automático y carruseles integrados |
 
 ✅ hecho · 🟡 parcial · ⏳ pendiente · 🔬 en evaluación
 
@@ -114,7 +114,7 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 | Despliegue | Vercel |
 | Pruebas | node:test y supertest |
 
-- **En local**, `server.js` levanta la API y el cliente juntos en `http://localhost:3000`.
+- **En local**, el backend corre en el puerto 4000 y el cliente de React en `http://localhost:5173` (con proxy automático a la API).
 - **En Vercel**, la API corre como función serverless (`api/index.js`) y el cliente compilado se sirve como
   sitio estático.
 - **Sin base de datos ni correo configurados**, el proyecto funciona igual en local: los datos se guardan en
@@ -168,23 +168,24 @@ proyecto-ifts2/
 ```powershell
 git clone https://github.com/IFTS29/proyecto-ifts2.git
 cd proyecto-ifts2
-npm install
+# Instalar las dependencias con las versiones exactas fijadas en package-lock.json:
+npm ci --prefix server
+npm ci --prefix client
 Copy-Item .env.example .env
-npm run dev
 ```
 
 - En Linux o Mac, en lugar de `Copy-Item`: `cp .env.example .env`.
-- El sitio queda en `http://localhost:3000` y el panel en `http://localhost:3000/login`.
 - Si PowerShell no deja ejecutar npm: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- **¿Por qué `--prefix server` y `--prefix client`?** Tanto el backend (`server/`) como el frontend (`client/`) poseen sus propios archivos `package-lock.json` independientes. El modificador `--prefix` permite a `npm ci` leer e instalar en la subcarpeta correspondiente sin necesidad de cambiar de directorio con `cd`, asegurando que se instalen exactamente las versiones fijadas por el equipo.
 
 ### Scripts
 
 | Comando | Descripción |
 | :------ | :---------- |
-| `npm run dev` | Desarrollo local (API + cliente) |
+| `npm run dev --prefix server` | Inicia el servidor backend en `http://localhost:4000` |
+| `npm run dev --prefix client` | Inicia el cliente React en `http://localhost:5173` |
 | `npm test` | Pruebas automáticas del servidor |
 | `npm run build` | Compila el cliente en `client/dist` |
-| `npm start` | Modo producción _[en Windows no funciona tal cual: a revisar]_ |
 
 ### Variables de entorno
 
@@ -208,7 +209,7 @@ Se comparten con la cátedra por un canal privado, no en este repositorio _[a co
 npm test
 ```
 
-Actualmente hay **81 pruebas automáticas del servidor**, todas aprobadas. Cubren login y bloqueo por
+Actualmente hay **94 pruebas automáticas del servidor**, todas aprobadas. Cubren login y bloqueo por
 intentos, permisos por rol, gestión de usuarios y formulario de contacto. No necesitan base de datos ni
 conexión a Internet.
 
@@ -238,7 +239,7 @@ Las pruebas unitarias e integración documentadas para la entrega van en el issu
 | :-------- | :----- |
 | Manual Técnico | En elaboración (#42) |
 | Manual de Usuario | Pendiente (#43) |
-| Registro de cambios | [docs/registro-de-cambios.md](docs/registro-de-cambios.md) |
+| Registro de cambios | [docs/registro-de-cambios.md](./docs/registro-de-cambios.md) |
 
 <br>
 
