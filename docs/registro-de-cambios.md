@@ -123,3 +123,22 @@ Acá se anota, en orden cronológico, qué se cambió en el proyecto y por qué.
 - 13 pruebas unitarias y de integración añadidas en `server/test/instagram.test.js` cubriendo casos borde defensivos (posts sin texto, captions de >2.000 caracteres, álbumes de múltiples medios, videos sin poster y deduplicación por ID).
 - Total del servidor: **94 de 94 pruebas aprobadas (100% verde)** en 1.2 segundos.
 - Compilación de producción con `vite build` en el cliente con 0 errores y 0 advertencias.
+
+## 2026-10-25: CRUD de Eventos institucionales con galería de fotos (Issue #34 - US-05)
+
+**Motivo.** Cumplir con la historia de usuario US-05 (RF11, RF05) para permitir que los administradores institucionales publiquen y gestionen eventos desde el panel con hasta 20 fotos y enlaces a publicaciones o videos de Instagram.
+
+**Qué se hizo en `server/`**
+- Repositorio y modelo de eventos (`repos/eventos.mongo.js` y `repos/eventos.memoria.js` con modelo `models/Evento.js`) soportando estados (`visible`, `oculto`, `para_revisar`, `archivado`, `descartado`) y orígenes (`manual`, `instagram`).
+- Rutas REST `/api/events` públicas (`GET /` solo para visibles, `GET /:id`) y protegidas (`GET /admin` con conteos de moderación por estado, `POST /`, `PUT /:id`, `DELETE /:id`).
+- Extracción de miniaturas Open Graph (`extraerFotoInstagram`) al cargar publicaciones de Instagram para asegurar imagen de portada cuando no se adjuntan fotos manuales.
+
+**Qué se hizo en `client/`**
+- Conexión del formulario `AdminEventoNuevo.jsx` con el endpoint de creación de eventos, validaciones y soporte para carga de archivos y enlaces.
+- Conexión del panel `AdminEventos.jsx` con filtrado por pestañas de estado (`todos`, `para_revisar`, `visible`, `oculto`, `archivado`) y conteos dinámicos.
+- Galería pública `Eventos.jsx` y vista de detalle `Evento.jsx` conectadas a la API institucional.
+
+**Cómo se comprobó**
+- 8 pruebas de integración agregadas en `server/test/eventos.test.js` cubriendo permisos por rol (Bedelía vs. Admin), validaciones y ciclo de vida.
+- Total del servidor: **102 de 102 pruebas en verde**.
+- Backlog actualizado para Sprint 3: Issue #69 (Pipeline de normalización/compresión de imágenes) e Issue #70 (Refinamiento de estilos de tarjetas).
