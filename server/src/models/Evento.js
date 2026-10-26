@@ -6,6 +6,8 @@ const medioSchema = new mongoose.Schema(
     tipo: { type: String, enum: ["IMAGE", "VIDEO"], default: "IMAGE" },
     url: { type: String, required: true },
     thumbnailUrl: { type: String },
+    // Identificador de la foto en Cloudinary (no es secreto): sirve para encontrarla si hay que reemplazarla o borrarla.
+    publicId: { type: String },
   },
   { _id: false },
 );
