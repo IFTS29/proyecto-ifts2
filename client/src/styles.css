@@ -3496,11 +3496,106 @@ body[data-rol="bedelia"] [data-solo-admin] {
   margin-top: 40px;
 }
 
-/* Miniaturas de fotos que se ven enteras (fotos verticales y afiches sin recortar) */
-.previas.enteras img {
+/* Fotos de un evento en el alta y la edición (FotosEvento.jsx) */
+.fotos-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.etiqueta-campo {
+  font-weight: 700;
+}
+
+.galeria-edicion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+  margin: 4px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.foto-galeria {
+  position: relative;
+}
+
+/* Se ven enteras (fotos verticales y afiches sin recortar) */
+.foto-galeria img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: contain;
   background: var(--superficie-2);
   border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.etiqueta-portada {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--verde);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.foto-quitar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  cursor: pointer;
+}
+
+.foto-quitar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.foto-quitar:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.foto-portada {
+  min-height: 36px;
+  font-size: 0.8125rem;
+}
+
+.fotos-nota {
+  margin: 0 0 12px;
+  color: var(--suave);
+  font-size: 14px;
+}
+
+#e-archivos:focus-visible + .zona-fotos {
+  outline: 3px solid var(--verde);
+  outline-offset: 2px;
+}
+
+.zona-fotos {
+  cursor: pointer;
+}
+
+.zona-fotos span {
+  font-weight: 400;
+}
+
+.zona-fotos[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Botón de ícono que además dice qué hace (por ejemplo, Ocultar o Mostrar) */
@@ -3537,5 +3632,14 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
   .acciones-fila .boton-icono.con-texto {
     width: auto;
+  }
+
+  .foto-quitar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .foto-portada {
+    min-height: 44px;
   }
 }

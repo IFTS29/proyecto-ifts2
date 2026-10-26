@@ -60,6 +60,7 @@ export function crearRepoEventosMemoria(datosIniciales = []) {
         videoUrl: datos.videoUrl || null,
         videoThumbnail: datos.videoThumbnail || null,
         medios: Array.isArray(datos.medios) ? [...datos.medios] : [],
+        mediosQuitados: Array.isArray(datos.mediosQuitados) ? [...datos.mediosQuitados] : [],
         cantidadMedios: Number(datos.cantidadMedios) || (Array.isArray(datos.medios) && datos.medios.length) || 1,
         estado: datos.estado || "visible",
         categorias: Array.isArray(datos.categorias) && datos.categorias.length ? datos.categorias : ["eventos"],

@@ -55,3 +55,26 @@ export async function prepararFoto(archivo) {
 
 // Tamaño real del pedido que se va a mandar, en bytes.
 export const pesoDelPedido = (datos) => new Blob([JSON.stringify(datos)]).size;
+
+// Máximo de fotos por evento (Etapa 2). El servidor controla lo mismo.
+export const MAXIMO_DE_FOTOS = 20;
+
+// Prepara varios archivos, de a uno, sin pasar del lugar que queda. Si alguno no se puede usar, sigue con
+// los demás. Devuelve { listas: [{ id, url, nombre }], problemas: [mensajes] }.
+export async function prepararFotos(archivos, lugares) {
+  const listas = [];
+  const problemas = [];
+  for (const archivo of archivos) {
+    if (listas.length >= lugares) {
+      problemas.push(`Se agregaron solo ${listas.length} de las fotos elegidas: un evento puede tener hasta ${MAXIMO_DE_FOTOS}.`);
+      break;
+    }
+    try {
+      const url = await prepararFoto(archivo);
+      listas.push({ id: `nueva-${Date.now()}-${Math.random().toString(36).slice(2)}`, url, nombre: archivo.name });
+    } catch (err) {
+      problemas.push(err.message);
+    }
+  }
+  return { listas, problemas };
+}
