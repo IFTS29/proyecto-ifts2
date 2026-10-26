@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563" role="img" aria-label="IFTS N.º 2. Imagen institucional no disponible">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f3f2ec"/>
+      <stop offset="0.55" stop-color="#ecede6"/>
+      <stop offset="1" stop-color="#dfe6e1"/>
+    </linearGradient>
+    <linearGradient id="verde" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2c5a4d"/>
+      <stop offset="1" stop-color="#4a7a6b"/>
+    </linearGradient>
+    <linearGradient id="verde2" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#2c5a4d"/>
+      <stop offset="1" stop-color="#4f7f70"/>
+    </linearGradient>
+    <pattern id="puntos" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="2.2" fill="#9aa79f"/>
+    </pattern>
+  </defs>
+
+  <rect width="1000" height="563" fill="url(#fondo)"/>
+
+  <!-- círculos suaves de fondo -->
+  <circle cx="130" cy="560" r="330" fill="#d9e1db" opacity="0.55"/>
+  <circle cx="860" cy="260" r="300" fill="#e4e9e4" opacity="0.6"/>
+  <circle cx="820" cy="640" r="260" fill="#c9d5ce" opacity="0.55"/>
+
+  <!-- arriba a la izquierda -->
+  <circle cx="20" cy="-60" r="320" fill="url(#verde)" opacity="0.92"/>
+  <circle cx="20" cy="-60" r="345" fill="none" stroke="#8fa298" stroke-width="1.5"/>
+  <line x1="0" y1="71" x2="146" y2="71" stroke="#c7d0ca" stroke-width="2"/>
+
+  <!-- abajo a la derecha -->
+  <circle cx="1060" cy="600" r="300" fill="url(#verde2)" opacity="0.92"/>
+  <circle cx="1060" cy="600" r="325" fill="none" stroke="#2c5a4d" stroke-width="1.5"/>
+  <line x1="842" y1="508" x2="1000" y2="508" stroke="#c7d0ca" stroke-width="2"/>
+
+  <!-- grillas de puntos -->
+  <rect x="872" y="40" width="104" height="74" fill="url(#puntos)"/>
+  <rect x="42" y="434" width="104" height="74" fill="url(#puntos)"/>
+
+  <!-- ícono de imagen -->
+  <g fill="none" stroke="#2c5a4d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="414" y="150" width="172" height="130" rx="10"/>
+    <path d="M420 270 L470 198 L520 252"/>
+    <path d="M505 236 L536 214 L580 266"/>
+  </g>
+  <circle cx="531" cy="186" r="17" fill="#2c5a4d"/>
+
+  <!-- textos -->
+  <text x="500" y="368" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" font-weight="700" fill="#2c5a4d">IFTS N.º 2</text>
+  <line x1="466" y1="390" x2="534" y2="390" stroke="#a9b5ad" stroke-width="2.5"/>
+  <text x="500" y="420" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" letter-spacing="1.2" fill="#4d5753">Imagen institucional no disponible</text>
+</svg>
