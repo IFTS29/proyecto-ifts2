@@ -12,6 +12,18 @@ const medioSchema = new mongoose.Schema(
   { _id: false },
 );
 
+// Foto que se quitó de la galería desde el panel. No se borra de Cloudinary: queda registrada acá.
+// "propia" indica si estaba en la carpeta de eventos de Cloudinary (es informativo, no autoriza borrar).
+const medioQuitadoSchema = new mongoose.Schema(
+  {
+    url: { type: String, required: true },
+    publicId: { type: String },
+    propia: { type: Boolean, default: false },
+    fechaQuitada: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const eventoSchema = new mongoose.Schema(
   {
     // 1. Identificación y Origen
@@ -89,6 +101,10 @@ const eventoSchema = new mongoose.Schema(
     },
     medios: {
       type: [medioSchema],
+      default: [],
+    },
+    mediosQuitados: {
+      type: [medioQuitadoSchema],
       default: [],
     },
     cantidadMedios: {

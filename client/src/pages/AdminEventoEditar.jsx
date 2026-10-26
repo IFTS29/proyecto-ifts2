@@ -4,8 +4,19 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import CamposEvento from "../components/CamposEvento.jsx";
+import FotosEvento from "../components/FotosEvento.jsx";
 import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
-import { datosBasicosParaEnviar, faltaUnDato, valoresDeEvento } from "../eventos.js";
+import {
+  cambiaronLasFotos,
+  datosBasicosParaEnviar,
+  faltaUnDato,
+  fotosDeEvento,
+  fotosQuitadas,
+  usarComoPortada,
+  valoresDeEvento,
+  volverAPoner,
+} from "../eventos.js";
+import { LIMITE_DEL_PEDIDO, MAXIMO_DE_FOTOS, pesoDelPedido, prepararFotos } from "../fotos.js";
 
 const ESTADOS = {
   visible: { texto: "Visible en el sitio", clase: "et-verde" },
@@ -13,8 +24,8 @@ const ESTADOS = {
   archivado: { texto: "Archivado", clase: "et-gris" },
 };
 
-// Edición de un evento ya cargado (/admin-evento-editar?id=...). Por ahora se corrigen los textos y la fecha;
-// las fotos se muestran pero todavía no se cambian desde acá. Mostrar u ocultar se hace desde la lista.
+// Edición de un evento ya cargado (/admin-evento-editar?id=...): textos, fecha y fotos.
+// Mostrar u ocultar se hace desde la lista. Las fotos quitadas no se borran: el servidor las registra.
 export default function AdminEventoEditar() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -24,24 +35,51 @@ export default function AdminEventoEditar() {
   const [evento, setEvento] = useState(null);
   const [inicial, setInicial] = useState(null);
   const [valores, setValores] = useState(null);
+  const [fotosIniciales, setFotosIniciales] = useState([]);
+  const [fotos, setFotos] = useState([]);
   const [errorCarga, setErrorCarga] = useState("");
   const [error, setError] = useState("");
+  const [preparando, setPreparando] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     api(`/events/admin/${id}`)
       .then(({ evento: guardado }) => {
         const deEvento = valoresDeEvento(guardado);
+        const delEvento = fotosDeEvento(guardado);
         setEvento(guardado);
         setInicial(deEvento);
         setValores(deEvento);
+        setFotosIniciales(delEvento);
+        setFotos(delEvento);
       })
       .catch((err) => setErrorCarga(err.message));
   }, [id]);
 
   const cambiarValor = (campo, valor) => setValores((prev) => ({ ...prev, [campo]: valor }));
-  const sinGuardar = Boolean(valores) && JSON.stringify(valores) !== JSON.stringify(inicial);
+  const fotosCambiaron = cambiaronLasFotos(fotos, fotosIniciales);
+  const sinGuardar = Boolean(valores) && (JSON.stringify(valores) !== JSON.stringify(inicial) || fotosCambiaron);
   useAvisoSinGuardar(sinGuardar && !guardando);
+
+  const quitadas = fotosQuitadas(fotos, fotosIniciales);
+  const esVideo = evento?.tipoMedio === "VIDEO";
+
+  const agregarFotos = async (archivos) => {
+    setError("");
+    setPreparando(true);
+    try {
+      const { listas, problemas } = await prepararFotos(archivos, MAXIMO_DE_FOTOS - fotos.length);
+      setFotos((prev) => [...prev, ...listas]);
+      if (problemas.length) setError(problemas.join(" "));
+    } catch {
+      setError("No se pudieron preparar las fotos. Probá de nuevo.");
+    } finally {
+      setPreparando(false);
+    }
+  };
+  const quitarFoto = (fotoId) => setFotos((prev) => prev.filter((foto) => foto.id !== fotoId));
+  const elegirPortada = (fotoId) => setFotos((prev) => usarComoPortada(prev, fotoId));
+  const devolverQuitadas = () => setFotos((prev) => volverAPoner(prev, fotosIniciales));
 
   // Mientras se guarda no se puede salir con Cancelar (el aviso de cambios sin guardar lo da useAvisoSinGuardar).
   const cancelar = (e) => {
@@ -50,12 +88,21 @@ export default function AdminEventoEditar() {
 
   const guardar = async (e) => {
     e.preventDefault();
-    const falta = faltaUnDato(valores);
+    const falta = faltaUnDato(valores) || (fotos.length > MAXIMO_DE_FOTOS ? `Un evento puede tener hasta ${MAXIMO_DE_FOTOS} fotos.` : "");
     setError(falta);
     if (falta) return;
+
+    // Las fotos solo se mandan si cambiaron: las que ya estaban viajan como enlace y las nuevas, achicadas.
+    const cuerpo = datosBasicosParaEnviar(valores, inicial);
+    if (fotosCambiaron) cuerpo.fotos = fotos.map((foto) => foto.url);
+    if (pesoDelPedido(cuerpo) > LIMITE_DEL_PEDIDO) {
+      setError("Las fotos nuevas juntas pesan demasiado para enviarlas. Guardá con menos fotos y agregá las demás después.");
+      return;
+    }
+
     setGuardando(true);
     try {
-      await api(`/events/${id}`, { metodo: "PUT", cuerpo: datosBasicosParaEnviar(valores, inicial) });
+      await api(`/events/${id}`, { metodo: "PUT", cuerpo });
       navigate("/admin-eventos", { state: { aviso: `Se guardaron los cambios de «${valores.titulo.trim()}».` } });
     } catch (err) {
       setError(err.message);
@@ -63,7 +110,6 @@ export default function AdminEventoEditar() {
     }
   };
 
-  const fotos = (evento?.medios || []).filter((m) => m.tipo === "IMAGE" && m.url && !m.url.includes("placeholder"));
   const estado = ESTADOS[evento?.estado] || { texto: evento?.estado, clase: "et-gris" };
 
   return (
@@ -105,17 +151,31 @@ export default function AdminEventoEditar() {
           <form className="form-admin" onSubmit={guardar} noValidate>
             <div className="caja">
               <CamposEvento valores={valores} alCambiar={cambiarValor} deshabilitado={guardando} />
-              {fotos.length > 0 && (
-                <div className="campo">
-                  <span style={{ fontWeight: "700" }}>Fotos ({fotos.length})</span>
-                  <div className="previas enteras">
-                    {fotos.map((foto, i) => (
-                      <img key={foto.url} src={foto.url} alt={`Foto ${i + 1} del evento`} />
-                    ))}
-                  </div>
-                  <span className="ayuda">Por ahora, las fotos de un evento ya cargado no se pueden cambiar.</span>
-                </div>
-              )}
+              <FotosEvento
+                fotos={fotos}
+                alAgregar={agregarFotos}
+                alQuitar={quitarFoto}
+                alElegirPortada={elegirPortada}
+                conPortada={!esVideo}
+                preparando={preparando}
+                deshabilitado={guardando}
+                nota={
+                  <>
+                    {esVideo && <p className="fotos-nota">La portada de este evento es la imagen del video.</p>}
+                    {quitadas.length > 0 && (
+                      <p className="fotos-nota" role="status">
+                        {quitadas.length === 1 ? "Quitaste 1 foto." : `Quitaste ${quitadas.length} fotos.`}{" "}
+                        <button type="button" className="boton-texto" onClick={devolverQuitadas} disabled={guardando || preparando}>
+                          {quitadas.length === 1 ? "Volver a ponerla" : "Volver a ponerlas"}
+                        </button>
+                      </p>
+                    )}
+                    {!esVideo && fotos.length === 0 && fotosIniciales.length > 0 && (
+                      <p className="fotos-nota">Sin fotos, el evento se va a mostrar con la imagen institucional.</p>
+                    )}
+                  </>
+                }
+              />
             </div>
             <div className="caja">
               {error && (
@@ -123,8 +183,13 @@ export default function AdminEventoEditar() {
                   {error}
                 </p>
               )}
-              <button className="boton boton-verde" type="submit" disabled={guardando} style={{ width: "100%" }}>
-                {guardando ? "Guardando…" : "Guardar cambios"}
+              <button
+                className="boton boton-verde"
+                type="submit"
+                disabled={guardando || preparando}
+                style={{ width: "100%" }}
+              >
+                {guardando ? "Guardando…" : preparando ? "Preparando fotos…" : "Guardar cambios"}
               </button>
               <Link
                 className="boton boton-linea boton-cancelar"

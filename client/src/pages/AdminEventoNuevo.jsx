@@ -4,9 +4,10 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import CamposEvento from "../components/CamposEvento.jsx";
+import FotosEvento from "../components/FotosEvento.jsx";
 import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
-import { datosBasicosParaEnviar, faltaUnDato, valoresDeEvento } from "../eventos.js";
-import { LIMITE_DEL_PEDIDO, TIPOS_DE_FOTO, pesoDelPedido, prepararFoto } from "../fotos.js";
+import { datosBasicosParaEnviar, faltaUnDato, usarComoPortada, valoresDeEvento } from "../eventos.js";
+import { LIMITE_DEL_PEDIDO, MAXIMO_DE_FOTOS, pesoDelPedido, prepararFotos } from "../fotos.js";
 
 export default function AdminEventoNuevo() {
   const navigate = useNavigate();
@@ -24,25 +25,18 @@ export default function AdminEventoNuevo() {
   const [mensajeOk, setMensajeOk] = useState("");
 
   // Achica cada foto antes de agregarla (ver fotos.js). Si alguna no se puede usar, se avisa y se siguen las demás.
-  const manejarArchivos = async (e) => {
-    const archivos = Array.from(e.target.files || []);
-    // Limpiar el input para permitir volver a elegir el mismo archivo si fue eliminado
-    e.target.value = "";
-    if (!archivos.length) return;
-
+  const agregarFotos = async (archivos) => {
     setError("");
     setPreparando(true);
-    const problemas = [];
-    for (const archivo of archivos) {
-      try {
-        const url = await prepararFoto(archivo);
-        setFotos((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, url, nombre: archivo.name }]);
-      } catch (err) {
-        problemas.push(err.message);
-      }
+    try {
+      const { listas, problemas } = await prepararFotos(archivos, MAXIMO_DE_FOTOS - fotos.length);
+      setFotos((prev) => [...prev, ...listas]);
+      if (problemas.length) setError(problemas.join(" "));
+    } catch {
+      setError("No se pudieron preparar las fotos. Probá de nuevo.");
+    } finally {
+      setPreparando(false);
     }
-    setPreparando(false);
-    if (problemas.length) setError(problemas.join(" "));
   };
 
   const cambiarValor = (campo, valor) => setValores((prev) => ({ ...prev, [campo]: valor }));
@@ -60,9 +54,8 @@ export default function AdminEventoNuevo() {
     if (enviando) e.preventDefault();
   };
 
-  const quitarFoto = (id) => {
-    setFotos((prev) => prev.filter((f) => f.id !== id));
-  };
+  const quitarFoto = (id) => setFotos((prev) => prev.filter((f) => f.id !== id));
+  const elegirPortada = (id) => setFotos((prev) => usarComoPortada(prev, id));
 
   // Determinar tipo de medio según lo cargado
   const calcularTipoMedio = () => {
@@ -171,98 +164,15 @@ export default function AdminEventoNuevo() {
               <span className="ayuda">Pegá el enlace de Instagram (se embebe automáticamente si no subís fotos).</span>
             </div>
 
+            <FotosEvento
+              fotos={fotos}
+              alAgregar={agregarFotos}
+              alQuitar={quitarFoto}
+              alElegirPortada={elegirPortada}
+              preparando={preparando}
+              deshabilitado={enviando}
+            />
             <div className="campo">
-              <label htmlFor="e-archivos" style={{ fontWeight: "700" }}>
-                Galería de fotos
-              </label>
-
-              <input
-                id="e-archivos"
-                type="file"
-                multiple
-                accept={TIPOS_DE_FOTO.join(",")}
-                onChange={manejarArchivos}
-                disabled={preparando || enviando}
-                style={{ display: "none" }}
-              />
-
-              <label
-                htmlFor="e-archivos"
-                className="zona-fotos"
-                aria-disabled={preparando || enviando}
-                style={{
-                  cursor: preparando || enviando ? "wait" : "pointer",
-                  opacity: preparando || enviando ? 0.6 : 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
-                </svg>
-                <strong>Hacé clic acá para examinar fotos en tu computadora</strong>
-                <span>
-                  {preparando
-                    ? "Preparando las fotos…"
-                    : "Podés seleccionar una o varias imágenes (JPG, PNG, WebP). Se achican antes de enviarlas."}
-                </span>
-              </label>
-
-              {fotos.length > 0 && (
-                <div style={{ marginTop: "1rem" }}>
-                  <p style={{ fontSize: "0.875rem", color: "var(--suave)", marginBottom: "0.5rem" }}>
-                    Fotos seleccionadas ({fotos.length}): la primera será la portada.
-                  </p>
-                  <div className="previas">
-                    {fotos.map((f, i) => (
-                      <div
-                        key={f.id}
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                          border: i === 0 ? "2px solid var(--verde)" : "1px solid var(--borde)",
-                          borderRadius: "4px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <img src={f.url} alt={f.nombre} style={{ display: "block" }} />
-                        <button
-                          type="button"
-                          onClick={() => quitarFoto(f.id)}
-                          title="Quitar foto"
-                          style={{
-                            position: "absolute",
-                            top: "4px",
-                            right: "4px",
-                            background: "rgba(0, 0, 0, 0.65)",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "50%",
-                            width: "22px",
-                            height: "22px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            lineHeight: "22px",
-                            padding: 0,
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "var(--suave)" }}>
                 Tipo resultante:{" "}
                 <strong style={{ color: "var(--texto)" }}>

@@ -9,10 +9,14 @@ import {
   revisarFotoNueva,
   subirFotosNuevas,
 } from "../services/media/fotosEventos.js";
+import { MAXIMO_DE_FOTOS, armarGaleria, contarFotos, revisarListaDeFotos } from "../services/media/galeriaEvento.js";
 
 const ESTADOS_VALIDOS = ["visible", "oculto", "archivado"];
 // Desde el panel solo se muestra u oculta un evento. El archivado tiene su propia regla (#35).
 const ESTADOS_DE_VISIBILIDAD = ["visible", "oculto"];
+
+// El sitio público no recibe el registro de fotos quitadas: puede haber fotos que se sacaron a propósito.
+const paraElSitio = ({ mediosQuitados, ...evento }) => evento;
 
 // Revisa los textos y la fecha de un evento; los usan el alta y la edición.
 // Devuelve { valores } con los datos limpios o { error } con el mensaje para el panel.
@@ -121,6 +125,10 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
         return res.status(400).json({ error: "Una de las fotos tiene un enlace que no es válido." });
       }
 
+      if (contarFotos(medios) > MAXIMO_DE_FOTOS) {
+        return res.status(400).json({ error: `Un evento puede tener hasta ${MAXIMO_DE_FOTOS} fotos.` });
+      }
+
       // Fotos nuevas subidas desde la computadora (data:image/...): se revisan todas antes de subir nada.
       const nuevas = [...new Set([...medios.map((m) => m.url), fotoPrincipal].filter(esFotoNueva))];
       for (const [indice, dataUrl] of nuevas.entries()) {
@@ -214,20 +222,65 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
     }
   });
 
-  // PUT /api/events/:id: corrige los textos y la fecha de un evento (solo administradores).
-  // Las fotos, el origen y el estado no se cambian acá: cada uno tiene su propia acción.
+  // PUT /api/events/:id: corrige los textos, la fecha y las fotos de un evento (solo administradores).
+  // "fotos" es opcional: si no llega, las fotos no se tocan. Si llega, es la lista final en orden, con los
+  // enlaces de las fotos que se conservan y las fotos nuevas. El origen y el estado no se cambian acá.
   router.put("/:id", ...soloAdmin, async (req, res, next) => {
+    // Fotos nuevas subidas en esta edición: si el evento no se llega a guardar, se intenta borrarlas.
+    let subidas = [];
     try {
+      const datos = req.body || {};
       const actual = await eventos.buscarPorId(req.params.id);
       if (!actual) return res.status(404).json({ error: "El evento no existe." });
 
-      const { valores, error } = revisarDatosBasicos(req.body || {}, actual);
+      const { valores, error } = revisarDatosBasicos(datos, actual);
       if (error) return res.status(400).json({ error });
+      const cambios = { ...valores };
 
-      // En un evento de Instagram queda registrado que el texto ya no es el original de la publicación.
-      const cambios = actual.origen === "instagram" ? { ...valores, editadoPorAdmin: true } : valores;
-      res.json({ evento: await eventos.actualizar(actual.id, cambios) });
+      if (datos.fotos !== undefined) {
+        const lista = revisarListaDeFotos(actual, datos.fotos);
+        if (lista.error) return res.status(400).json({ error: lista.error });
+        for (const [indice, dataUrl] of lista.nuevas.entries()) {
+          const errorFoto = revisarFotoNueva(dataUrl, indice + 1);
+          if (errorFoto) return res.status(400).json({ error: errorFoto });
+        }
+        if (lista.nuevas.length > 0 && !fotos) {
+          return res.status(503).json({ error: "Falta configurar el almacenamiento de fotos. No se guardaron los cambios." });
+        }
+
+        if (lista.nuevas.length > 0) {
+          try {
+            subidas = await subirFotosNuevas(fotos, lista.nuevas, valores.titulo);
+          } catch (err) {
+            if (err instanceof ErrorDeFotos) return res.status(err.estado).json({ error: err.message });
+            throw err;
+          }
+        }
+        const subidaDe = new Map(subidas.map((s) => [s.dataUrl, s]));
+        const fotosFinales = lista.pedidas.map((pedida) =>
+          pedida.nueva
+            ? { tipo: "IMAGE", url: subidaDe.get(pedida.url).url, publicId: subidaDe.get(pedida.url).publicId }
+            : pedida.medio,
+        );
+        Object.assign(cambios, armarGaleria(actual, fotosFinales));
+      }
+
+      // En un evento de Instagram queda registrado que ya no es igual a la publicación original.
+      if (actual.origen === "instagram") cambios.editadoPorAdmin = true;
+
+      let actualizado;
+      try {
+        actualizado = await eventos.actualizar(actual.id, cambios);
+      } catch (err) {
+        // Las fotos nuevas se subieron, pero el evento no se guardó: se intenta borrar solo esas fotos.
+        console.error(`[eventos] No se pudo guardar la edición del evento ${actual.id}: ${err.message}`);
+        await borrarFotosSubidas(fotos, subidas);
+        return res.status(500).json({ error: "No se pudieron guardar los cambios. Probá de nuevo en unos minutos." });
+      }
+      subidas = []; // ya son fotos del evento guardado
+      res.json({ evento: actualizado });
     } catch (e) {
+      await borrarFotosSubidas(fotos, subidas);
       next(e);
     }
   });
@@ -265,7 +318,7 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
         origen: req.query.origen,
       });
 
-      res.json({ eventos: lista });
+      res.json({ eventos: lista.map(paraElSitio) });
     } catch (e) {
       next(e);
     }
@@ -278,7 +331,7 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
       if (!evento || evento.estado !== "visible") {
         return res.status(404).json({ error: "Evento no encontrado." });
       }
-      res.json({ evento });
+      res.json({ evento: paraElSitio(evento) });
     } catch (e) {
       next(e);
     }
