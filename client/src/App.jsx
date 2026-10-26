@@ -14,6 +14,7 @@ import AdminInicio from "./pages/AdminInicio.jsx";
 import AdminAcademica from "./pages/AdminAcademica.jsx";
 import AdminEventos from "./pages/AdminEventos.jsx";
 import AdminEventoNuevo from "./pages/AdminEventoNuevo.jsx";
+import AdminEventoEditar from "./pages/AdminEventoEditar.jsx";
 import AdminContenido from "./pages/AdminContenido.jsx";
 import AdminUsuarios from "./pages/AdminUsuarios.jsx";
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route element={<SoloAdministrador />}>
             <Route path="/admin-eventos" element={<AdminEventos />} />
             <Route path="/admin-evento-nuevo" element={<AdminEventoNuevo />} />
+            <Route path="/admin-evento-editar" element={<AdminEventoEditar />} />
             <Route path="/admin-contenido" element={<AdminContenido />} />
             <Route path="/admin-usuarios" element={<AdminUsuarios />} />
           </Route>

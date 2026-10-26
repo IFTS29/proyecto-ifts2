@@ -3495,3 +3495,47 @@ body[data-rol="bedelia"] [data-solo-admin] {
 .proximamente {
   margin-top: 40px;
 }
+
+/* Miniaturas de fotos que se ven enteras (fotos verticales y afiches sin recortar) */
+.previas.enteras img {
+  object-fit: contain;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+}
+
+/* Botón de ícono que además dice qué hace (por ejemplo, Ocultar o Mostrar) */
+.boton-icono.con-texto {
+  display: inline-flex;
+  gap: 6px;
+  width: auto;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Cancelar no se destaca: al pasar el mouse queda en gris, sin el verde de las acciones principales */
+.boton-linea.boton-cancelar:hover {
+  border-color: var(--suave);
+  color: var(--texto);
+}
+
+/* Aviso que solo hace falta en pantallas chicas (por ejemplo, que una tabla se desliza) */
+.solo-celular {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .solo-celular {
+    display: block;
+    margin: 0 0 8px;
+  }
+
+  .acciones-fila .boton-icono {
+    width: 44px;
+    height: 44px;
+  }
+
+  .acciones-fila .boton-icono.con-texto {
+    width: auto;
+  }
+}
