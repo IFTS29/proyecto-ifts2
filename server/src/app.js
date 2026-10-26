@@ -19,6 +19,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { crearRutasInstagram } from "./routes/instagram.js";
 import { crearRepoFeedInstagram } from "./services/instagram/index.js";
+import { crearServicioFotos } from "./services/media/fotosEventos.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,6 +58,7 @@ export function crearApp({
   }),
   repoFeedInstagram = crearRepoFeedInstagram(),
   mediaService,
+  fotosEventos = crearServicioFotos(config),
   horarios = crearRepoAcademicoMemoria(),
   publicacionesHorarios = crearRepoPublicacionesMemoria(),
 } = {}) {
@@ -93,7 +95,7 @@ export function crearApp({
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
-  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos }));
+  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos }));
   app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios }));
   app.use(
     "/api/instagram",

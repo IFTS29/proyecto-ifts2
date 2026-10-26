@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import { LIMITE_DEL_PEDIDO, TIPOS_DE_FOTO, pesoDelPedido, prepararFoto } from "../fotos.js";
 
 export default function AdminEventoNuevo() {
   const navigate = useNavigate();
@@ -16,29 +17,30 @@ export default function AdminEventoNuevo() {
   const [fotos, setFotos] = useState([]);
 
   const [enviando, setEnviando] = useState(false);
+  const [preparando, setPreparando] = useState(false);
   const [error, setError] = useState("");
   const [mensajeOk, setMensajeOk] = useState("");
 
-  const manejarArchivos = (e) => {
+  // Achica cada foto antes de agregarla (ver fotos.js). Si alguna no se puede usar, se avisa y se siguen las demás.
+  const manejarArchivos = async (e) => {
     const archivos = Array.from(e.target.files || []);
-    if (!archivos.length) return;
-
-    archivos.forEach((archivo) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFotos((prev) => [
-          ...prev,
-          {
-            id: `${Date.now()}-${Math.random()}`,
-            url: reader.result,
-            nombre: archivo.name,
-          },
-        ]);
-      };
-      reader.readAsDataURL(archivo);
-    });
     // Limpiar el input para permitir volver a elegir el mismo archivo si fue eliminado
     e.target.value = "";
+    if (!archivos.length) return;
+
+    setError("");
+    setPreparando(true);
+    const problemas = [];
+    for (const archivo of archivos) {
+      try {
+        const url = await prepararFoto(archivo);
+        setFotos((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, url, nombre: archivo.name }]);
+      } catch (err) {
+        problemas.push(err.message);
+      }
+    }
+    setPreparando(false);
+    if (problemas.length) setError(problemas.join(" "));
   };
 
   const quitarFoto = (id) => {
@@ -74,7 +76,8 @@ export default function AdminEventoNuevo() {
     try {
       const tipoMedio = calcularTipoMedio();
       const fotosUrls = fotos.map((f) => f.url);
-      const fotoPrincipal = fotosUrls[0] || "/media/instagram/placeholder.svg";
+      // La portada es la primera foto: el servidor la toma de "medios", así no se manda dos veces.
+      const fotoPrincipal = fotosUrls.length > 0 ? undefined : "/media/instagram/placeholder.svg";
 
       const payload = {
         titulo: titulo.trim(),
@@ -102,6 +105,11 @@ export default function AdminEventoNuevo() {
         estado: visible ? "visible" : "oculto",
         origen: "manual",
       };
+
+      // En el sitio publicado un pedido no puede pasar de 4,5 MB: se controla antes de enviar.
+      if (pesoDelPedido(payload) > LIMITE_DEL_PEDIDO) {
+        throw new Error("Las fotos juntas pesan demasiado para enviarlas. Quitá alguna o cargalas en otro evento.");
+      }
 
       await api("/events", {
         metodo: "POST",
@@ -192,15 +200,23 @@ export default function AdminEventoNuevo() {
                 id="e-archivos"
                 type="file"
                 multiple
-                accept="image/*"
+                accept={TIPOS_DE_FOTO.join(",")}
                 onChange={manejarArchivos}
+                disabled={preparando || enviando}
                 style={{ display: "none" }}
               />
 
               <label
                 htmlFor="e-archivos"
                 className="zona-fotos"
-                style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}
+                aria-disabled={preparando || enviando}
+                style={{
+                  cursor: preparando || enviando ? "wait" : "pointer",
+                  opacity: preparando || enviando ? 0.6 : 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -214,7 +230,11 @@ export default function AdminEventoNuevo() {
                   <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
                 </svg>
                 <strong>Hacé clic acá para examinar fotos en tu computadora</strong>
-                <span>Podés seleccionar una o varias imágenes (JPG, PNG, WebP).</span>
+                <span>
+                  {preparando
+                    ? "Preparando las fotos…"
+                    : "Podés seleccionar una o varias imágenes (JPG, PNG, WebP). Se achican antes de enviarlas."}
+                </span>
               </label>
 
               {fotos.length > 0 && (
@@ -304,10 +324,10 @@ export default function AdminEventoNuevo() {
             <button
               className="boton boton-verde"
               type="submit"
-              disabled={enviando}
+              disabled={enviando || preparando}
               style={{ width: "100%" }}
             >
-              {enviando ? "Guardando evento..." : "Publicar evento"}
+              {enviando ? "Guardando evento..." : preparando ? "Preparando fotos…" : "Publicar evento"}
             </button>
             <Link
               className="boton boton-linea"
