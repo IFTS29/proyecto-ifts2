@@ -68,7 +68,8 @@ export function crearApp({
 
   // Ruta estática multimedia con fallback para Instagram (sirve desde storage o inline SVG)
   const mediaStorageDir = path.resolve(__dirname, "../storage/instagram/media");
-  const placeholderPath = path.join(mediaStorageDir, "placeholder.svg");
+  // La imagen de reemplazo es la misma que publica Vercel (client/public), así se ve igual en local.
+  const placeholderPath = path.resolve(__dirname, "../../client/public/media/instagram/placeholder.svg");
 
   app.use("/media/instagram", (req, res) => {
     const safeFilename = path.basename(req.path);
