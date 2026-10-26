@@ -11,6 +11,27 @@ import {
 } from "../services/media/fotosEventos.js";
 
 const ESTADOS_VALIDOS = ["visible", "oculto", "archivado"];
+// Desde el panel solo se muestra u oculta un evento. El archivado tiene su propia regla (#35).
+const ESTADOS_DE_VISIBILIDAD = ["visible", "oculto"];
+
+// Revisa los textos y la fecha de un evento; los usan el alta y la edición.
+// Devuelve { valores } con los datos limpios o { error } con el mensaje para el panel.
+// En la edición, "anterior" es el evento guardado: si no llegan la fecha o el resumen, se conservan.
+function revisarDatosBasicos(datos, anterior = {}) {
+  const titulo = String(datos.titulo || "").trim();
+  const descripcion = String(datos.descripcion || "").trim();
+  const resumen = datos.resumen === undefined ? anterior.resumen || "" : String(datos.resumen).trim();
+
+  if (!titulo) return { error: "El título del evento es obligatorio." };
+  if (!descripcion) return { error: "La descripción del evento es obligatoria." };
+
+  let fechaEvento = anterior.fechaEvento ?? new Date();
+  if (datos.fechaEvento) {
+    fechaEvento = new Date(datos.fechaEvento);
+    if (isNaN(fechaEvento.getTime())) return { error: "La fecha del evento no es válida." };
+  }
+  return { valores: { titulo, descripcion, resumen, fechaEvento } };
+}
 
 async function extraerFotoInstagram(url) {
   try {
@@ -69,32 +90,27 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
     }
   });
 
+  // GET /api/events/admin/:id: un evento en cualquier estado, para editarlo (solo administradores).
+  router.get("/admin/:id", ...soloAdmin, async (req, res, next) => {
+    try {
+      const evento = await eventos.buscarPorId(req.params.id);
+      if (!evento) return res.status(404).json({ error: "El evento no existe." });
+      res.json({ evento });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // POST /api/events: Creación manual de eventos (solo administradores autenticados).
   router.post("/", ...soloAdmin, async (req, res, next) => {
     // Fotos subidas a Cloudinary en este alta. Si algo falla antes de guardar el evento, se intenta borrarlas.
     let subidas = [];
     try {
       const datos = req.body || {};
-      const titulo = String(datos.titulo || "").trim();
-      const descripcion = String(datos.descripcion || "").trim();
-      const resumen = String(datos.resumen || "").trim();
+      const { valores, error } = revisarDatosBasicos(datos);
+      if (error) return res.status(400).json({ error });
+      const { titulo, descripcion, resumen, fechaEvento } = valores;
       let fotoPrincipal = String(datos.fotoPrincipal || "").trim() || "/media/instagram/placeholder.svg";
-
-      if (!titulo) {
-        return res.status(400).json({ error: "El título del evento es obligatorio." });
-      }
-      if (!descripcion) {
-        return res.status(400).json({ error: "La descripción del evento es obligatoria." });
-      }
-
-      let fechaEvento = new Date();
-      if (datos.fechaEvento) {
-        const fechaParseada = new Date(datos.fechaEvento);
-        if (isNaN(fechaParseada.getTime())) {
-          return res.status(400).json({ error: "La fecha del evento no es válida." });
-        }
-        fechaEvento = fechaParseada;
-      }
 
       const estado = ESTADOS_VALIDOS.includes(datos.estado) ? datos.estado : "visible";
       const medios = Array.isArray(datos.medios) ? datos.medios.map((m) => ({ ...m })) : [];
@@ -194,6 +210,45 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
     } catch (e) {
       // Error inesperado entre la subida y el guardado: también se intenta borrar las fotos nuevas.
       await borrarFotosSubidas(fotos, subidas);
+      next(e);
+    }
+  });
+
+  // PUT /api/events/:id: corrige los textos y la fecha de un evento (solo administradores).
+  // Las fotos, el origen y el estado no se cambian acá: cada uno tiene su propia acción.
+  router.put("/:id", ...soloAdmin, async (req, res, next) => {
+    try {
+      const actual = await eventos.buscarPorId(req.params.id);
+      if (!actual) return res.status(404).json({ error: "El evento no existe." });
+
+      const { valores, error } = revisarDatosBasicos(req.body || {}, actual);
+      if (error) return res.status(400).json({ error });
+
+      // En un evento de Instagram queda registrado que el texto ya no es el original de la publicación.
+      const cambios = actual.origen === "instagram" ? { ...valores, editadoPorAdmin: true } : valores;
+      res.json({ evento: await eventos.actualizar(actual.id, cambios) });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // PATCH /api/events/:id/estado: muestra u oculta un evento en el sitio (solo administradores).
+  // Ocultar no borra nada: el evento sigue en el panel y se puede volver a mostrar.
+  router.patch("/:id/estado", ...soloAdmin, async (req, res, next) => {
+    try {
+      const { estado } = req.body || {};
+      if (!ESTADOS_DE_VISIBILIDAD.includes(estado)) {
+        return res.status(400).json({ error: "El estado tiene que ser «visible» u «oculto»." });
+      }
+
+      const actual = await eventos.buscarPorId(req.params.id);
+      if (!actual) return res.status(404).json({ error: "El evento no existe." });
+      if (actual.estado === "archivado") {
+        return res.status(409).json({ error: "El evento está archivado: no se puede mostrar ni ocultar desde acá." });
+      }
+
+      res.json({ evento: await eventos.actualizar(actual.id, { estado }) });
+    } catch (e) {
       next(e);
     }
   });

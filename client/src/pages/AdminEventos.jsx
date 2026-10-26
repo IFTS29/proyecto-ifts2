@@ -1,19 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 
-const PERIODOS = {
-  "Por año": ["2025", "2026"],
-  "Por cuatrimestre": ["1.° cuatrimestre 2026", "2.° cuatrimestre 2025", "1.° cuatrimestre 2025"],
-  "Un evento": ["Noche de los Museos"],
-};
-
 const PESTANAS = [
   { id: "todos", label: "Todos" },
-  { id: "para_revisar", label: "Para revisar" },
   { id: "visible", label: "Visibles" },
   { id: "oculto", label: "Ocultos" },
   { id: "archivado", label: "Archivados" },
@@ -51,35 +44,39 @@ function formatearHoraSincronizacion(fechaIso) {
   }
 }
 
+// Cuenta solo las fotos reales: la imagen de reemplazo no es una foto del evento.
+function textoCantidadFotos(ev) {
+  const cantidad = (ev.medios || []).filter(
+    (m) => m.tipo === "IMAGE" && m.url && !m.url.includes("placeholder"),
+  ).length;
+  if (cantidad === 0) return ev.videoUrl ? "Video" : "Sin fotos";
+  return `${cantidad} ${cantidad === 1 ? "foto" : "fotos"}`;
+}
+
 function renderEtiquetaEstado(estado) {
   switch (estado) {
     case "visible":
       return <span className="etiqueta et-verde">Visible</span>;
-    case "para_revisar":
-      return <span className="etiqueta et-naranja">Para revisar</span>;
     case "oculto":
       return <span className="etiqueta et-gris">Oculto</span>;
     case "archivado":
       return <span className="etiqueta et-gris">Archivado</span>;
-    case "descartado":
-      return <span className="etiqueta et-roja">Descartado</span>;
     default:
       return <span className="etiqueta et-gris">{estado}</span>;
   }
 }
 
 export default function AdminEventos() {
-  const { esAdmin, usuario } = useAuth();
-
-  const [alcance, setAlcance] = useState("Por año");
-  const [periodo, setPeriodo] = useState(PERIODOS["Por año"][0]);
-  const [msg, setMsg] = useState("");
+  const { usuario } = useAuth();
+  const location = useLocation();
+  // Aviso que deja otra pantalla al volver (por ejemplo, "Se guardaron los cambios…").
+  const [aviso, setAviso] = useState(location.state?.aviso || "");
+  const [cambiandoId, setCambiandoId] = useState(null);
 
   const [pestanaActiva, setPestanaActiva] = useState("todos");
   const [eventos, setEventos] = useState([]);
   const [conteos, setConteos] = useState({
     todos: 0,
-    para_revisar: 0,
     visible: 0,
     oculto: 0,
     archivado: 0,
@@ -132,9 +129,25 @@ export default function AdminEventos() {
     cargarStatus();
   }, [cargarEventos, cargarStatus]);
 
-  const cambiarAlcance = (valor) => {
-    setAlcance(valor);
-    setPeriodo(PERIODOS[valor][0]);
+  // Ocultar o volver a mostrar un evento en el sitio, con confirmación. No borra nada.
+  const cambiarVisibilidad = async (ev) => {
+    const ocultar = ev.estado === "visible";
+    const pregunta = ocultar
+      ? `¿Ocultar «${ev.titulo}»? Deja de verse en el sitio, pero no se borra. Lo podés volver a mostrar cuando quieras.`
+      : `¿Mostrar «${ev.titulo}» en el sitio?`;
+    if (!window.confirm(pregunta)) return;
+
+    setCambiandoId(ev.id);
+    setError("");
+    try {
+      await api(`/events/${ev.id}/estado`, { metodo: "PATCH", cuerpo: { estado: ocultar ? "oculto" : "visible" } });
+      setAviso(ocultar ? `«${ev.titulo}» ya no se ve en el sitio.` : `«${ev.titulo}» se ve otra vez en el sitio.`);
+      await cargarEventos();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCambiandoId(null);
+    }
   };
 
   const sincronizar = async () => {
@@ -159,9 +172,6 @@ export default function AdminEventos() {
       setTimeout(() => setMensajeSync(""), 7000);
     }
   };
-
-  const descargar = () =>
-    setMsg("Se preparó la descarga: " + alcance.toLowerCase() + ", " + periodo + ".");
 
   return (
     <div className="admin activa">
@@ -217,6 +227,11 @@ export default function AdminEventos() {
             </Link>
           </div>
         </div>
+        {aviso && (
+          <p className="aviso visible" role="status" style={{ marginTop: 0, marginBottom: "1rem" }}>
+            {aviso}
+          </p>
+        )}
         {mensajeSync && (
           <div
             style={{
@@ -292,52 +307,6 @@ export default function AdminEventos() {
             <span className="etiqueta et-gris">Sin sincronizar</span>
           )}
         </div>
-        {esAdmin && (
-          <div className="caja descarga-archivo">
-            <div>
-              <strong>Descargar lo archivado</strong>
-              <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
-                Guardá una copia de los eventos archivados en tu computadora para llevarla a un
-                Drive o a un disco externo.
-              </p>
-            </div>
-            <div className="descarga-controles">
-              <label htmlFor="d-alcance" className="solo-lectores">
-                Qué descargar
-              </label>
-              <select
-                id="d-alcance"
-                value={alcance}
-                onChange={(e) => cambiarAlcance(e.target.value)}
-              >
-                <option>Por año</option>
-                <option>Por cuatrimestre</option>
-                <option>Un evento</option>
-              </select>
-              <select
-                id="d-periodo"
-                aria-label="Período"
-                value={periodo}
-                onChange={(e) => setPeriodo(e.target.value)}
-              >
-                {PERIODOS[alcance].map((p) => (
-                  <option key={p}>{p}</option>
-                ))}
-              </select>
-              <button
-                className="boton boton-verde boton-chico"
-                type="button"
-                id="d-boton"
-                onClick={descargar}
-              >
-                Descargar
-              </button>
-            </div>
-            <p className={"aviso" + (msg ? " visible" : "")} id="ok-descarga" role="status">
-              {msg}
-            </p>
-          </div>
-        )}
         <div className="pestanas">
           {PESTANAS.map((p) => {
             const cantidad = p.id === "todos" ? conteos.todos : conteos[p.id] || 0;
@@ -354,6 +323,7 @@ export default function AdminEventos() {
             );
           })}
         </div>
+        <p className="ayuda-tabla solo-celular">Deslizá la tabla hacia los costados para ver las acciones →</p>
         <div className="tabla-caja">
           <table>
             <thead>
@@ -401,7 +371,7 @@ export default function AdminEventos() {
                       <strong>{ev.titulo}</strong>
                       <br />
                       <span style={{ color: "var(--suave)", fontSize: "0.875rem" }}>
-                        {formatearFecha(ev.fechaEvento)}, {ev.cantidadMedios || (ev.medios && ev.medios.length) || 1} fotos
+                        {formatearFecha(ev.fechaEvento)}, {textoCantidadFotos(ev)}
                       </span>
                     </td>
                     <td>
@@ -412,20 +382,52 @@ export default function AdminEventos() {
                     <td>{renderEtiquetaEstado(ev.estado)}</td>
                     <td>
                       <div className="acciones-fila">
-                        <Link className="boton boton-linea boton-chico" to="/admin-evento-nuevo">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <path d="M4 20h4L19 9l-4-4L4 16z" />
+                        <Link
+                          className="boton-icono"
+                          to={`/admin-evento-editar?id=${ev.id}`}
+                          aria-label={`Editar ${ev.titulo}`}
+                          title="Editar"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
                           </svg>
-                          Editar
                         </Link>
+                        {ev.estado !== "archivado" && (
+                          // Con texto y no solo el ojo: el botón dice qué hace, sin confundirse con el estado.
+                          <button
+                            className="boton-icono con-texto"
+                            type="button"
+                            aria-label={`${ev.estado === "visible" ? "Ocultar" : "Mostrar"} ${ev.titulo}`}
+                            disabled={cambiandoId === ev.id}
+                            onClick={() => cambiarVisibilidad(ev)}
+                          >
+                            {ev.estado === "visible" ? (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6 0 10 7 10 7a17.6 17.6 0 0 1-3.3 4.1M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                              </svg>
+                            ) : (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            )}
+                            <span aria-hidden="true">{ev.estado === "visible" ? "Ocultar" : "Mostrar"}</span>
+                          </button>
+                        )}
+                        {ev.estado === "visible" && (
+                          <a
+                            className="boton-icono"
+                            href={`/evento?id=${ev.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Ver ${ev.titulo} en el sitio (se abre en otra pestaña)`}
+                            title="Ver en el sitio"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                              <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+                            </svg>
+                          </a>
+                        )}
                       </div>
                     </td>
                   </tr>

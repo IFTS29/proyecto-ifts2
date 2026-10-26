@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import { api } from "../api";
 import { Link } from "react-router-dom";
-import { IMGS } from "../imagenes";
+
+const EVENTOS_EN_INICIO = 8; // los más recientes
 
 export default function Inicio() {
   const carRef = useRef(null);
@@ -10,11 +11,12 @@ export default function Inicio() {
 
   useEffect(() => {
     let cancelado = false;
-    api("/instagram/feed?category=eventos")
-      .then((data) => {
-        if (!cancelado && Array.isArray(data) && data.length > 0) {
-          setEventos(data);
-        }
+    // Los mismos eventos que la galería: cargados a mano y llegados de Instagram, solo los visibles.
+    // Así, lo que se edita u oculta desde el panel se ve igual en el inicio.
+    api("/events")
+      .then(({ eventos: lista = [] }) => {
+        // El servidor los devuelve del más reciente al más antiguo.
+        if (!cancelado) setEventos(lista.slice(0, EVENTOS_EN_INICIO));
       })
       .catch(() => {});
     return () => {
@@ -608,9 +610,12 @@ export default function Inicio() {
           >
             {eventos.length > 0 ? (
               eventos.map((post) => {
-                const titulo = post.parsed?.title || post.caption || "Evento institucional";
-                const resumen = post.parsed?.summary || "";
-                const fecha = post.fechaFormateada || "Reciente";
+                const titulo = post.titulo || "Evento institucional";
+                const resumen = post.resumen || "";
+                const fecha = post.fechaEvento
+                  ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" })
+                  : "Reciente";
+                const esVideo = post.tipoMedio === "VIDEO";
                 const cantidad = post.cantidadMedios || 1;
                 const imagen =
                   post.fotoPrincipal ||
@@ -622,7 +627,7 @@ export default function Inicio() {
                   <li key={post.id}>
                     <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
                       <span className="cant">
-                        {post.isVideo ? (
+                        {esVideo ? (
                           "🎬 Video"
                         ) : (
                           <>
@@ -656,7 +661,7 @@ export default function Inicio() {
                         <h3>{titulo}</h3>
                         <p>{resumen}</p>
                         <span className="ver">
-                          {post.isVideo ? "Ver el video" : "Ver las fotos"}
+                          {esVideo ? "Ver el video" : "Ver las fotos"}
                         </span>
                       </div>
                     </Link>
@@ -664,116 +669,9 @@ export default function Inicio() {
                 );
               })
             ) : (
-              <>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  4 fotos
-                </span>
-                <img src={IMGS.VERDURAS} alt="Foto del evento Cierre del 1.° cuatrimestre" />
-                <div className="texto">
-                  <time>Julio 2026</time>
-                  <h3>Cierre del 1.° cuatrimestre</h3>
-                  <p>Muestra de las producciones del primer cuatrimestre.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  8 fotos
-                </span>
-                <img src={IMGS.MORRON} alt="Foto del evento Jornada de Gastronomía" />
-                <div className="texto">
-                  <time>Junio 2026</time>
-                  <h3>Jornada de Gastronomía</h3>
-                  <p>Jornada abierta con elaboraciones de los estudiantes.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  6 fotos
-                </span>
-                <img src={IMGS.PLATO} alt="Foto del evento Mateada Patria" />
-                <div className="texto">
-                  <time>Mayo 2026</time>
-                  <h3>Mateada Patria</h3>
-                  <p>Encuentro por el 25 de Mayo con estudiantes, docentes y familias.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-            <li>
-              <Link className="tarjeta" to="/evento">
-                <span className="cant">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="2" />
-                    <path d="M21 16l-5-5-8 8" />
-                  </svg>
-                  5 fotos
-                </span>
-                <img src={IMGS.ESTUDIO} alt="Foto del evento Noche de los Museos" />
-                <div className="texto">
-                  <time>Noviembre 2025</time>
-                  <h3>Noche de los Museos</h3>
-                  <p>El instituto abrió sus puertas a la comunidad.</p>
-                  <span className="ver">Ver las fotos</span>
-                </div>
-              </Link>
-            </li>
-              </>
+              <li>
+                <p style={{ color: "var(--suave)" }}>Todavía no hay eventos publicados.</p>
+              </li>
             )}
           </ul>
           <div className="pie-carrusel">

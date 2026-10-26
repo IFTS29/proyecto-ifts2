@@ -3,16 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import CamposEvento from "../components/CamposEvento.jsx";
+import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
+import { datosBasicosParaEnviar, faltaUnDato, valoresDeEvento } from "../eventos.js";
 import { LIMITE_DEL_PEDIDO, TIPOS_DE_FOTO, pesoDelPedido, prepararFoto } from "../fotos.js";
 
 export default function AdminEventoNuevo() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
 
-  const [titulo, setTitulo] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [inicial] = useState(() => valoresDeEvento()); // formulario vacío, con la fecha de hoy
+  const [valores, setValores] = useState(inicial);
   const [videoUrl, setVideoUrl] = useState("");
-  const [descripcion, setDescripcion] = useState("");
   const [visible, setVisible] = useState(true);
   const [fotos, setFotos] = useState([]);
 
@@ -43,6 +45,21 @@ export default function AdminEventoNuevo() {
     if (problemas.length) setError(problemas.join(" "));
   };
 
+  const cambiarValor = (campo, valor) => setValores((prev) => ({ ...prev, [campo]: valor }));
+
+  // Hay algo cargado que se perdería al salir.
+  const sinGuardar =
+    JSON.stringify(valores) !== JSON.stringify(inicial) ||
+    fotos.length > 0 ||
+    videoUrl.trim() !== "" ||
+    !visible;
+  useAvisoSinGuardar(sinGuardar && !enviando && !mensajeOk);
+
+  // Mientras se guarda no se puede salir con Cancelar (el aviso de cambios sin guardar lo da useAvisoSinGuardar).
+  const cancelar = (e) => {
+    if (enviando) e.preventDefault();
+  };
+
   const quitarFoto = (id) => {
     setFotos((prev) => prev.filter((f) => f.id !== id));
   };
@@ -59,12 +76,9 @@ export default function AdminEventoNuevo() {
     setError("");
     setMensajeOk("");
 
-    if (!titulo.trim()) {
-      setError("Por favor completá el título del evento.");
-      return;
-    }
-    if (!descripcion.trim()) {
-      setError("Por favor completá la descripción del evento.");
+    const falta = faltaUnDato(valores);
+    if (falta) {
+      setError(falta);
       return;
     }
     if (fotos.length === 0 && !videoUrl.trim()) {
@@ -80,9 +94,7 @@ export default function AdminEventoNuevo() {
       const fotoPrincipal = fotosUrls.length > 0 ? undefined : "/media/instagram/placeholder.svg";
 
       const payload = {
-        titulo: titulo.trim(),
-        descripcion: descripcion.trim(),
-        fechaEvento: fecha ? new Date(fecha).toISOString() : new Date().toISOString(),
+        ...datosBasicosParaEnviar(valores),
         tipoMedio,
         videoUrl: videoUrl.trim() || null,
         fotoPrincipal,
@@ -147,48 +159,16 @@ export default function AdminEventoNuevo() {
         </div>
         <form className="form-admin" onSubmit={enviar} noValidate>
           <div className="caja">
+            <CamposEvento valores={valores} alCambiar={cambiarValor} deshabilitado={enviando} />
             <div className="campo">
-              <label htmlFor="e-tit">Título del evento</label>
+              <label htmlFor="e-video">Publicación o video de Instagram (opcional)</label>
               <input
-                id="e-tit"
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                placeholder="Ej: Jornada de Gastronomía 2026"
-                required
+                id="e-video"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://www.instagram.com/p/... o reel"
               />
-            </div>
-            <div className="fila">
-              <div className="campo">
-                <label htmlFor="e-fecha">Fecha</label>
-                <input
-                  id="e-fecha"
-                  type="date"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="campo">
-                <label htmlFor="e-video">Publicación o video de Instagram (opcional)</label>
-                <input
-                  id="e-video"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://www.instagram.com/p/... o reel"
-                />
-                <span className="ayuda">Pegá el enlace de Instagram (se embebe automáticamente si no subís fotos).</span>
-              </div>
-            </div>
-            <div className="campo">
-              <label htmlFor="e-desc">Descripción</label>
-              <textarea
-                id="e-desc"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                rows={4}
-                placeholder="Escribí una descripción detallada de la jornada o muestra..."
-                required
-              />
+              <span className="ayuda">Pegá el enlace de Instagram (se embebe automáticamente si no subís fotos).</span>
             </div>
 
             <div className="campo">
@@ -306,7 +286,7 @@ export default function AdminEventoNuevo() {
               Visible en el sitio
             </label>
             <p style={{ color: "var(--suave)", fontSize: "0.9375rem", margin: "0.875rem 0 1.25rem" }}>
-              Al terminar el año pasa automáticamente a "Años anteriores".
+              Después se puede ocultar o volver a mostrar desde la lista de eventos.
             </p>
 
             {error && (
@@ -330,8 +310,9 @@ export default function AdminEventoNuevo() {
               {enviando ? "Guardando evento..." : preparando ? "Preparando fotos…" : "Publicar evento"}
             </button>
             <Link
-              className="boton boton-linea"
+              className="boton boton-linea boton-cancelar"
               to="/admin-eventos"
+              onClick={cancelar}
               style={{ width: "100%", marginTop: "0.75rem" }}
             >
               Cancelar
