@@ -47,7 +47,8 @@ export function datosBasicosParaEnviar(valores, inicial = null) {
 // portada que no está en la lista de medios (eventos de Instagram de una sola foto o eventos viejos)
 // se muestra como una foto más para que no se pierda.
 // La regla de la miniatura vale solo para eventos de Instagram (ver galeriaEvento.js).
-const esVideo = (medio, evento) => {
+// El detalle del sitio (Evento.jsx) usa esta misma función para decidir qué medios se reproducen.
+export const esVideo = (medio, evento = {}) => {
   const url = String(medio.url || "");
   if (medio.tipo === "VIDEO" || medio.mediaType === "VIDEO") return true;
   if (/\.(mp4|mov|webm)(\?|$)/i.test(url) || url.includes("/video/upload/")) return true;
@@ -98,3 +99,8 @@ export function usarComoPortada(fotos, id) {
   const elegida = fotos.find((foto) => foto.id === id);
   return elegida ? [elegida, ...fotos.filter((foto) => foto.id !== id)] : fotos;
 }
+
+// ----- Visor de fotos del sitio (VisorFotos.jsx) -----
+
+// Posición de la foto anterior (paso -1) o siguiente (paso 1). Después de la última sigue la primera.
+export const indiceVecino = (indice, total, paso) => (total > 0 ? (indice + paso + total) % total : 0);

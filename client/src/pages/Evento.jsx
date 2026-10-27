@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
+import VisorFotos from "../components/VisorFotos.jsx";
+import { esVideo, fotosDeEvento } from "../eventos.js";
+
+const IMAGEN_DE_REEMPLAZO = "/media/instagram/placeholder.svg";
 
 function urlEmbedInstagram(url) {
   if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
@@ -78,6 +82,10 @@ export default function Evento() {
   const [post, setPost] = useState(location.state?.post || null);
   const [indiceFoto, setIndiceFoto] = useState(0);
   const [fotoFallback, setFotoFallback] = useState("PLATO");
+  const [visor, setVisor] = useState(null); // { fotos, desde } mientras el visor está abierto
+  const [fallidas, setFallidas] = useState(() => new Set()); // fotos que no cargaron: no se ofrecen para ampliar
+  const marcarFallida = (url) =>
+    setFallidas((actuales) => (actuales.has(url) ? actuales : new Set(actuales).add(url)));
 
   useEffect(() => {
     if (postId) {
@@ -133,7 +141,8 @@ export default function Evento() {
     if (fotosReales.length > 0) {
       items = fotosReales.map((m, idx) => ({
         id: m.id || String(idx + 1),
-        mediaType: m.tipo || "IMAGE",
+        // Mismo criterio que el visor y el panel, para que un video no se muestre como foto.
+        mediaType: esVideo(m, post) ? "VIDEO" : "IMAGE",
         url: m.url,
         thumbnailUrl: m.thumbnailUrl || m.url,
       }));
@@ -179,6 +188,10 @@ export default function Evento() {
     }
 
     const medioActivo = items[indiceFoto] || items[0];
+    // Fotos que se pueden ampliar: las mismas reglas que el panel (sin videos ni imagen de reemplazo)
+    // y sin las que no cargaron.
+    const fotosVisor = fotosDeEvento(post).filter((foto) => !fallidas.has(foto.url));
+    const posicionEnVisor = fotosVisor.findIndex((foto) => foto.url === medioActivo.url);
     const isActivoVideo =
       medioActivo.mediaType?.toUpperCase() === "VIDEO" ||
       medioActivo.url?.endsWith(".mp4") ||
@@ -239,11 +252,32 @@ export default function Evento() {
                     poster={medioActivo.thumbnailUrl}
                     src={medioActivo.url}
                   />
+                ) : posicionEnVisor >= 0 ? (
+                  <button
+                    type="button"
+                    className="ampliar"
+                    onClick={() => setVisor({ fotos: fotosVisor, desde: posicionEnVisor })}
+                    aria-label="Ampliar foto"
+                    title="Ampliar foto"
+                  >
+                    <img
+                      id="foto-principal"
+                      alt={`Foto del evento ${titulo}`}
+                      src={medioActivo.url}
+                      onError={() => marcarFallida(medioActivo.url)}
+                    />
+                    <span className="ampliar-icono" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="11" cy="11" r="6.5" />
+                        <path d="M16 16l4.5 4.5M11 8.5v5M8.5 11h5" />
+                      </svg>
+                    </span>
+                  </button>
                 ) : (
                   <img
                     id="foto-principal"
                     alt={`Foto del evento ${titulo}`}
-                    src={medioActivo.url || "/media/instagram/placeholder.svg"}
+                    src={!medioActivo.url || fallidas.has(medioActivo.url) ? IMAGEN_DE_REEMPLAZO : medioActivo.url}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = "/media/instagram/placeholder.svg";
@@ -264,13 +298,29 @@ export default function Evento() {
                         src={item.thumbnailUrl || item.url || "/media/instagram/placeholder.svg"}
                         alt={`Miniatura ${idx + 1}`}
                         onError={(e) => {
+                          // Si la miniatura es la misma foto, tampoco se ofrece para ampliar.
+                          if (item.thumbnailUrl === item.url) marcarFallida(item.url);
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/media/instagram/placeholder.svg";
+                          e.currentTarget.src = IMAGEN_DE_REEMPLAZO;
                         }}
                       />
                     </button>
                   ))}
                 </div>
+              )}
+              {visor && (
+                <VisorFotos
+                  fotos={visor.fotos}
+                  inicio={visor.desde}
+                  titulo={titulo}
+                  alFallar={marcarFallida}
+                  alCerrar={(ultima) => {
+                    setVisor(null);
+                    // La galería queda en la última foto que se vio en el visor.
+                    const enGaleria = items.findIndex((item) => item.url === visor.fotos[ultima].url);
+                    if (enGaleria >= 0) setIndiceFoto(enGaleria);
+                  }}
+                />
               )}
             </div>
             <div className="info-evento">
