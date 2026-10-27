@@ -3397,6 +3397,37 @@ body[data-rol="bedelia"] [data-solo-admin] {
   width: min(1000px, calc(100vw - 32px));
 }
 
+/* Ventana de confirmación (Confirmacion.jsx) */
+.modal-chica {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.modal-chica .modal-cabecera h2 {
+  font-size: 22px;
+}
+
+.confirmacion-texto {
+  margin: 0;
+  color: var(--suave);
+}
+
+.confirmacion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.boton-peligro {
+  background: var(--rojo);
+  color: #fff;
+}
+
+.boton-peligro:hover {
+  filter: brightness(1.1);
+}
+
 .modal::backdrop {
   background: rgba(10, 38, 24, 0.5);
 }
@@ -3462,6 +3493,10 @@ body[data-rol="bedelia"] [data-solo-admin] {
 @media (max-width: 600px) {
   .modal {
     padding: 20px;
+  }
+
+  .confirmacion-acciones .boton {
+    flex: 1 1 100%;
   }
 
   .modal .fila {

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import { useConfirmar } from "../components/Confirmacion.jsx";
 
 export default function AdminUsuarios() {
   const { usuario } = useAuth();
+  const confirmar = useConfirmar();
 
   const VACIO = { nombre: "", mail: "", rol: "admin", password: "" };
 
@@ -60,7 +62,13 @@ export default function AdminUsuarios() {
   };
 
   const quitar = async (u) => {
-    if (!window.confirm("¿Eliminar a " + u.nombre + "?")) return;
+    const confirmado = await confirmar({
+      titulo: "¿Eliminar este usuario?",
+      texto: `Se eliminará la cuenta de «${u.nombre}» del panel de administración.`,
+      accion: "Eliminar",
+      peligro: true,
+    });
+    if (!confirmado) return;
     try {
       await api("/users/" + u.id, { metodo: "DELETE" });
       if (editando === u.id) cancelar();

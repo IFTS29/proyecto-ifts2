@@ -4,6 +4,7 @@ import { IMGS } from "../imagenes";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import { useConfirmar } from "../components/Confirmacion.jsx";
 
 const PESTANAS = [
   { id: "todos", label: "Todos" },
@@ -69,6 +70,7 @@ function renderEtiquetaEstado(estado) {
 export default function AdminEventos() {
   const { usuario } = useAuth();
   const location = useLocation();
+  const confirmar = useConfirmar();
   // Aviso que deja otra pantalla al volver (por ejemplo, "Se guardaron los cambios…").
   const [aviso, setAviso] = useState(location.state?.aviso || "");
   const [cambiandoId, setCambiandoId] = useState(null);
@@ -132,10 +134,16 @@ export default function AdminEventos() {
   // Ocultar o volver a mostrar un evento en el sitio, con confirmación. No borra nada.
   const cambiarVisibilidad = async (ev) => {
     const ocultar = ev.estado === "visible";
-    const pregunta = ocultar
-      ? `¿Ocultar «${ev.titulo}»? Deja de verse en el sitio, pero no se borra. Lo podés volver a mostrar cuando quieras.`
-      : `¿Mostrar «${ev.titulo}» en el sitio?`;
-    if (!window.confirm(pregunta)) return;
+    const confirmado = await confirmar(
+      ocultar
+        ? {
+            titulo: "¿Ocultar este evento?",
+            texto: `«${ev.titulo}» dejará de mostrarse en el sitio. El evento seguirá guardado y podrá mostrarse nuevamente.`,
+            accion: "Ocultar",
+          }
+        : { titulo: "¿Mostrar este evento?", texto: `«${ev.titulo}» volverá a mostrarse en el sitio.`, accion: "Mostrar" },
+    );
+    if (!confirmado) return;
 
     setCambiandoId(ev.id);
     setError("");
