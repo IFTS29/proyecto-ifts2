@@ -4,8 +4,8 @@ import { useEffect, useId, useRef } from "react";
 // el cierre con Escape y el fondo oscurecido, sin sumar librerías.
 // El contenido se arma solo mientras está abierta, así cada vez empieza limpio.
 // Escape y la X avisan con alCerrar; quien la usa decide si se cierra (por ejemplo, si hay cambios sin guardar).
-// Con "bloqueado" (mientras se guarda) no se puede cerrar.
-export default function Modal({ abierto, titulo, alCerrar, ancha = false, bloqueado = false, children }) {
+// Con "bloqueado" (mientras se guarda) no se puede cerrar. "chica" es para las confirmaciones.
+export default function Modal({ abierto, titulo, alCerrar, ancha = false, chica = false, bloqueado = false, children }) {
   const ref = useRef(null);
   const idTitulo = useId();
 
@@ -18,7 +18,7 @@ export default function Modal({ abierto, titulo, alCerrar, ancha = false, bloque
   return (
     <dialog
       ref={ref}
-      className={"modal" + (ancha ? " modal-ancha" : "")}
+      className={"modal" + (ancha ? " modal-ancha" : "") + (chica ? " modal-chica" : "")}
       aria-labelledby={idTitulo}
       onCancel={(e) => {
         e.preventDefault();

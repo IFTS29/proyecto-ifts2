@@ -4,6 +4,8 @@ import { codigoPeriodo, leerPeriodo, periodoActual, textoMaterias, textoPeriodo 
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import Modal from "../components/Modal.jsx";
+import { useConfirmar } from "../components/Confirmacion.jsx";
+import { DESCARTAR_CAMBIOS } from "../confirmaciones.js";
 import FormHorario from "../components/FormHorario.jsx";
 import FormReutilizar from "../components/FormReutilizar.jsx";
 import ResumenHorarios from "../components/ResumenHorarios.jsx";
@@ -17,6 +19,7 @@ const OTRO = "otro";
 // Guardar cambia solo los datos de trabajo; los alumnos ven lo publicado hasta que se publique o actualice.
 export default function AdminAcademica() {
   const { usuario } = useAuth();
+  const confirmar = useConfirmar();
   const [periodos, setPeriodos] = useState([]);
   const [periodo, setPeriodo] = useState("");
   const [otro, setOtro] = useState(null); // { cicloLectivo, cuatrimestre } mientras se elige "Otro período…"
@@ -99,9 +102,10 @@ export default function AdminAcademica() {
   };
 
   // Cerrar el formulario de una materia: si hay cambios sin guardar, se pregunta antes.
-  const cerrarFormulario = () => {
+  // La confirmación se abre encima del formulario: si se cancela, el formulario sigue abierto con sus cambios.
+  const cerrarFormulario = async () => {
     if (modalOcupado) return;
-    if (formSucio.current && !window.confirm("Hay cambios sin guardar. ¿Querés descartarlos?")) return;
+    if (formSucio.current && !(await confirmar(DESCARTAR_CAMBIOS))) return;
     formSucio.current = false;
     setModal(null);
   };
@@ -121,29 +125,49 @@ export default function AdminAcademica() {
     return horario;
   };
 
-  const eliminar = (h) => {
+  const eliminar = async (h) => {
     const sigueVisible = estado.publicado
-      ? " Si estaba publicada, los alumnos la siguen viendo hasta que actualices la publicación."
+      ? " Los horarios publicados no cambiarán hasta que se actualice la publicación."
       : "";
-    if (!window.confirm(`¿Eliminar «${h.materia}» del ${textoPeriodo(estado)}?${sigueVisible}`)) return;
+    const confirmado = await confirmar({
+      titulo: "¿Eliminar esta materia?",
+      texto: `«${h.materia}» se eliminará de los horarios de trabajo del ${textoPeriodo(estado)}.${sigueVisible}`,
+      accion: "Eliminar",
+      peligro: true,
+    });
+    if (!confirmado) return;
     ejecutar(() => api(`/academic/horarios/${h.id}`, { metodo: "DELETE" }), `Se eliminó «${h.materia}».`);
   };
 
-  const publicar = () => {
+  const publicar = async () => {
     const del = textoPeriodo(estado);
     const materias = textoMaterias(estado.horarios.length);
-    const pregunta = estado.publicado
-      ? `¿Actualizar la publicación del ${del}? Los alumnos van a ver lo guardado (${materias}).`
-      : `¿Publicar los horarios del ${del}? Los alumnos van a ver ${materias}.`;
-    if (!window.confirm(pregunta)) return;
+    const confirmado = await confirmar(
+      estado.publicado
+        ? {
+            titulo: "¿Actualizar los horarios publicados?",
+            texto: `Los horarios publicados del ${del} se actualizarán con los cambios guardados (${materias}).`,
+            accion: "Actualizar",
+          }
+        : {
+            titulo: "¿Publicar los horarios?",
+            texto: `Se publicarán los horarios de ${materias} del ${del}.`,
+            accion: "Publicar",
+          },
+    );
+    if (!confirmado) return;
     const mensaje = estado.publicado ? "Se actualizó la publicación." : "Se publicaron los horarios.";
     ejecutar(() => api(`/academic/periodos/${periodo}/publicar`, { metodo: "POST" }), mensaje);
   };
 
-  const retirar = () => {
+  const retirar = async () => {
     const del = textoPeriodo(estado);
-    const pregunta = `¿Retirar la publicación del ${del}? Los alumnos dejan de verla. No se borra nada.`;
-    if (!window.confirm(pregunta)) return;
+    const confirmado = await confirmar({
+      titulo: "¿Retirar la publicación?",
+      texto: `Los horarios del ${del} dejarán de estar disponibles para los alumnos. Los datos de trabajo se conservarán.`,
+      accion: "Retirar",
+    });
+    if (!confirmado) return;
     ejecutar(() => api(`/academic/periodos/${periodo}/retirar`, { metodo: "POST" }), "Se retiró la publicación.");
   };
 
