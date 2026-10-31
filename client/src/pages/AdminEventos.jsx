@@ -5,7 +5,7 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
-import { mensajeDeSincronizacion } from "../eventos.js";
+import { mensajeDeSincronizacion, textosDelBloqueDeInstagram } from "../eventos.js";
 
 // Colores del aviso de la sincronización: verde si salió todo bien, ámbar si quedó alguna publicación
 // pendiente y rojo si no se pudo sincronizar.
@@ -33,24 +33,6 @@ function formatearFecha(fechaIso) {
     return `${meses[d.getMonth()]} ${d.getFullYear()}`;
   } catch {
     return "";
-  }
-}
-
-function formatearHoraSincronizacion(fechaIso) {
-  if (!fechaIso) return "aún no se ha realizado";
-  try {
-    const d = new Date(fechaIso);
-    if (isNaN(d.getTime())) return "aún no se ha realizado";
-    const hoy = new Date();
-    const esHoy = d.toDateString() === hoy.toDateString();
-    const hora = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
-    if (esHoy) {
-      return `hoy a las ${hora}`;
-    }
-    const fecha = d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    return `el ${fecha} a las ${hora}`;
-  } catch {
-    return "aún no se ha realizado";
   }
 }
 
@@ -183,6 +165,8 @@ export default function AdminEventos() {
     }
   };
 
+  const bloqueInstagram = textosDelBloqueDeInstagram(syncStatus);
+
   return (
     <div className="admin activa">
       <AdminLateral />
@@ -283,20 +267,13 @@ export default function AdminEventos() {
               </svg>
             </span>
             <div>
-              <strong>
-                {syncStatus.conectado
-                  ? `Instagram conectado: ${syncStatus.cuenta || "Activo"}`
-                  : "Instagram: Sin conectar"}
-              </strong>
-              <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>
-                Se incorporan las publicaciones con {syncStatus.hashtag || "#eventosIFTS2"}. Última sincronización:{" "}
-                {formatearHoraSincronizacion(syncStatus.ultimaSincronizacion)}.
-              </p>
+              <strong>{bloqueInstagram.titulo}</strong>
+              <p style={{ color: "var(--suave)", fontSize: "0.9375rem" }}>{bloqueInstagram.texto}</p>
             </div>
           </div>
-          {syncStatus.estado === "error" ? (
-            <span className="etiqueta et-roja">Error de conexión</span>
-          ) : syncStatus.conectado ? (
+          {bloqueInstagram.tipo === "error" ? (
+            <span className="etiqueta et-rojo">{bloqueInstagram.etiqueta}</span>
+          ) : bloqueInstagram.tipo === "funcionando" ? (
             <span className="etiqueta et-verde">
               <svg
                 viewBox="0 0 24 24"
@@ -309,10 +286,10 @@ export default function AdminEventos() {
               >
                 <path d="M20 6L9 17l-5-5" />
               </svg>
-              Funcionando
+              {bloqueInstagram.etiqueta}
             </span>
           ) : (
-            <span className="etiqueta et-gris">Sin sincronizar</span>
+            <span className="etiqueta et-gris">{bloqueInstagram.etiqueta}</span>
           )}
         </div>
         <div className="pestanas">

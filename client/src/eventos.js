@@ -126,3 +126,63 @@ export function mensajeDeSincronizacion(resultado) {
   }
   return { texto, tipo: pendientes > 0 ? "parcial" : "exito" };
 }
+
+// Fecha de la última sincronización, en hora de Argentina y formato de 24 horas:
+// "hoy a las 23:19" o "el 30/10/2026 a las 09:05". Devuelve null si no hay fecha válida.
+export function textoDeFechaDeSincronizacion(fechaIso, ahora = new Date()) {
+  const fecha = new Date(fechaIso);
+  if (!fechaIso || Number.isNaN(fecha.getTime())) return null;
+  const hora = fecha.toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: ZONA_HORARIA,
+  });
+  if (diaEnArgentina(fecha) === diaEnArgentina(ahora)) return `hoy a las ${hora}`;
+  const dia = fecha.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: ZONA_HORARIA });
+  return `el ${dia} a las ${hora}`;
+}
+
+// Textos del bloque de Instagram del panel, según el estado que informa /api/instagram/status:
+// "conectado" (si la última sincronización funcionó, o si hay credenciales y todavía no se sincronizó),
+// "estado" ("error" si falló la última, por la conexión o por otro motivo) y "ultimaSincronizacion" (la última
+// que terminó bien; un error no la cambia). "tipo" define la etiqueta: funcionando, sin-sincronizar, error o
+// sin-conexion.
+export function textosDelBloqueDeInstagram(estado = {}, ahora = new Date()) {
+  const fecha = textoDeFechaDeSincronizacion(estado.ultimaSincronizacion, ahora);
+
+  if (estado.estado === "error") {
+    return {
+      titulo: "Instagram: error de sincronización",
+      texto: `No se pudo completar la última sincronización con Instagram.${fecha ? ` Última sincronización correcta: ${fecha}.` : ""}`,
+      etiqueta: "Error de sincronización",
+      tipo: "error",
+    };
+  }
+  // Sin conexión, el botón solo vuelve a leer lo guardado: no se muestra la fecha para no confundir.
+  if (!estado.conectado) {
+    return {
+      titulo: "Instagram sin conectar",
+      texto: "No hay una conexión configurada con Instagram. Los eventos pueden cargarse manualmente desde el panel.",
+      etiqueta: "Sin conexión",
+      tipo: "sin-conexion",
+    };
+  }
+
+  const alSincronizar = `Al sincronizar, se incorporan las publicaciones con ${estado.hashtag || "#eventosIFTS2"}.`;
+  // Con credenciales pero sin ninguna sincronización todavía no se comprobó la conexión: "configurado".
+  if (!fecha) {
+    return {
+      titulo: "Instagram configurado",
+      texto: `${alSincronizar} Todavía no se realizó ninguna sincronización.`,
+      etiqueta: "Sin sincronizar",
+      tipo: "sin-sincronizar",
+    };
+  }
+  return {
+    titulo: estado.cuenta ? `Instagram conectado: ${estado.cuenta}` : "Instagram conectado",
+    texto: `${alSincronizar} Última sincronización: ${fecha}.`,
+    etiqueta: "Funcionando",
+    tipo: "funcionando",
+  };
+}
