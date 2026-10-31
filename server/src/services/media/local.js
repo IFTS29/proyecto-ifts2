@@ -92,3 +92,11 @@ export async function guardarMedio(params, nombreArchivoOpcional) {
 export const mediaAdapter = {
   guardarMedio,
 };
+
+// Archivos de la sincronización con Instagram en desarrollo local (sin Cloudinary). Mismo nombre fijo que en
+// Cloudinary; si el archivo ya está en el disco, guardarMedio lo reutiliza.
+export async function guardarMedioDeInstagram(url, { nombre, tipo }) {
+  const archivo = `${nombre}.${tipo === "VIDEO" ? "mp4" : "jpg"}`;
+  const enlace = await guardarMedio(url, archivo);
+  return enlace ? { url: enlace, publicId: archivo } : null;
+}

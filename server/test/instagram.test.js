@@ -96,9 +96,9 @@ test("CP-IG-05: Álbum (CAROUSEL_ALBUM) preserva la colección de medios (childr
 
   const mediaGuardados = [];
   const fakeMediaService = {
-    guardarMedio: async (url, filename) => {
-      mediaGuardados.push({ url, filename });
-      return `/media/instagram/${filename}`;
+    guardarMedioDeInstagram: async (url, { nombre }) => {
+      mediaGuardados.push({ url, nombre });
+      return { url: `/media/instagram/${nombre}.jpg`, publicId: nombre };
     },
   };
 
@@ -163,7 +163,7 @@ test("CP-IG-07: Video sin miniatura asigna placeholder de respaldo", async () =>
   };
 
   const fakeMediaService = {
-    guardarMedio: async (url, filename) => `/media/instagram/${filename}`,
+    guardarMedioDeInstagram: async (url, { nombre }) => ({ url: `/media/instagram/${nombre}.mp4`, publicId: nombre }),
   };
 
   await sincronizarInstagram({
@@ -196,8 +196,8 @@ test("CP-IG-08: deduplicateFeed no duplica publicaciones con mismo id o permalin
 // CP-IG-09: Sincronización omite publicaciones registradas en la lista de exclusión (descartadas)
 test("CP-IG-09: Sincronización omite publicaciones descartadas", async () => {
   const postsMeta = [
-    { id: "descartado_1", caption: "Evento viejo #eventosIFTS2" },
-    { id: "activo_2", caption: "Evento nuevo #eventosIFTS2" },
+    { id: "descartado_1", caption: "Evento viejo #eventosIFTS2", media_url: "http://example.com/1.jpg" },
+    { id: "activo_2", caption: "Evento nuevo #eventosIFTS2", media_url: "http://example.com/2.jpg" },
   ];
 
   let postsFinales = [];
@@ -212,7 +212,7 @@ test("CP-IG-09: Sincronización omite publicaciones descartadas", async () => {
   await sincronizarInstagram({
     config: { instagramToken: "token", instagramAccountId: "acc1" },
     repoFeed: fakeRepo,
-    mediaService: { guardarMedio: async () => "/media/instagram/test.jpg" },
+    mediaService: { guardarMedioDeInstagram: async () => ({ url: "/media/instagram/test.jpg", publicId: "test" }) },
     fetchFn: async () => ({ ok: true, json: async () => ({ data: postsMeta }) }),
   });
 

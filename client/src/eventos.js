@@ -104,3 +104,25 @@ export function usarComoPortada(fotos, id) {
 
 // Posición de la foto anterior (paso -1) o siguiente (paso 1). Después de la última sigue la primera.
 export const indiceVecino = (indice, total, paso) => (total > 0 ? (indice + paso + total) % total : 0);
+
+// ----- Sincronización con Instagram (AdminEventos.jsx) -----
+
+// Mensaje del panel con el resultado de una sincronización. "nuevos" son los eventos creados y "pendientes",
+// las publicaciones que no se pudieron importar. "tipo" define el color del aviso: exito, parcial (quedó
+// alguna publicación pendiente) o error.
+export function mensajeDeSincronizacion(resultado) {
+  if (!resultado?.success) return { texto: "No se pudo sincronizar con Instagram.", tipo: "error" };
+
+  const { nuevos = 0, pendientes = 0 } = resultado;
+  let texto = "Sincronización finalizada.";
+  if (nuevos === 1) texto += " Se incorporó 1 evento.";
+  else if (nuevos > 1) texto += ` Se incorporaron ${nuevos} eventos.`;
+  else if (pendientes === 0) texto += " No se encontraron publicaciones nuevas con #eventosIFTS2.";
+
+  if (pendientes === 1) {
+    texto += " No se pudo importar 1 publicación. Se podrá reintentar en una próxima sincronización.";
+  } else if (pendientes > 1) {
+    texto += ` No se pudieron importar ${pendientes} publicaciones. Se podrán reintentar en una próxima sincronización.`;
+  }
+  return { texto, tipo: pendientes > 0 ? "parcial" : "exito" };
+}
