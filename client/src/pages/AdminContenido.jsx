@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 
+// Prototipo de la #36: todavía no guarda. Se muestra para revisar la estructura, con el guardado deshabilitado.
 export default function AdminContenido() {
-  const [ok, setOk] = useState({});
   const { usuario } = useAuth();
   const [panel, setPanel] = useState("autoridades");
 
@@ -24,6 +24,9 @@ export default function AdminContenido() {
             <p>Carrera, plan de estudios, autoridades, datos de contacto y enlaces útiles.</p>
           </div>
         </div>
+        <p className="aviso visible advertencia" role="note">
+          Esta sección se encuentra en desarrollo. Los cambios todavía no pueden guardarse.
+        </p>
         <div className="form-admin form-contenido">
           <ul className="secciones-lista">
             <li>
@@ -198,10 +201,7 @@ export default function AdminContenido() {
           <form
             className="caja panel-cont"
             hidden={panel !== "autoridades"}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setOk((o) => ({ ...o, "ok-cont": true }));
-            }}
+            onSubmit={(e) => e.preventDefault()}
           >
             <h2>Autoridades</h2>
             <div className="fila">
@@ -224,7 +224,7 @@ export default function AdminContenido() {
                 <input id="s-c2" defaultValue="Tutora institucional" />
               </div>
             </div>
-            <button className="boton boton-linea boton-chico" type="button">
+            <button className="boton boton-linea boton-chico" type="button" disabled>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -239,24 +239,18 @@ export default function AdminContenido() {
               Agregar persona
             </button>
             <div className="acciones">
-              <button className="boton boton-verde" type="submit">
+              <button className="boton boton-verde" type="submit" disabled>
                 Guardar cambios
               </button>
               <Link className="enlace" to="/carrera">
                 Ver cómo queda en el sitio
               </Link>
             </div>
-            <p id="ok-cont" role="status" className={"aviso" + (ok["ok-cont"] ? " visible" : "")}>
-              Cambios guardados.
-            </p>
           </form>
           <form
             className="caja panel-cont"
             hidden={panel !== "ingreso"}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setOk((o) => ({ ...o, "ok-ing": true }));
-            }}
+            onSubmit={(e) => e.preventDefault()}
           >
             <h2>Ingreso y preingreso</h2>
             <div className="campo">
@@ -313,16 +307,13 @@ export default function AdminContenido() {
               </span>
             </div>
             <div className="acciones">
-              <button className="boton boton-verde" type="submit">
+              <button className="boton boton-verde" type="submit" disabled>
                 Guardar cambios
               </button>
               <Link className="enlace" to="/ingreso">
                 Ver cómo queda en el sitio
               </Link>
             </div>
-            <p id="ok-ing" role="status" className={"aviso" + (ok["ok-ing"] ? " visible" : "")}>
-              Cambios guardados.
-            </p>
           </form>
         </div>
       </main>

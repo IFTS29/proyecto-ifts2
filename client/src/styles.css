@@ -2004,6 +2004,16 @@ tr:last-child td {
   margin-top: 4px;
 }
 
+/* Dato que lleva a su pantalla, y dato con texto en lugar de un número (inicio del panel). */
+a.dato {
+  text-decoration: none;
+  color: inherit;
+}
+
+.dato strong.dato-texto {
+  font-size: 22px;
+}
+
 .caja {
   background: var(--superficie);
   border: 1px solid var(--borde);
@@ -3248,6 +3258,12 @@ body[data-rol="bedelia"] [data-solo-admin] {
 .aviso.error {
   background: var(--rojo-suave);
   color: var(--rojo);
+}
+/* Aviso informativo que no es éxito ni error (por ejemplo, una sección en desarrollo). */
+.aviso.advertencia {
+  margin-bottom: 18px;
+  background: var(--naranja-suave);
+  color: var(--naranja-texto);
 }
 .solo-lectores {
   position: absolute;
