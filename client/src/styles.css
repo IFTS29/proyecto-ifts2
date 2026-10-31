@@ -3723,9 +3723,9 @@ body[data-rol="bedelia"] [data-solo-admin] {
   }
 }
 
-/* Página de Alumnos: horarios publicados */
+/* Página de Alumnos: horarios y mesas de examen publicados */
 .horarios-de-cursada h2,
-.proximamente h2 {
+.mesas-de-examen h2 {
   margin-bottom: 16px;
 }
 
@@ -3734,7 +3734,7 @@ body[data-rol="bedelia"] [data-solo-admin] {
   min-width: 220px;
 }
 
-.proximamente {
+.mesas-de-examen {
   margin-top: 40px;
 }
 
@@ -3937,6 +3937,12 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
 .llamado-publico .acciones {
   margin-top: 16px;
+  align-items: center;
+}
+
+.llamado-publico .actualizado {
+  color: var(--suave);
+  font-size: 14px;
 }
 
 @media (max-width: 700px) {

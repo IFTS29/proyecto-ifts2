@@ -9,7 +9,7 @@ export default function AdminInicio() {
   const { esAdmin, usuario } = useAuth();
   // Cada consulta: null mientras carga; después { ok: true, datos } u { ok: false }.
   const [eventos, setEventos] = useState(null);
-  const [horarios, setHorarios] = useState(null);
+  const [vigente, setVigente] = useState(null); // horarios y llamados publicados
 
   useEffect(() => {
     let activo = true;
@@ -18,7 +18,7 @@ export default function AdminInicio() {
         (datos) => activo && guardar({ ok: true, datos }),
         () => activo && guardar({ ok: false }),
       );
-    consultar("/academic/vigente", setHorarios);
+    consultar("/academic/vigente", setVigente);
     // Bedelía no consulta los eventos: no tiene permiso y el inicio no se los muestra.
     if (esAdmin) consultar("/events/admin", setEventos);
     return () => {
@@ -26,7 +26,11 @@ export default function AdminInicio() {
     };
   }, [esAdmin]);
 
-  const { eventosVisibles, horariosPublicados, actividad } = datosDelInicio({ esAdmin, eventos, horarios });
+  const { eventosVisibles, horariosPublicados, llamadosPublicados, actividad } = datosDelInicio({
+    esAdmin,
+    eventos,
+    vigente,
+  });
 
   return (
     <div className="admin activa">
@@ -79,9 +83,9 @@ export default function AdminInicio() {
               <path d="M16 2v4M8 2v4M3 10h18" />
             </svg>
             <div>
-              <strong>Gestionar horarios</strong>
+              <strong>Información académica</strong>
               <br />
-              <span>Cargar, modificar y publicar horarios académicos</span>
+              <span>Horarios de cursada y mesas de examen</span>
             </div>
           </Link>
           {esAdmin && (
@@ -115,6 +119,14 @@ export default function AdminInicio() {
           <Link className="dato" to="/admin-academica">
             <span>Horarios publicados</span>
             {horariosPublicados.map((texto) => (
+              <strong key={texto} className="dato-texto">
+                {texto}
+              </strong>
+            ))}
+          </Link>
+          <Link className="dato" to="/admin-mesas">
+            <span>Llamados publicados</span>
+            {llamadosPublicados.map((texto) => (
               <strong key={texto} className="dato-texto">
                 {texto}
               </strong>
