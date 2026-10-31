@@ -271,7 +271,7 @@ test("GET /api/instagram/feed devuelve publicaciones activas enriquecidas y filt
 });
 
 // Ciberseguridad: POST /api/instagram/sync requiere JWT válido y rol admin
-test("Ciberseguridad: POST /api/instagram/sync exige sesión y rol admin (401 / 403 / 200)", async () => {
+test("Ciberseguridad: POST /api/instagram/sync exige sesión y rol admin (401 / 403 / pasa al admin)", async () => {
   const { app } = await appDePrueba();
 
   // 1. Sin sesión -> 401
@@ -287,11 +287,12 @@ test("Ciberseguridad: POST /api/instagram/sync exige sesión y rol admin (401 / 
   assert.equal(resBedelia.status, 403);
   assert.match(resBedelia.body.error, /permiso/i);
 
-  // 3. Con rol admin -> autorizado (200 o procesado)
+  // 3. Con rol admin -> pasa la autorización. Esta app de prueba no tiene credenciales de Instagram,
+  // así que la sincronización responde 503 sin consultar Instagram.
   const tokenAdmin = await tokenDe(app, ADMIN);
   const resAdmin = await request(app)
     .post("/api/instagram/sync")
     .set("Authorization", `Bearer ${tokenAdmin}`);
-  assert.equal(resAdmin.status, 200);
-  assert.equal(resAdmin.body.success, true);
+  assert.equal(resAdmin.status, 503);
+  assert.equal(resAdmin.body.success, false);
 });

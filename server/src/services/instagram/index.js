@@ -1,4 +1,4 @@
-export { sincronizarInstagram } from "./meta.js";
+export { credencialesDeInstagram, sincronizarInstagram } from "./meta.js";
 export {
   parseCaption,
   getPostCategories,

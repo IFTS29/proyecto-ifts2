@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { crearRepoFeedInstagram, sincronizarInstagram } from "../services/instagram/index.js";
+import { credencialesDeInstagram, crearRepoFeedInstagram, sincronizarInstagram } from "../services/instagram/index.js";
 import { guardarMedioDeInstagram } from "../services/media/index.js";
 import { autenticar, requiereRol } from "../middleware/auth.js";
 
@@ -22,17 +22,27 @@ export function crearRutasInstagram({
         ? await repoFeed.loadSyncStatus()
         : null;
 
-      const tieneCredenciales = Boolean(
-        config.instagramToken || process.env.INSTAGRAM_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN,
-      );
+      const { configuradas } = credencialesDeInstagram(config);
+      // La versión anterior, al sincronizar sin credenciales, guardaba estado "sin_sincronizar" con la hora
+      // del clic. Esa fecha no corresponde a una sincronización real: se descarta.
+      const guardado = statusGuardado?.estado === "sin_sincronizar" ? null : statusGuardado;
+      const datosGuardados = {
+        cuenta: guardado?.cuenta || null,
+        hashtag: "#eventosIFTS2",
+        ultimaSincronizacion: guardado?.ultimaSincronizacion || null,
+      };
+
+      // Sin credenciales no hay conexión, aunque haya quedado guardada una sincronización correcta anterior.
+      if (!configuradas) {
+        return res.json({ ...datosGuardados, configurado: false, conectado: false, estado: "sin_conexion", error: null });
+      }
 
       return res.json({
-        conectado: statusGuardado?.conectado ?? tieneCredenciales,
-        cuenta: statusGuardado?.cuenta || null,
-        hashtag: "#eventosIFTS2",
-        ultimaSincronizacion: statusGuardado?.ultimaSincronizacion || null,
-        estado: statusGuardado?.estado || (tieneCredenciales ? "activo" : "sin_sincronizar"),
-        error: statusGuardado?.error || null,
+        ...datosGuardados,
+        configurado: true,
+        conectado: guardado?.conectado ?? true,
+        estado: guardado?.estado || "activo",
+        error: guardado?.error || null,
       });
     } catch (err) {
       return res.status(500).json({ error: err.message });
@@ -69,8 +79,10 @@ export function crearRutasInstagram({
         eventos,
       });
 
+      // 503: la sincronización no está disponible porque falta configurarla (no se consultó Instagram).
+      // 502: la sincronización falló, por ejemplo porque Instagram respondió con un error.
       if (!resultado.success) {
-        return res.status(502).json(resultado);
+        return res.status(resultado.sinCredenciales ? 503 : 502).json(resultado);
       }
 
       return res.json(resultado);

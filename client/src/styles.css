@@ -3298,6 +3298,19 @@ body[data-rol="bedelia"] [data-solo-admin] {
   cursor: not-allowed;
 }
 
+/* Un botón deshabilitado no reacciona al pasar el mouse; el de contorno se ve gris. */
+.boton:disabled:hover {
+  transform: none;
+  filter: none;
+}
+
+.boton-linea:disabled,
+.boton-linea:disabled:hover {
+  background: var(--superficie-2);
+  border-color: var(--borde);
+  color: var(--suave);
+}
+
 .boton-texto {
   min-height: 44px;
   padding: 0 4px;

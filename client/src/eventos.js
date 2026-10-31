@@ -144,7 +144,7 @@ export function textoDeFechaDeSincronizacion(fechaIso, ahora = new Date()) {
 }
 
 // Textos del bloque de Instagram del panel, según el estado que informa /api/instagram/status:
-// "conectado" (si la última sincronización funcionó, o si hay credenciales y todavía no se sincronizó),
+// "conectado" (hay credenciales y la última sincronización funcionó o todavía no se sincronizó),
 // "estado" ("error" si falló la última, por la conexión o por otro motivo) y "ultimaSincronizacion" (la última
 // que terminó bien; un error no la cambia). "tipo" define la etiqueta: funcionando, sin-sincronizar, error o
 // sin-conexion.
@@ -159,7 +159,7 @@ export function textosDelBloqueDeInstagram(estado = {}, ahora = new Date()) {
       tipo: "error",
     };
   }
-  // Sin conexión, el botón solo vuelve a leer lo guardado: no se muestra la fecha para no confundir.
+  // Sin credenciales no se puede sincronizar: no se muestra la fecha para no confundir.
   if (!estado.conectado) {
     return {
       titulo: "Instagram sin conectar",
@@ -186,3 +186,8 @@ export function textosDelBloqueDeInstagram(estado = {}, ahora = new Date()) {
     tipo: "funcionando",
   };
 }
+
+// El botón "Sincronizar Instagram" se habilita solo si /api/instagram/status confirmó que hay credenciales
+// ("configurado"). Mientras se consulta el estado, o si la consulta falla, queda deshabilitado. Después de un
+// error de sincronización sigue habilitado, para reintentar.
+export const puedeSincronizar = (estado = {}, sincronizando = false) => estado.configurado === true && !sincronizando;

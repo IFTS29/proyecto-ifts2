@@ -5,7 +5,7 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
-import { mensajeDeSincronizacion, textosDelBloqueDeInstagram } from "../eventos.js";
+import { mensajeDeSincronizacion, puedeSincronizar, textosDelBloqueDeInstagram } from "../eventos.js";
 
 // Colores del aviso de la sincronización: verde si salió todo bien, ámbar si quedó alguna publicación
 // pendiente y rojo si no se pudo sincronizar.
@@ -79,6 +79,7 @@ export default function AdminEventos() {
   const [sincronizando, setSincronizando] = useState(false);
   const [mensajeSync, setMensajeSync] = useState(null); // { texto, tipo }
   const [syncStatus, setSyncStatus] = useState({
+    configurado: null, // se sabe al consultar /api/instagram/status
     conectado: false,
     cuenta: "",
     hashtag: "#eventosIFTS2",
@@ -93,7 +94,8 @@ export default function AdminEventos() {
         setSyncStatus(data);
       }
     } catch {
-      // Usar estado local por defecto
+      // Sin respuesta del estado no se sabe si hay credenciales: el botón de sincronizar queda deshabilitado.
+      setSyncStatus((anterior) => ({ ...anterior, configurado: null }));
     }
   }, []);
 
@@ -187,7 +189,7 @@ export default function AdminEventos() {
               type="button"
               className="boton boton-linea"
               onClick={sincronizar}
-              disabled={sincronizando}
+              disabled={!puedeSincronizar(syncStatus, sincronizando)}
               style={{ display: "inline-flex", gap: "0.5rem", alignItems: "center" }}
             >
               <svg
