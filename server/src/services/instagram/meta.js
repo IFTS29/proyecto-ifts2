@@ -72,6 +72,18 @@ async function importarArchivos(post, guardarArchivo) {
   return fallo ? null : archivos;
 }
 
+const TOKEN_DE_EJEMPLO = "tu_token_de_larga_duracion_aqui";
+
+// Credenciales de Instagram tomadas de la configuración (config.js las lee de las variables de entorno).
+// "configuradas" indica que están el token y el id de la cuenta, no que Instagram las acepte: un token
+// vencido figura como configurado y la sincronización termina con error. La usan la sincronización y
+// /api/instagram/status, para que las dos digan lo mismo.
+export function credencialesDeInstagram(config = {}) {
+  const token = config.instagramToken === TOKEN_DE_EJEMPLO ? "" : config.instagramToken || "";
+  const accountId = config.instagramAccountId || "";
+  return { token, accountId, configuradas: Boolean(token && accountId) };
+}
+
 /**
  * Cliente de sincronización con Meta Graph API (v26.0).
  * Diseñado con inyección de dependencias para tests deterministas.
@@ -83,81 +95,12 @@ export async function sincronizarInstagram({
   eventos = null,
   fetchFn = globalThis.fetch,
 } = {}) {
-  const token = config.instagramToken || process.env.INSTAGRAM_ACCESS_TOKEN || process.env.INSTAGRAM_TOKEN;
-  const accountId = config.instagramAccountId || process.env.INSTAGRAM_ACCOUNT_ID;
+  const { token, accountId, configuradas } = credencialesDeInstagram(config);
   const limit = 20;
 
-  if (!token || token === "tu_token_de_larga_duracion_aqui") {
-    const existing = await repoFeed.loadFeed();
-    let nuevosGuardados = 0;
-    if (eventos && Array.isArray(existing)) {
-      for (const post of existing) {
-        if (post.categories?.includes("eventos")) {
-          const existe = await eventos.buscarPorInstagramId(post.id);
-          const parsed = post.parsed || parseCaption(post.caption);
-          if (!existe) {
-            await eventos.crear({
-              origen: "instagram",
-              instagramId: String(post.id),
-              permalink: post.permalink,
-              titulo: parsed.title,
-              resumen: parsed.summary,
-              descripcion:
-                parsed.bodyParagraphs && parsed.bodyParagraphs.length > 0
-                  ? parsed.bodyParagraphs.join("\n\n")
-                  : post.caption || "",
-              captionOriginal: post.caption,
-              fechaEvento: post.timestamp || new Date().toISOString(),
-              fechaPublicacionOriginal: post.timestamp || null,
-              tipoMedio: post.mediaType || "IMAGE",
-              fotoPrincipal:
-                post.localImage ||
-                post.localThumbnail ||
-                post.fotoPrincipal ||
-                "/media/instagram/placeholder.svg",
-              videoUrl: post.localVideo || post.permalink,
-              videoThumbnail: post.localThumbnail || null,
-              medios: post.mediaItems || [],
-              cantidadMedios: post.mediaCount || (post.mediaItems?.length) || 1,
-              estado: "visible",
-              categorias: post.categories,
-            });
-            nuevosGuardados++;
-          }
-        }
-      }
-    }
-
-    const syncStatus = {
-      conectado: false,
-      cuenta: (await repoFeed.loadSyncStatus?.())?.cuenta || null,
-      hashtag: "#eventosIFTS2",
-      ultimaSincronizacion: new Date().toISOString(),
-      estado: "sin_sincronizar",
-      totalPosts: existing.length,
-      nuevos: nuevosGuardados,
-    };
-    if (repoFeed.saveSyncStatus) {
-      await repoFeed.saveSyncStatus(syncStatus);
-    }
-
-    return {
-      success: true,
-      mensaje: "Sin token de Instagram configurado. Se mantiene el feed persistido.",
-      count: existing.length,
-      nuevos: nuevosGuardados,
-      posts: existing,
-      syncStatus,
-    };
-  }
-
-  if (!accountId) {
-    const existing = await repoFeed.loadFeed();
-    return {
-      success: false,
-      error: "Falta configurar INSTAGRAM_ACCOUNT_ID",
-      posts: existing,
-    };
+  // Sin credenciales no se consulta Instagram: no se crean eventos ni se cambia el estado guardado.
+  if (!configuradas) {
+    return { success: false, sinCredenciales: true, error: "No hay una conexión configurada con Instagram." };
   }
 
   let accountUsername = (await repoFeed.loadSyncStatus?.())?.cuenta || null;
