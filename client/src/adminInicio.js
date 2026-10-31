@@ -17,10 +17,15 @@ export function textoDeHorariosPublicados(periodos = []) {
   return periodos.length > 0 ? periodos.map(textoPeriodo) : ["Sin horarios publicados"];
 }
 
-// Actividad reciente: eventos cargados (por la fecha en que se crearon) y horarios publicados, del más reciente
-// al más antiguo. No es un historial completo: no registra ediciones, ocultamientos, retiros ni quién lo hizo.
-// Bedelía recibe solo los períodos (no consulta los eventos).
-export function actividadReciente({ eventos = [], periodos = [], limite = 5 } = {}) {
+// Llamados de mesas de examen publicados (también los anuncios sin mesas), uno por línea.
+export function textoDeLlamadosPublicados(llamados = []) {
+  return llamados.length > 0 ? llamados.map((l) => l.nombre) : ["Sin llamados publicados"];
+}
+
+// Actividad reciente: eventos cargados (por la fecha en que se crearon), horarios y llamados publicados, del más
+// reciente al más antiguo. No es un historial completo: no registra ediciones, ocultamientos, retiros ni quién
+// lo hizo. Bedelía recibe solo los períodos y los llamados (no consulta los eventos).
+export function actividadReciente({ eventos = [], periodos = [], llamados = [], limite = 5 } = {}) {
   const deEventos = eventos.map((ev) => ({
     clave: `evento-${ev.id}`,
     accion: ev.origen === "instagram" ? "Se incorporó desde Instagram el evento" : "Se cargó el evento",
@@ -34,7 +39,15 @@ export function actividadReciente({ eventos = [], periodos = [], limite = 5 } = 
     fechaIso: p.publicadoEn,
   }));
 
-  return [...deEventos, ...deHorarios]
+  // "Se publicó el llamado" sirve tanto para un anuncio como para un cronograma completo.
+  const deLlamados = llamados.map((l) => ({
+    clave: `llamado-${l.id}`,
+    accion: "Se publicó el llamado",
+    detalle: l.nombre,
+    fechaIso: l.publicadoEn,
+  }));
+
+  return [...deEventos, ...deHorarios, ...deLlamados]
     .filter((item) => fechaCorta(item.fechaIso))
     .sort((a, b) => new Date(b.fechaIso) - new Date(a.fechaIso))
     .slice(0, limite)
@@ -42,26 +55,30 @@ export function actividadReciente({ eventos = [], periodos = [], limite = 5 } = 
 }
 
 // Lo que muestra el inicio según cómo terminaron las consultas. Cada consulta vale null mientras carga y
-// después { ok: true, datos } u { ok: false }. "eventos" no se consulta para Bedelía.
+// después { ok: true, datos } u { ok: false }. "vigente" es GET /api/academic/vigente (horarios y llamados
+// publicados); "eventos" no se consulta para Bedelía.
 // Un error se muestra como "No disponible", distinto de 0 o de una lista vacía.
-export function datosDelInicio({ esAdmin, eventos, horarios }) {
+export function datosDelInicio({ esAdmin, eventos, vigente }) {
   const visibles = eventos?.ok ? eventos.datos?.conteos?.visible : undefined;
   const eventosVisibles = eventos === null ? "…" : typeof visibles === "number" ? visibles : "No disponible";
 
-  const horariosPublicados =
-    horarios === null ? ["…"] : horarios.ok ? textoDeHorariosPublicados(horarios.datos?.periodos) : ["No disponible"];
+  const deVigente = (armarTexto, lista) =>
+    vigente === null ? ["…"] : vigente.ok ? armarTexto(lista) : ["No disponible"];
+  const horariosPublicados = deVigente(textoDeHorariosPublicados, vigente?.datos?.periodos);
+  const llamadosPublicados = deVigente(textoDeLlamadosPublicados, vigente?.datos?.llamados);
 
-  const consultas = esAdmin ? [eventos, horarios] : [horarios];
+  const consultas = esAdmin ? [eventos, vigente] : [vigente];
   let actividad;
   if (consultas.some((c) => c === null)) actividad = { estado: "cargando", items: [] };
   else if (consultas.some((c) => !c.ok)) actividad = { estado: "error", items: [] };
   else {
     const items = actividadReciente({
       eventos: esAdmin ? eventos.datos?.eventos : [],
-      periodos: horarios.datos?.periodos,
+      periodos: vigente.datos?.periodos,
+      llamados: vigente.datos?.llamados,
     });
     actividad = { estado: items.length > 0 ? "lista" : "vacia", items };
   }
 
-  return { eventosVisibles, horariosPublicados, actividad };
+  return { eventosVisibles, horariosPublicados, llamadosPublicados, actividad };
 }

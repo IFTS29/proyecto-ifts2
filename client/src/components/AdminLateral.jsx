@@ -55,7 +55,7 @@ export default function AdminLateral() {
           <span>Eventos</span>
         </Link>
       )}
-      <Link className={cls("/admin-academica")} to="/admin-academica">
+      <Link className={cls("/admin-academica", "/admin-mesas")} to="/admin-academica">
         <svg
           viewBox="0 0 24 24"
           fill="none"

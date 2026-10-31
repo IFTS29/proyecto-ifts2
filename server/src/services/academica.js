@@ -141,8 +141,8 @@ const iguales = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 // - está en el trabajo y no en la copia → "Se agrega";
 // - está en la copia y no en el trabajo → "Se quita del sitio";
 // - está en las dos con algún campo distinto → una fila por campo, con el valor publicado y el guardado.
-// Devuelve la lista ordenada por materia; vacía si no hay cambios.
-export function compararConPublicado(trabajo, publicados) {
+// Devuelve la lista ordenada por materia; vacía si no hay cambios. La usan los horarios y las mesas de examen.
+export function compararPorId(trabajo, publicados, { campos, nombres, mostrar }) {
   const porId = new Map(publicados.map((h) => [h.id, h]));
   const enTrabajo = new Set(trabajo.map((h) => h.id));
   const cambios = [];
@@ -153,12 +153,12 @@ export function compararConPublicado(trabajo, publicados) {
       cambios.push({ id: actual.id, materia: actual.materia, cambio: "Se agrega" });
       continue;
     }
-    for (const campo of CAMPOS_PUBLICADOS) {
+    for (const campo of campos) {
       if (iguales(actual[campo], publicado[campo])) continue;
       cambios.push({
         id: actual.id,
         materia: actual.materia,
-        cambio: NOMBRE_CAMPO[campo],
+        cambio: nombres[campo],
         publicado: mostrar(campo, publicado[campo]),
         guardado: mostrar(campo, actual[campo]),
       });
@@ -171,3 +171,6 @@ export function compararConPublicado(trabajo, publicados) {
   }
   return cambios.sort((a, b) => a.materia.localeCompare(b.materia, "es"));
 }
+
+export const compararConPublicado = (trabajo, publicados) =>
+  compararPorId(trabajo, publicados, { campos: CAMPOS_PUBLICADOS, nombres: NOMBRE_CAMPO, mostrar });

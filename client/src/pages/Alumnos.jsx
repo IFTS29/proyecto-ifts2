@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import HorariosDeCursada from "../components/HorariosDeCursada.jsx";
+import MesasDeExamen from "../components/MesasDeExamen.jsx";
 
 export default function Alumnos() {
   return (
@@ -15,13 +16,7 @@ export default function Alumnos() {
       <section className="seccion">
         <div className="contenedor">
           <HorariosDeCursada />
-          <div className="caja proximamente">
-            <h2>Mesas de examen</h2>
-            <p>
-              Las fechas de las mesas de examen se van a publicar en esta sección. Mientras tanto, consultalas en
-              Bedelía desde <Link to="/contacto">Contacto</Link>.
-            </p>
-          </div>
+          <MesasDeExamen />
         </div>
       </section>
       <section className="seccion seccion-alt">

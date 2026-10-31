@@ -12,6 +12,7 @@ import Contacto from "./pages/Contacto.jsx";
 import Login from "./pages/Login.jsx";
 import AdminInicio from "./pages/AdminInicio.jsx";
 import AdminAcademica from "./pages/AdminAcademica.jsx";
+import AdminMesas from "./pages/AdminMesas.jsx";
 import AdminEventos from "./pages/AdminEventos.jsx";
 import AdminEventoNuevo from "./pages/AdminEventoNuevo.jsx";
 import AdminEventoEditar from "./pages/AdminEventoEditar.jsx";
@@ -36,6 +37,7 @@ export default function App() {
         <Route element={<SoloAutenticados />}>
           <Route path="/admin" element={<AdminInicio />} />
           <Route path="/admin-academica" element={<AdminAcademica />} />
+          <Route path="/admin-mesas" element={<AdminMesas />} />
           <Route element={<SoloAdministrador />}>
             <Route path="/admin-eventos" element={<AdminEventos />} />
             <Route path="/admin-evento-nuevo" element={<AdminEventoNuevo />} />

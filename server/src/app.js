@@ -14,6 +14,7 @@ import { crearLimitadorContacto } from "./services/limitador.contacto.js";
 import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
 import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
 import { crearRutasAcademica } from "./routes/academica.js";
+import { crearRutasMesas } from "./routes/mesas.js";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -61,6 +62,8 @@ export function crearApp({
   fotosEventos = crearServicioFotos(config),
   horarios = crearRepoAcademicoMemoria(),
   publicacionesHorarios = crearRepoPublicacionesMemoria(),
+  llamados = crearRepoAcademicoMemoria(),
+  mesas = crearRepoAcademicoMemoria(),
 } = {}) {
   const app = express();
 
@@ -96,7 +99,9 @@ export function crearApp({
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
   app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos }));
-  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios }));
+  // Las mesas van primero: sus rutas del panel piden la sesión una por una (ver routes/mesas.js).
+  app.use("/api/academic", crearRutasMesas({ config, usuarios, llamados, mesas }));
+  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados }));
   app.use(
     "/api/instagram",
     crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),

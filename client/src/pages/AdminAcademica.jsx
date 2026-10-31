@@ -6,11 +6,13 @@ import AdminLateral from "../components/AdminLateral.jsx";
 import Modal from "../components/Modal.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
 import { DESCARTAR_CAMBIOS } from "../confirmaciones.js";
+import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
 import FormHorario from "../components/FormHorario.jsx";
 import FormReutilizar from "../components/FormReutilizar.jsx";
 import ResumenHorarios from "../components/ResumenHorarios.jsx";
 import TablaHorarios from "../components/TablaHorarios.jsx";
 import HorariosPublicos from "../components/HorariosPublicos.jsx";
+import PestanasAcademicas from "../components/PestanasAcademicas.jsx";
 
 const OTRO = "otro";
 
@@ -29,7 +31,10 @@ export default function AdminAcademica() {
   const [aviso, setAviso] = useState({ texto: "", error: false });
   const [ocupado, setOcupado] = useState(false);
   const [modalOcupado, setModalOcupado] = useState(false); // mientras un formulario guarda, no se puede cerrar
-  const formSucio = useRef(false);
+  // Si el formulario de una materia tiene cambios sin guardar: se pregunta antes de cerrarlo (ventana propia)
+  // y antes de recargar o cerrar la pestaña (aviso del navegador, con useAvisoSinGuardar).
+  const [formSucio, setFormSucio] = useState(false);
+  useAvisoSinGuardar(formSucio && !modalOcupado);
 
   const avisar = (texto, error = false) => setAviso({ texto, error });
 
@@ -105,14 +110,12 @@ export default function AdminAcademica() {
   // La confirmación se abre encima del formulario: si se cancela, el formulario sigue abierto con sus cambios.
   const cerrarFormulario = async () => {
     if (modalOcupado) return;
-    if (formSucio.current && !(await confirmar(DESCARTAR_CAMBIOS))) return;
-    formSucio.current = false;
+    if (formSucio && !(await confirmar(DESCARTAR_CAMBIOS))) return;
+    setFormSucio(false);
     setModal(null);
   };
 
-  const marcarSucio = useCallback((sucio) => {
-    formSucio.current = sucio;
-  }, []);
+  const marcarSucio = useCallback((sucio) => setFormSucio(sucio), []);
 
   const guardarMateria = async (datos) => {
     const editando = modal.horario;
@@ -216,9 +219,10 @@ export default function AdminAcademica() {
         <div className="cab-admin">
           <div>
             <h1>Información académica</h1>
-            <p>Horarios de cursada de cada cuatrimestre. Guardar no cambia el sitio: los alumnos ven lo publicado.</p>
+            <p>Horarios de cursada y mesas de examen. Guardar no cambia el sitio: los alumnos ven lo publicado.</p>
           </div>
         </div>
+        <PestanasAcademicas />
 
         <div className="selector-periodo">
           <div className="campo">
@@ -335,7 +339,7 @@ export default function AdminAcademica() {
             aulas={aulas}
             alGuardar={guardarMateria}
             alTerminar={() => {
-              formSucio.current = false;
+              setFormSucio(false);
               setModal(null);
             }}
             alCancelar={cerrarFormulario}

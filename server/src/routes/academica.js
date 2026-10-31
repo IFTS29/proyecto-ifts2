@@ -13,23 +13,8 @@ import {
   validarHorario,
 } from "../services/academica.js";
 import { pdfHorarios, textoFecha } from "../services/academica.pdf.js";
-
-// "Turno mañana" → "turno-manana", para el nombre del archivo.
-const paraArchivo = (valor) =>
-  valor
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-function enviarPdf(res, contenido, nombre) {
-  res.set({
-    "Content-Type": "application/pdf",
-    "Content-Disposition": `attachment; filename="${nombre}.pdf"`,
-  });
-  res.send(contenido);
-}
+import { llamadosPublicados } from "../services/mesas.js";
+import { enviarPdf, paraArchivo } from "./pdf.js";
 
 const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
 
@@ -38,7 +23,8 @@ const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
 // - los datos de trabajo ("horarios"), que carga y corrige Bedelía desde el panel;
 // - la copia publicada ("publicacionesHorarios"), que es lo único que ven los alumnos.
 // Guardar cambia solo los datos de trabajo. Publicar o actualizar reemplaza la copia por lo último guardado.
-export function crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios }) {
+// Las mesas de examen están en routes/mesas.js; acá solo se suman los llamados publicados a /vigente.
+export function crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados }) {
   const router = Router();
   // La dirección sale de la configuración del servidor, nunca de la petición (ver config.js).
   const urlContacto = `${config.sitioUrl}/contacto`;
@@ -64,7 +50,8 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
 
   // ---------- Rutas públicas: solo lo publicado ----------
 
-  // Los períodos publicados, del más reciente al más antiguo, con sus horarios.
+  // Los períodos publicados, del más reciente al más antiguo, con sus horarios,
+  // y los llamados de mesas de examen publicados (también los que son solo un anuncio, sin mesas).
   router.get("/vigente", async (req, res, next) => {
     try {
       const publicados = (await publicacionesHorarios.listar())
@@ -77,7 +64,7 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
           publicadoEn: p.publicadoEn,
           horarios: ordenarHorarios(p.horarios),
         }));
-      res.json({ periodos: publicados });
+      res.json({ periodos: publicados, llamados: llamadosPublicados(await llamados.listar()) });
     } catch (e) {
       next(e);
     }

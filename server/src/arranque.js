@@ -8,6 +8,8 @@ import { crearRepoAcademicoMongo } from "./repos/academica.mongo.js";
 import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
 import { crearRepoPublicacionesMongo } from "./repos/publicaciones.mongo.js";
 import { Horario } from "./models/Horario.js";
+import { Llamado } from "./models/Llamado.js";
+import { MesaExamen } from "./models/MesaExamen.js";
 import { asegurarAdminInicial } from "./services/seed.js";
 
 // Inicializa los repositorios según el entorno.
@@ -33,6 +35,8 @@ const reposEnMemoria = () => ({
   eventos: crearRepoEventosMemoria(),
   horarios: crearRepoAcademicoMemoria(),
   publicacionesHorarios: crearRepoPublicacionesMemoria(),
+  llamados: crearRepoAcademicoMemoria(),
+  mesas: crearRepoAcademicoMemoria(),
 });
 
 const reposEnMongo = () => ({
@@ -40,6 +44,8 @@ const reposEnMongo = () => ({
   eventos: crearRepoEventosMongo(),
   horarios: crearRepoAcademicoMongo(Horario),
   publicacionesHorarios: crearRepoPublicacionesMongo(),
+  llamados: crearRepoAcademicoMongo(Llamado),
+  mesas: crearRepoAcademicoMongo(MesaExamen),
 });
 
 async function elegirRepositorios(config, conectar) {
