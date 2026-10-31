@@ -1,9 +1,32 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import { datosDelInicio } from "../adminInicio.js";
 
 export default function AdminInicio() {
   const { esAdmin, usuario } = useAuth();
+  // Cada consulta: null mientras carga; después { ok: true, datos } u { ok: false }.
+  const [eventos, setEventos] = useState(null);
+  const [horarios, setHorarios] = useState(null);
+
+  useEffect(() => {
+    let activo = true;
+    const consultar = (ruta, guardar) =>
+      api(ruta).then(
+        (datos) => activo && guardar({ ok: true, datos }),
+        () => activo && guardar({ ok: false }),
+      );
+    consultar("/academic/vigente", setHorarios);
+    // Bedelía no consulta los eventos: no tiene permiso y el inicio no se los muestra.
+    if (esAdmin) consultar("/events/admin", setEventos);
+    return () => {
+      activo = false;
+    };
+  }, [esAdmin]);
+
+  const { eventosVisibles, horariosPublicados, actividad } = datosDelInicio({ esAdmin, eventos, horarios });
 
   return (
     <div className="admin activa">
@@ -56,13 +79,13 @@ export default function AdminInicio() {
               <path d="M16 2v4M8 2v4M3 10h18" />
             </svg>
             <div>
-              <strong>Publicar horarios o mesas</strong>
+              <strong>Gestionar horarios</strong>
               <br />
-              <span>El período anterior pasa al archivo</span>
+              <span>Cargar, modificar y publicar horarios académicos</span>
             </div>
           </Link>
           {esAdmin && (
-            <Link className="atajo at-3" to="/admin-contenido">
+            <Link className="atajo at-3" to="/admin-eventos">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -72,58 +95,49 @@ export default function AdminInicio() {
                 strokeLinejoin="round"
                 aria-hidden="true"
               >
-                <path d="M4 20h4L19 9l-4-4L4 16z" />
+                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
               </svg>
               <div>
-                <strong>Editar contenido</strong>
+                <strong>Eventos e Instagram</strong>
                 <br />
-                <span>Plan, autoridades, enlaces</span>
+                <span>Editar, ocultar y sincronizar con Instagram</span>
               </div>
             </Link>
           )}
         </div>
         <div className="resumen">
           {esAdmin && (
-            <div className="dato">
+            <Link className="dato" to="/admin-eventos">
               <span>Eventos visibles</span>
-              <strong>3</strong>
-            </div>
-          )}
-          {esAdmin && (
-            <Link className="dato" to="/admin-eventos" style={{ textDecoration: "none" }}>
-              <span>Publicaciones de Instagram para revisar</span>
-              <strong>1</strong>
+              <strong className={typeof eventosVisibles === "number" ? undefined : "dato-texto"}>{eventosVisibles}</strong>
             </Link>
           )}
-          <div className="dato">
-            <span>Período académico vigente</span>
-            <strong style={{ fontSize: "22px" }}>2.° cuatrimestre 2026</strong>
-          </div>
+          <Link className="dato" to="/admin-academica">
+            <span>Horarios publicados</span>
+            {horariosPublicados.map((texto) => (
+              <strong key={texto} className="dato-texto">
+                {texto}
+              </strong>
+            ))}
+          </Link>
         </div>
         <div className="caja">
-          <h2>Últimos cambios</h2>
-          <ul className="actividad">
-            <li>
-              <span>
-                Se publicó el evento <strong>Mateada Patria</strong> desde Instagram
-              </span>
-              <time>Hace 2 días</time>
-            </li>
-            <li>
-              <span>Se publicaron los horarios del 2.° cuatrimestre 2026</span>
-              <time>10 de agosto</time>
-            </li>
-            <li>
-              <span>Los horarios del 1.° cuatrimestre pasaron al archivo</span>
-              <time>10 de agosto</time>
-            </li>
-            <li>
-              <span>
-                Se actualizó la sección <strong>Autoridades</strong>
-              </span>
-              <time>2 de agosto</time>
-            </li>
-          </ul>
+          <h2>Actividad reciente</h2>
+          {actividad.estado === "cargando" && <p>Cargando…</p>}
+          {actividad.estado === "error" && <p>No se pudo cargar la actividad reciente.</p>}
+          {actividad.estado === "vacia" && <p>Todavía no hay actividad registrada.</p>}
+          {actividad.estado === "lista" && (
+            <ul className="actividad">
+              {actividad.items.map((item) => (
+                <li key={item.clave}>
+                  <span>
+                    {item.accion} <strong>{item.detalle}</strong>
+                  </span>
+                  <time dateTime={item.fechaIso}>{item.fecha}</time>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </main>
     </div>
