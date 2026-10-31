@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 // Repositorio con MongoDB para los datos de trabajo de la información académica.
-// Recibe el modelo (hoy, Horario) y expone la misma interfaz que el repositorio en memoria.
+// Recibe el modelo (Horario, Llamado o MesaExamen) y expone la misma interfaz que el repositorio en memoria.
 // Los filtros los arma siempre el servidor, nunca vienen del navegador.
 function aPlano(doc) {
   if (!doc) return null;

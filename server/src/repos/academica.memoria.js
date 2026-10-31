@@ -1,4 +1,4 @@
-// Repositorio en memoria para los datos de trabajo de la información académica (hoy, los horarios).
+// Repositorio en memoria para la información académica: horarios, llamados y mesas de examen.
 // Tiene la misma interfaz que el de MongoDB. Los datos se pierden al reiniciar el servidor.
 export function crearRepoAcademicoMemoria() {
   const lista = [];

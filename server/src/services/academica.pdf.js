@@ -1,7 +1,8 @@
 import PDFDocument from "pdfkit";
 import { NOMBRE_TURNO, textoPeriodo } from "./academica.js";
+import { AVISO_POR_DEFECTO, textoAnio, textoFechaDeMesa, textoFechasDelLlamado, textoHoraDeMesa } from "./mesas.js";
 
-// Arma el PDF de horarios que se descarga desde la página de Alumnos (lo publicado)
+// Arma los PDF de horarios y de mesas de examen que se descargan desde la página de Alumnos (lo publicado)
 // y desde el panel (la vista previa de los datos de trabajo, con una marca bien visible).
 // Usa las fuentes estándar de PDF (Helvetica), que incluyen tildes, ñ y el símbolo °.
 
@@ -219,6 +220,56 @@ export function pdfHorarios({ horarios, periodo, urlContacto, fecha = "", vistaP
         if (filas.length === 0) continue;
         subtituloSeccion(doc, `${anio}.° año`, filas.length);
         tabla(doc, columnas, filas);
+      }
+      pies(doc, { fecha, urlContacto, vistaPrevia });
+    },
+    { titulo: vistaPrevia ? `${MARCA_VISTA_PREVIA} - ${titulo}` : titulo },
+  );
+}
+
+// Párrafo suelto debajo del título (fechas generales y aviso de un llamado).
+function parrafo(doc, texto, { negrita = false } = {}) {
+  doc
+    .fillColor(COLOR.texto)
+    .font(negrita ? "Helvetica-Bold" : "Helvetica")
+    .fontSize(11)
+    .text(texto, MARGEN, doc.y, { width: doc.page.width - MARGEN * 2 });
+  doc.moveDown(0.6);
+}
+
+// Mesas de un llamado, en una sola tabla ordenada por fecha. Lo que falta se escribe "A confirmar".
+// Las columnas de mesa examinadora y aula aparecen solo si alguna mesa las tiene cargadas.
+// Un llamado sin mesas (un anuncio) lleva solo las fechas generales y el aviso.
+export function columnasMesas(mesas) {
+  const conTribunal = mesas.some((m) => m.tribunal);
+  const conAula = mesas.some((m) => m.aula);
+  const columnas = [
+    { titulo: "Fecha", peso: 19, valor: (m) => textoFechaDeMesa(m.fecha) },
+    { titulo: "Hora", peso: 14, valor: (m) => textoHoraDeMesa(m.hora) },
+    { titulo: "Año", peso: 7, valor: (m) => textoAnio(m.anioCarrera) },
+    { titulo: "Materia", peso: 32, valor: (m) => m.materia },
+    ...(conTribunal ? [{ titulo: "Mesa examinadora", peso: 22, valor: (m) => m.tribunal || "A confirmar" }] : []),
+    ...(conAula ? [{ titulo: "Aula", peso: 14, valor: (m) => m.aula || "A confirmar" }] : []),
+  ];
+  const total = columnas.reduce((suma, c) => suma + c.peso, 0);
+  return columnas.map((c) => ({ ...c, ancho: c.peso / total }));
+}
+
+export function pdfMesas({ llamado, mesas, urlContacto, fecha = "", vistaPrevia = false }) {
+  const titulo = `Mesas de examen - ${llamado.nombre}`;
+  const fechas = textoFechasDelLlamado(llamado);
+  const aviso = llamado.aviso || (mesas.length === 0 ? AVISO_POR_DEFECTO : "");
+  const columnas = columnasMesas(mesas);
+
+  return generar(
+    (doc) => {
+      encabezado(doc, "Mesas de examen", llamado.nombre);
+      if (vistaPrevia) avisoVistaPrevia(doc);
+      if (fechas) parrafo(doc, `Período de exámenes: ${fechas.charAt(0).toLowerCase()}${fechas.slice(1)}.`, { negrita: true });
+      if (aviso) parrafo(doc, aviso);
+      if (mesas.length > 0) {
+        doc.moveDown(0.4);
+        tabla(doc, columnas, mesas.map((m) => columnas.map((c) => c.valor(m))));
       }
       pies(doc, { fecha, urlContacto, vistaPrevia });
     },
