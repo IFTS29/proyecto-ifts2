@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { crearRepoFeedInstagram, sincronizarInstagram } from "../services/instagram/index.js";
-import { guardarMedio } from "../services/media/index.js";
+import { guardarMedioDeInstagram } from "../services/media/index.js";
 import { autenticar, requiereRol } from "../middleware/auth.js";
 
 export function crearRutasInstagram({
@@ -8,7 +8,7 @@ export function crearRutasInstagram({
   usuarios,
   eventos,
   repoFeed = crearRepoFeedInstagram(),
-  mediaService = { guardarMedio },
+  mediaService = { guardarMedioDeInstagram },
 } = {}) {
   const router = Router();
   const middlewaresAuth = usuarios

@@ -5,6 +5,15 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
+import { mensajeDeSincronizacion } from "../eventos.js";
+
+// Colores del aviso de la sincronización: verde si salió todo bien, ámbar si quedó alguna publicación
+// pendiente y rojo si no se pudo sincronizar.
+const COLORES_DEL_AVISO = {
+  exito: { background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0" },
+  parcial: { background: "#fffbeb", color: "#92400e", border: "1px solid #fde68a" },
+  error: { background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" },
+};
 
 const PESTANAS = [
   { id: "todos", label: "Todos" },
@@ -86,7 +95,7 @@ export default function AdminEventos() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [sincronizando, setSincronizando] = useState(false);
-  const [mensajeSync, setMensajeSync] = useState("");
+  const [mensajeSync, setMensajeSync] = useState(null); // { texto, tipo }
   const [syncStatus, setSyncStatus] = useState({
     conectado: false,
     cuenta: "",
@@ -160,24 +169,17 @@ export default function AdminEventos() {
 
   const sincronizar = async () => {
     setSincronizando(true);
-    setMensajeSync("");
+    setMensajeSync(null);
     try {
       const res = await api("/instagram/sync", { metodo: "POST" });
-      const guardados = res.nuevos ?? 0;
-      setMensajeSync(
-        res.success
-          ? guardados > 0
-            ? `¡Sincronización completada! (${guardados} ${guardados === 1 ? "nuevo evento guardado" : "nuevos eventos guardados"} en la base de datos)`
-            : `Sincronización completada: al día (sin nuevas publicaciones con #eventosIFTS2)`
-          : `Resultado: ${res.mensaje || res.message || res.error || "Listo"}`
-      );
+      setMensajeSync(mensajeDeSincronizacion(res));
       await Promise.all([cargarEventos(), cargarStatus()]);
-    } catch (err) {
-      setMensajeSync(`Error: ${err.message || "No se pudo sincronizar con Instagram."}`);
+    } catch {
+      setMensajeSync(mensajeDeSincronizacion(null));
       await cargarStatus();
     } finally {
       setSincronizando(false);
-      setTimeout(() => setMensajeSync(""), 7000);
+      setTimeout(() => setMensajeSync(null), 7000);
     }
   };
 
@@ -246,13 +248,11 @@ export default function AdminEventos() {
               padding: "0.875rem 1.25rem",
               borderRadius: "8px",
               marginBottom: "1rem",
-              background: mensajeSync.startsWith("Error") ? "#fef2f2" : "#f0fdf4",
-              color: mensajeSync.startsWith("Error") ? "#b91c1c" : "#15803d",
-              border: `1px solid ${mensajeSync.startsWith("Error") ? "#fecaca" : "#bbf7d0"}`,
+              ...COLORES_DEL_AVISO[mensajeSync.tipo],
               fontWeight: "600",
             }}
           >
-            {mensajeSync}
+            {mensajeSync.texto}
           </div>
         )}
         <div

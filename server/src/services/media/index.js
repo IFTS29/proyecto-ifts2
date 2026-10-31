@@ -8,8 +8,8 @@
 // export const mediaAdapter = localMediaAdapter;
 
 
-import { guardarMedio as guardarMedioLocal } from "./local.js";
-import { guardarMedioCloudinary } from "./cloudinary.js";
+import { guardarMedio as guardarMedioLocal, guardarMedioDeInstagram as guardarMedioDeInstagramLocal } from "./local.js";
+import { guardarMedioCloudinary, guardarMedioDeInstagramCloudinary } from "./cloudinary.js";
 
 // Si están las credenciales en .env, usa Cloudinary; si no, fallback a local
 const usarCloudinary = Boolean(
@@ -19,3 +19,6 @@ const usarCloudinary = Boolean(
 );
 
 export const guardarMedio = usarCloudinary ? guardarMedioCloudinary : guardarMedioLocal;
+
+// Sincronización con Instagram: nombre fijo por archivo (ver cloudinary.js). El alta de eventos sigue usando guardarMedio.
+export const guardarMedioDeInstagram = usarCloudinary ? guardarMedioDeInstagramCloudinary : guardarMedioDeInstagramLocal;

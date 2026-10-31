@@ -194,7 +194,9 @@ function instagramDePrueba() {
       loadSyncStatus: async () => null,
       saveSyncStatus: async (estado) => estado,
     },
-    mediaService: { guardarMedio: async (url, nombre) => `https://res.cloudinary.com/prueba/${nombre}` },
+    mediaService: {
+      guardarMedioDeInstagram: async (url, { nombre }) => ({ url: `https://res.cloudinary.com/prueba/${nombre}`, publicId: nombre }),
+    },
     fetchFn: async (url) => ({
       ok: true,
       json: async () => (url.includes("/media?") ? { data: [PUBLICACION] } : { username: "ifts2" }),
