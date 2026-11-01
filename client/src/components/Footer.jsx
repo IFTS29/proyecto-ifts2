@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { ENLACES, EXTERNO } from "../enlaces.js";
+import { useContenidoInstitucional } from "../contenido.js";
 
 export default function Footer() {
+  const { estado, contenido } = useContenidoInstitucional();
+  const contacto = contenido?.contacto.datos;
+  const direccion = estado === "listo" ? `${contacto.direccion}, ${contacto.localidad}` : "";
+
   return (
     <footer className="pie" id="pie">
       <div className="contenedor">
@@ -83,7 +88,8 @@ export default function Footer() {
       </div>
       <div className="pie-final">
         <div className="contenedor">
-          <p style={{ color: "#e4f1e9" }}>Cañada de Gómez 3850, Villa Lugano, CABA</p>
+          {/* Mientras carga o si la consulta falla, la línea queda vacía: el pie no muestra avisos. */}
+          <p className="pie-direccion">{direccion}</p>
           <Link to="/login">
             <svg
               viewBox="0 0 24 24"

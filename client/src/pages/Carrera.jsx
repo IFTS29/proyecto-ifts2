@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { irA } from "../utils";
+import { SIN_DATOS, agruparPersonas, iniciales, useContenidoInstitucional } from "../contenido.js";
 
 export default function Carrera() {
   const [tabPlan, setTabPlan] = useState("p1");
   const { hash } = useLocation();
+  const { estado, contenido } = useContenidoInstitucional();
 
   useEffect(() => {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
@@ -50,16 +52,11 @@ export default function Carrera() {
           <div className="texto-largo">
             <h2>Perfil del egresado</h2>
             <span className="raya" aria-hidden="true" />
-            <p>
-              Al egresar vas a estar capacitado/a para diseñar y gestionar emprendimientos
-              gastronómicos, y para realizar tareas de planificación de la producción y de
-              elaboración de productos alimenticios aptos para el consumo, conforme a las
-              condiciones exigidas de higiene, seguridad y calidad.
-            </p>
-            <p>
-              El instituto forma emprendedores gastronómicos desde hace 18 años, promoviendo la
-              inserción laboral y los proyectos productivos que impactan en la comunidad.
-            </p>
+            {estado === "listo" ? (
+              contenido.perfil.datos.parrafos.map((parrafo, i) => <p key={i}>{parrafo}</p>)
+            ) : (
+              <p>{estado === "error" ? SIN_DATOS : "Cargando…"}</p>
+            )}
             <div className="acciones">
               <Link className="boton boton-verde" to="/carrera#plan-estudios">
                 Ver plan de estudios
@@ -527,22 +524,29 @@ export default function Carrera() {
             <span className="raya" aria-hidden="true" />
             <p>Equipo de conducción del instituto y acompañamiento a los estudiantes.</p>
           </div>
-          <div className="personas">
-            <div className="tarjeta-simple persona">
-              <span className="avatar">CD</span>
-              <div>
-                <strong>Cecilia C. Dipiazza</strong>
-                <span>Rectora</span>
+          {estado === "listo" ? (
+            agruparPersonas(contenido.personas.datos.personas).map((grupo) => (
+              <div className="grupo-personas" key={grupo.grupo}>
+                <h3>{grupo.titulo}</h3>
+                <div className="personas">
+                  {grupo.personas.map((persona, i) => (
+                    <div className="tarjeta-simple persona" key={i}>
+                      <span className="avatar" aria-hidden="true">
+                        {iniciales(persona.nombre)}
+                      </span>
+                      <div>
+                        <strong>{persona.nombre}</strong>
+                        <span>{persona.cargo}</span>
+                        {persona.detalle && <span className="detalle-persona">{persona.detalle}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="tarjeta-simple persona">
-              <span className="avatar">JS</span>
-              <div>
-                <strong>Prof. Julia Sboro</strong>
-                <span>Tutora institucional: acompaña a los estudiantes durante la cursada</span>
-              </div>
-            </div>
-          </div>
+            ))
+          ) : (
+            <p className="estado-contenido">{estado === "error" ? SIN_DATOS : "Cargando…"}</p>
+          )}
         </div>
       </section>
     </div>

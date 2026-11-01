@@ -1,12 +1,62 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
+import FormPerfil from "../components/FormPerfil.jsx";
+import FormPersonas from "../components/FormPersonas.jsx";
+import FormContacto from "../components/FormContacto.jsx";
+import { useConfirmar } from "../components/Confirmacion.jsx";
+import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
+import { DESCARTAR_CAMBIOS } from "../confirmaciones.js";
+import { almacenContenido, guardarSeccion, textoActualizado, useContenidoInstitucional } from "../contenido.js";
 
-// Prototipo de la #36: todavía no guarda. Se muestra para revisar la estructura, con el guardado deshabilitado.
+// Secciones que se editan desde el panel. Lo guardado se ve enseguida en el sitio.
+const SECCIONES = [
+  { clave: "perfil", titulo: "Perfil del egresado", Formulario: FormPerfil, enElSitio: "/carrera#perfil" },
+  {
+    clave: "personas",
+    titulo: "Autoridades y tutoría",
+    Formulario: FormPersonas,
+    enElSitio: "/carrera#autoridades",
+  },
+  { clave: "contacto", titulo: "Datos de contacto", Formulario: FormContacto, enElSitio: "/contacto" },
+];
+
 export default function AdminContenido() {
   const { usuario } = useAuth();
-  const [panel, setPanel] = useState("autoridades");
+  const confirmar = useConfirmar();
+  const { estado, contenido } = useContenidoInstitucional();
+  const [activa, setActiva] = useState("personas");
+  const [sucio, setSucio] = useState(false);
+  const [ocupado, setOcupado] = useState(false);
+  const [aviso, setAviso] = useState("");
+
+  useAvisoSinGuardar(sucio && !ocupado);
+  // Al empezar a editar de nuevo, el aviso de "se guardaron" deja de corresponder.
+  const marcarSucio = useCallback((valor) => {
+    setSucio(valor);
+    if (valor) setAviso("");
+  }, []);
+  const marcarOcupado = useCallback((valor) => setOcupado(valor), []);
+
+  // Cambiar de sección con cambios sin guardar pide confirmación, como salir por un enlace.
+  const elegir = async (clave) => {
+    if (clave === activa || ocupado) return;
+    if (sucio && !(await confirmar(DESCARTAR_CAMBIOS))) return;
+    setSucio(false);
+    setAviso("");
+    setActiva(clave);
+  };
+
+  const guardar = async (datos) => {
+    setAviso("");
+    await guardarSeccion(activa, datos);
+    setAviso("Los cambios se guardaron y ya se ven en el sitio.");
+  };
+
+  const seccion = SECCIONES.find((s) => s.clave === activa);
+  const { Formulario } = seccion;
+  const datos = contenido?.[activa];
 
   return (
     <div className="admin activa">
@@ -21,301 +71,65 @@ export default function AdminContenido() {
         <div className="cab-admin">
           <div>
             <h1>Contenido institucional</h1>
-            <p>Carrera, plan de estudios, autoridades, datos de contacto y enlaces útiles.</p>
+            <p>Perfil del egresado, autoridades y tutoría, y datos de contacto.</p>
           </div>
         </div>
-        <p className="aviso visible advertencia" role="note">
-          Esta sección se encuentra en desarrollo. Los cambios todavía no pueden guardarse.
-        </p>
-        <div className="form-admin form-contenido">
-          <ul className="secciones-lista">
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Perfil del egresado</strong>
-                  <small>Actualizado el 2 de agosto</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Plan de estudios</strong>
-                  <small>Actualizado en marzo</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Correlatividades</strong>
-                  <small>Actualizado en marzo</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="true">
-                <span>
-                  <strong>Autoridades</strong>
-                  <small>Actualizado el 2 de agosto</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Tutoría</strong>
-                  <small>Actualizado en abril</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button">
-                <span>
-                  <strong>Ingreso y preingreso</strong>
-                  <small>Actualizado en marzo</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Datos de contacto</strong>
-                  <small>Actualizado en marzo</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-            <li>
-              <button type="button" aria-pressed="false">
-                <span>
-                  <strong>Enlaces útiles</strong>
-                  <small>Actualizado en marzo</small>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </button>
-            </li>
-          </ul>
-          <form
-            className="caja panel-cont"
-            hidden={panel !== "autoridades"}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <h2>Autoridades</h2>
-            <div className="fila">
-              <div className="campo">
-                <label htmlFor="s-n1">Nombre</label>
-                <input id="s-n1" defaultValue="Cecilia C. Dipiazza" />
-              </div>
-              <div className="campo">
-                <label htmlFor="s-c1">Cargo</label>
-                <input id="s-c1" defaultValue="Rectora" />
-              </div>
-            </div>
-            <div className="fila">
-              <div className="campo">
-                <label htmlFor="s-n2">Nombre</label>
-                <input id="s-n2" defaultValue="Prof. Julia Sboro" />
-              </div>
-              <div className="campo">
-                <label htmlFor="s-c2">Cargo</label>
-                <input id="s-c2" defaultValue="Tutora institucional" />
-              </div>
-            </div>
-            <button className="boton boton-linea boton-chico" type="button" disabled>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Agregar persona
+
+        {estado === "cargando" && !contenido && <p>Cargando…</p>}
+        {estado === "error" && (
+          <div className="aviso visible error" role="alert">
+            No se pudo cargar el contenido institucional.{" "}
+            <button className="boton boton-linea boton-chico" type="button" onClick={() => almacenContenido.cargar()}>
+              Reintentar
             </button>
-            <div className="acciones">
-              <button className="boton boton-verde" type="submit" disabled>
-                Guardar cambios
-              </button>
-              <Link className="enlace" to="/carrera">
-                Ver cómo queda en el sitio
-              </Link>
-            </div>
-          </form>
-          <form
-            className="caja panel-cont"
-            hidden={panel !== "ingreso"}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <h2>Ingreso y preingreso</h2>
-            <div className="campo">
-              <label htmlFor="g-req">Requisito de ingreso</label>
-              <input id="g-req" defaultValue="Secundario completo" />
-            </div>
-            <div className="fila">
-              <div className="campo">
-                <label htmlFor="g-pre">Enlace a la preinscripción</label>
-                <input
-                  id="g-pre"
-                  defaultValue="guarani-autogestionagencia.bue.edu.ar/preinscripcion"
-                />
-              </div>
-              <div className="campo">
-                <label htmlFor="g-mail">Correo de consultas del preingreso</label>
-                <input id="g-mail" defaultValue="preingreso.ifts@bue.edu.ar" />
-              </div>
-            </div>
-            <div className="campo">
-              <span style={{ fontWeight: "700" }}>Material de preingreso</span>
-              <div className="archivo-actual">
-                <strong>Guía de preingreso a Técnica Superior</strong>
-                <span>PDF, 6 páginas</span>
-              </div>
-              <div className="zona-fotos">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
-                </svg>
-                <strong>Subí la guía nueva en PDF</strong>
-                <span>Si la recibís en PowerPoint, exportala como PDF.</span>
-              </div>
-            </div>
-            <div className="campo">
-              <label htmlFor="g-faq">Preguntas frecuentes</label>
-              <textarea
-                id="g-faq"
-                defaultValue="¿Qué necesito para inscribirme?
-¿Puedo anotarme en más de una carrera?
-¿Cómo entro al curso de preparación?
-¿Qué se evalúa en los exámenes?
-¿Cómo se asignan las vacantes?"
+          </div>
+        )}
+
+        {contenido && (
+          <div className="form-admin form-contenido">
+            <ul className="secciones-lista">
+              {SECCIONES.map((s) => (
+                <li key={s.clave}>
+                  <button
+                    type="button"
+                    aria-pressed={s.clave === activa}
+                    disabled={ocupado && s.clave !== activa}
+                    onClick={() => elegir(s.clave)}
+                  >
+                    <span>
+                      <strong>{s.titulo}</strong>
+                      <small>{textoActualizado(contenido[s.clave])}</small>
+                    </span>
+                    <span className="flecha">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <section className="caja panel-cont" aria-labelledby="titulo-seccion">
+              <h2 id="titulo-seccion">{seccion.titulo}</h2>
+              <Formulario
+                key={`${activa}-${datos.actualizadoEn ?? "inicial"}`}
+                seccion={datos}
+                alGuardar={guardar}
+                alCambiarSucio={marcarSucio}
+                alCambiarOcupado={marcarOcupado}
               />
-              <span className="ayuda">
-                Una pregunta por línea. Las respuestas se editan al abrir cada una.
-              </span>
-            </div>
-            <div className="acciones">
-              <button className="boton boton-verde" type="submit" disabled>
-                Guardar cambios
-              </button>
-              <Link className="enlace" to="/ingreso">
-                Ver cómo queda en el sitio
-              </Link>
-            </div>
-          </form>
-        </div>
+              <p className={"aviso" + (aviso ? " visible" : "")} role="status">
+                {aviso}
+              </p>
+              <p className="ver-en-sitio">
+                <Link className="enlace" to={seccion.enElSitio}>
+                  Ver cómo queda en el sitio
+                </Link>
+              </p>
+            </section>
+          </div>
+        )}
       </main>
     </div>
   );
