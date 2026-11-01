@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { anio } from "../utils";
+import { ENLACES, EXTERNO } from "../enlaces.js";
 
 export default function Ingreso() {
   const bajarPdf = () => {
@@ -88,11 +89,11 @@ export default function Ingreso() {
           <div className="acciones">
             <a
               className="boton boton-naranja"
-              href="https://guarani-autogestionagencia.bue.edu.ar/preinscripcion/SSAALV/acceso"
-              target="_blank"
-              rel="noopener"
+              href={ENLACES.preinscripcion}
+              {...EXTERNO}
             >
               Ir a la preinscripción
+              <span className="solo-lectores"> (se abre en otra pestaña)</span>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -107,11 +108,11 @@ export default function Ingreso() {
             </a>
             <a
               className="boton boton-linea"
-              href="https://www.buenosaires.gob.ar/educacion/estudiantes/sistema-educativo/terciario/formacion-tecnica-superior"
-              target="_blank"
-              rel="noopener"
+              href={ENLACES.ofertaEducativa}
+              {...EXTERNO}
             >
               Ver la oferta educativa
+              <span className="solo-lectores"> (se abre en otra pestaña)</span>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
