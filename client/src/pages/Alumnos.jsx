@@ -1,7 +1,32 @@
-import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import HorariosDeCursada from "../components/HorariosDeCursada.jsx";
 import MesasDeExamen from "../components/MesasDeExamen.jsx";
+import { ENLACES, EXTERNO } from "../enlaces.js";
+
+// Enlaces útiles, en este orden. El acceso de gestión académica va al final: es para docentes y Secretaría.
+const PLATAFORMAS = [
+  {
+    titulo: "SIU Guaraní: alumnos",
+    detalle: "Inscripción a materias y exámenes, historia académica",
+    href: ENLACES.siuAlumnos,
+  },
+  { titulo: "Aulas virtuales", detalle: "Campus Moodle del instituto", href: ENLACES.aulasVirtuales },
+  {
+    titulo: "Mi Argentina",
+    detalle: "Título digital emitido por la Ciudad (sistema SITED)",
+    href: ENLACES.miArgentina,
+  },
+  {
+    titulo: "Becas Progresar",
+    detalle: "Programa de becas para estudiantes de nivel superior",
+    href: ENLACES.progresar,
+  },
+  {
+    titulo: "SIU Guaraní: gestión académica",
+    detalle: "Acceso para docentes y Secretaría Académica",
+    href: ENLACES.siuGestion,
+  },
+];
 
 export default function Alumnos() {
   return (
@@ -24,97 +49,35 @@ export default function Alumnos() {
           <div className="cabecera">
             <h2>Enlaces útiles</h2>
             <span className="raya" aria-hidden="true" />
-            <p>Las plataformas que usás durante la cursada, en un solo lugar.</p>
+            <p>Plataformas y servicios útiles, en un solo lugar.</p>
           </div>
           <ul className="enlaces dos-col">
-            <li>
-              <Link to="/alumnos">
-                <span>
-                  <strong>SIU Guaraní: alumnos</strong>
-                  <span>Inscripción a materias y exámenes, historia académica</span>
-                  <span className="externo">Sitio externo</span>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 17L17 7M9 7h8v8" />
-                  </svg>
-                </span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/alumnos">
-                <span>
-                  <strong>SIU Guaraní: gestión académica</strong>
-                  <span>Acceso para profesores y Secretaría Académica</span>
-                  <span className="externo">Sitio externo</span>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 17L17 7M9 7h8v8" />
-                  </svg>
-                </span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/alumnos">
-                <span>
-                  <strong>Aulas virtuales</strong>
-                  <span>Campus Moodle del instituto</span>
-                  <span className="externo">Sitio externo</span>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 17L17 7M9 7h8v8" />
-                  </svg>
-                </span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/alumnos">
-                <span>
-                  <strong>Mi Argentina</strong>
-                  <span>Título digital para egresados</span>
-                  <span className="externo">Sitio externo</span>
-                </span>
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 17L17 7M9 7h8v8" />
-                  </svg>
-                </span>
-              </Link>
-            </li>
+            {PLATAFORMAS.map((p) => (
+              <li key={p.titulo}>
+                <a href={p.href} {...EXTERNO}>
+                  <span>
+                    <strong>{p.titulo}</strong>
+                    <span>{p.detalle}</span>
+                    <span className="externo">
+                      Sitio externo<span className="solo-lectores">, se abre en otra pestaña</span>
+                    </span>
+                  </span>
+                  <span className="flecha">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M7 17L17 7M9 7h8v8" />
+                    </svg>
+                  </span>
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
       </section>

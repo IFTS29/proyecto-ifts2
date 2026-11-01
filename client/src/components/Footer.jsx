@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
+import { ENLACES, EXTERNO } from "../enlaces.js";
 
 export default function Footer() {
   return (
@@ -43,13 +44,22 @@ export default function Footer() {
           <h3>Plataformas</h3>
           <ul>
             <li>
-              <Link to="/alumnos">SIU Guaraní</Link>
+              <a href={ENLACES.siuAlumnos} {...EXTERNO}>
+                SIU Guaraní
+                <span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </li>
             <li>
-              <Link to="/alumnos">Aulas virtuales</Link>
+              <a href={ENLACES.aulasVirtuales} {...EXTERNO}>
+                Aulas virtuales
+                <span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </li>
             <li>
-              <Link to="/alumnos">Mi Argentina</Link>
+              <a href={ENLACES.miArgentina} {...EXTERNO}>
+                Mi Argentina
+                <span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </li>
           </ul>
         </div>
@@ -57,10 +67,16 @@ export default function Footer() {
           <h3>Redes</h3>
           <ul>
             <li>
-              <Link to="/eventos">Instagram</Link>
+              <a href={ENLACES.instagram} {...EXTERNO}>
+                Instagram
+                <span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </li>
             <li>
-              <Link to="/eventos">Facebook</Link>
+              <a href={ENLACES.facebook} {...EXTERNO}>
+                Facebook
+                <span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </li>
           </ul>
         </div>

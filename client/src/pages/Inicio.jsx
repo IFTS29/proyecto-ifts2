@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { api } from "../api";
 import { Link } from "react-router-dom";
+import { ENLACES, EXTERNO } from "../enlaces.js";
 
 const EVENTOS_EN_INICIO = 8; // los más recientes
 
@@ -292,11 +293,13 @@ export default function Inicio() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/alumnos">
+                  <a href={ENLACES.siuAlumnos} {...EXTERNO}>
                     <span>
                       <strong>SIU Guaraní</strong>
                       <span>Inscripción a materias y exámenes</span>
-                      <span className="externo">Sitio externo</span>
+                      <span className="externo">
+                        Sitio externo<span className="solo-lectores">, se abre en otra pestaña</span>
+                      </span>
                     </span>
                     <span className="flecha">
                       <svg
@@ -311,14 +314,16 @@ export default function Inicio() {
                         <path d="M7 17L17 7M9 7h8v8" />
                       </svg>
                     </span>
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/alumnos">
+                  <a href={ENLACES.aulasVirtuales} {...EXTERNO}>
                     <span>
                       <strong>Aulas virtuales</strong>
                       <span>Campus Moodle</span>
-                      <span className="externo">Sitio externo</span>
+                      <span className="externo">
+                        Sitio externo<span className="solo-lectores">, se abre en otra pestaña</span>
+                      </span>
                     </span>
                     <span className="flecha">
                       <svg
@@ -333,14 +338,16 @@ export default function Inicio() {
                         <path d="M7 17L17 7M9 7h8v8" />
                       </svg>
                     </span>
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/alumnos">
+                  <a href={ENLACES.miArgentina} {...EXTERNO}>
                     <span>
                       <strong>Mi Argentina</strong>
                       <span>Título digital para egresados</span>
-                      <span className="externo">Sitio externo</span>
+                      <span className="externo">
+                        Sitio externo<span className="solo-lectores">, se abre en otra pestaña</span>
+                      </span>
                     </span>
                     <span className="flecha">
                       <svg
@@ -355,7 +362,7 @@ export default function Inicio() {
                         <path d="M7 17L17 7M9 7h8v8" />
                       </svg>
                     </span>
-                  </Link>
+                  </a>
                 </li>
                 <li>
                   <Link to="/contacto">
@@ -690,9 +697,9 @@ export default function Inicio() {
                 <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
               </svg>
               Las novedades también se publican en nuestro Instagram:{" "}
-              <Link className="enlace" to="/eventos">
-                @ifts_2_ok
-              </Link>
+              <a className="enlace" href={ENLACES.instagram} {...EXTERNO}>
+                @ifts_2_ok<span className="solo-lectores"> (se abre en otra pestaña)</span>
+              </a>
             </p>
             <Link className="boton boton-verde" to="/eventos">
               Ver todos los eventos
