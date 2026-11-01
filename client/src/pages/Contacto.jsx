@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
+import { ENLACES, EXTERNO } from "../enlaces.js";
+import { SIN_DATOS, useContenidoInstitucional } from "../contenido.js";
 
 // Misma regla que el servidor (validarConsulta en server/src/services/contacto.js): números,
 // espacios, guiones, paréntesis y un + inicial, con 6 a 15 dígitos. Se controla antes de enviar
@@ -19,6 +20,8 @@ export default function Contacto() {
   const [enviando, setEnviando] = useState(false);
   // Resultado del último envío: { tipo: "exito" | "error", texto }.
   const [aviso, setAviso] = useState(null);
+  const { estado, contenido } = useContenidoInstitucional();
+  const datos = contenido?.contacto.datos;
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -147,15 +150,45 @@ export default function Contacto() {
             </p>
           </form>
           <div className="tarjeta-simple">
-            <h3 style={{ marginBottom: "18px" }}>Dónde y cuándo</h3>
-            <ul className="enlaces">
-              <li>
-                <Link to="/contacto">
-                  <span>
-                    <strong>Cañada de Gómez 3850</strong>
-                    <span>Villa Lugano, Ciudad de Buenos Aires</span>
-                  </span>
-                  <span className="flecha">
+            <h3 className="titulo-tarjeta">Dónde y cuándo</h3>
+            {estado === "listo" ? (
+              <ul className="enlaces">
+                <li className="dato-fijo">
+                  <strong>{datos.direccion}</strong>
+                  <span>{datos.localidad}</span>
+                </li>
+                <li className="dato-fijo">
+                  <strong>{datos.horario}</strong>
+                  {datos.modalidad && <span>{datos.modalidad}</span>}
+                </li>
+                {datos.telefono && (
+                  <li>
+                    <a href={`tel:${datos.telefono.replace(/[^\d+]/g, "")}`}>
+                      <span>
+                        <strong>Teléfono</strong>
+                        <span>{datos.telefono}</span>
+                      </span>
+                    </a>
+                  </li>
+                )}
+                {datos.correo && (
+                  <li>
+                    <a href={`mailto:${datos.correo}`}>
+                      <span>
+                        <strong>Correo</strong>
+                        <span>{datos.correo}</span>
+                      </span>
+                    </a>
+                  </li>
+                )}
+                <li>
+                  <a href={ENLACES.instagram} {...EXTERNO}>
+                    <span>
+                      <strong>Instagram</strong>
+                      <span>@ifts_2_ok</span>
+                      <span className="solo-lectores"> (se abre en otra pestaña)</span>
+                    </span>
+                    <span className="flecha">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -165,58 +198,15 @@ export default function Contacto() {
                       strokeLinejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z" />
-                      <circle cx="12" cy="10" r="2.5" />
+                      <path d="M7 17L17 7M9 7h8v8" />
                     </svg>
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/contacto">
-                  <span>
-                    <strong>Lunes a viernes, de 18 a 22 h</strong>
-                    <span>Cursada presencial</span>
-                  </span>
-                  <span className="flecha">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7v5l3 2" />
-                    </svg>
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/contacto">
-                  <span>
-                    <strong>Instagram</strong>
-                    <span>@ifts_2_ok</span>
-                  </span>
-                  <span className="flecha">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="5" />
-                      <circle cx="12" cy="12" r="4" />
-                      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-                    </svg>
-                  </span>
-                </Link>
-              </li>
-            </ul>
+                    </span>
+                  </a>
+                </li>
+              </ul>
+            ) : (
+              <p className="estado-contenido">{estado === "error" ? SIN_DATOS : "Cargando…"}</p>
+            )}
           </div>
         </div>
       </section>

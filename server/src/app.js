@@ -15,6 +15,8 @@ import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
 import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js";
 import { crearRutasAcademica } from "./routes/academica.js";
 import { crearRutasMesas } from "./routes/mesas.js";
+import { crearRepoContenidoMemoria } from "./repos/contenido.memoria.js";
+import { crearRutasContenido } from "./routes/contenido.js";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -64,6 +66,7 @@ export function crearApp({
   publicacionesHorarios = crearRepoPublicacionesMemoria(),
   llamados = crearRepoAcademicoMemoria(),
   mesas = crearRepoAcademicoMemoria(),
+  contenido = crearRepoContenidoMemoria(),
 } = {}) {
   const app = express();
 
@@ -107,7 +110,7 @@ export function crearApp({
     crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),
   );
 
-  // Falta montar: /api/content
+  app.use("/api/content", crearRutasContenido({ config, usuarios, contenido }));
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });

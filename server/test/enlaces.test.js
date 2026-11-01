@@ -6,7 +6,13 @@ import { ENLACES, EXTERNO } from "../../client/src/enlaces.js";
 // Enlaces útiles a sitios externos (RF-04): todos salen de client/src/enlaces.js.
 
 const leer = (ruta) => readFileSync(new URL(`../../client/src/${ruta}`, import.meta.url), "utf8");
-const PAGINAS = ["pages/Alumnos.jsx", "pages/Inicio.jsx", "components/Footer.jsx", "pages/Ingreso.jsx"];
+const PAGINAS = [
+  "pages/Alumnos.jsx",
+  "pages/Inicio.jsx",
+  "components/Footer.jsx",
+  "pages/Ingreso.jsx",
+  "pages/Contacto.jsx",
+];
 
 test("cada enlace externo lleva a la dirección esperada", () => {
   assert.deepEqual(ENLACES, {
