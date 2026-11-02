@@ -5,24 +5,32 @@ import { irA } from "../utils";
 import { SIN_DATOS, agruparPersonas, iniciales, useContenidoInstitucional } from "../contenido.js";
 import {
   ALCANCES_DEL_TITULO,
+  ANIOS,
   AREAS,
   CORRELATIVIDADES,
   FUENTE_ALCANCES,
+  FUENTE_ANIOS,
   FUENTE_CORRELATIVIDADES,
   FUENTE_PLAN,
-  detalleInstancia,
-  instanciasDeArea,
-  regimen,
+  AVISO_PROMOCIONABLES,
+  nombreAnio,
   textoCantidad,
   totalCarrera,
-  totalPorArea,
 } from "../planDeEstudios.js";
 import { DOCUMENTOS } from "../documentos.js";
 import Documento from "../components/Documento.jsx";
+import TablaPlan from "../components/TablaPlan.jsx";
+
+// Cómo se organiza el plan: por año (al entrar) o por área, cada uno con sus filtros.
+const VISTAS = [
+  { valor: "anio", nombre: "Por año" },
+  { valor: "area", nombre: "Por área" },
+];
 
 export default function Carrera() {
-  // Área del plan que se muestra: al entrar, todas.
-  const [area, setArea] = useState("todas");
+  // Al entrar: el plan completo, por año.
+  const [vista, setVista] = useState("anio");
+  const [filtro, setFiltro] = useState("todos");
   const { hash } = useLocation();
   const { estado, contenido } = useContenidoInstitucional();
 
@@ -30,11 +38,23 @@ export default function Carrera() {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
   }, [hash]);
 
+  // Las tarjetas de áreas abren el plan por área, con esa área elegida.
   const abrirPlan = (e, clave) => {
     e.preventDefault();
-    setArea(clave);
+    setVista("area");
+    setFiltro(clave);
     irA("plan-estudios");
   };
+
+  const cambiarVista = (valor) => {
+    setVista(valor);
+    setFiltro("todos");
+  };
+
+  const filtros =
+    vista === "anio"
+      ? [{ valor: "todos", nombre: "Todos" }, ...ANIOS.map((a) => ({ valor: a, nombre: nombreAnio(a) }))]
+      : [{ valor: "todos", nombre: "Todas" }, ...AREAS.map((a) => ({ valor: a.clave, nombre: a.nombre }))];
 
   return (
     <div className="pagina activa">
@@ -256,67 +276,29 @@ export default function Carrera() {
             <span className="raya" aria-hidden="true" />
             <p>Materias, talleres y prácticas de la tecnicatura, con su régimen y su carga horaria.</p>
           </div>
-          <div className="pestanas" role="group" aria-label="Área formativa">
-            <button type="button" aria-pressed={area === "todas"} onClick={() => setArea("todas")}>
-              Todas
-            </button>
-            {AREAS.map((a) => (
-              <button key={a.clave} type="button" aria-pressed={area === a.clave} onClick={() => setArea(a.clave)}>
-                {a.nombre}
+          <div className="pestanas vistas-plan" role="group" aria-label="Organizar el plan">
+            {VISTAS.map((v) => (
+              <button key={v.valor} type="button" aria-pressed={vista === v.valor} onClick={() => cambiarVista(v.valor)}>
+                {v.nombre}
               </button>
             ))}
           </div>
-          <div className="tabla-caja tabla-plan">
-            <table>
-              <caption className="solo-lectores">
-                Plan de estudios: {area === "todas" ? "todas las áreas" : AREAS.find((a) => a.clave === area).nombre}
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Instancia curricular</th>
-                  <th scope="col" className="col-regimen">
-                    Régimen
-                  </th>
-                  <th scope="col" className="num">
-                    Horas cátedra
-                  </th>
-                </tr>
-              </thead>
-              {AREAS.filter((a) => area === "todas" || a.clave === area).map((a) => (
-                <tbody key={a.clave}>
-                  {area === "todas" && (
-                    <tr className="fila-area">
-                      <th scope="rowgroup">
-                        {a.nombre}
-                        <span className="cuenta-area">{textoCantidad(a.clave)}</span>
-                      </th>
-                      <td className="col-regimen" />
-                      <td className="num">{totalPorArea(a.clave)}</td>
-                    </tr>
-                  )}
-                  {instanciasDeArea(a.clave).map((x) => (
-                    <tr key={x.nombre}>
-                      <td>
-                        {x.nombre}
-                        <span className="regimen-movil">{regimen(x)}</span>
-                        {detalleInstancia(x) && <span className="detalle-instancia">{detalleInstancia(x)}</span>}
-                      </td>
-                      <td className="col-regimen">{regimen(x)}</td>
-                      <td className="num">{x.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              ))}
-              <tfoot>
-                <tr>
-                  <th scope="row">{area === "todas" ? "Total de la carrera" : "Total del área"}</th>
-                  <td className="col-regimen" />
-                  <td className="num">{area === "todas" ? totalCarrera() : totalPorArea(area)}</td>
-                </tr>
-              </tfoot>
-            </table>
+          <div className="pestanas filtros-plan" role="group" aria-label={vista === "anio" ? "Año de la carrera" : "Área formativa"}>
+            {filtros.map((f) => (
+              <button key={f.valor} type="button" aria-pressed={filtro === f.valor} onClick={() => setFiltro(f.valor)}>
+                {f.nombre}
+              </button>
+            ))}
           </div>
-          <p className="fuente">Fuente: {FUENTE_PLAN}. La carga horaria se expresa en horas cátedra.</p>
+          <p className="fuente aviso-promocionables">
+            <span className="marca-promocionable">Promocionable</span> Materias promocionables: {AVISO_PROMOCIONABLES}
+          </p>
+          <TablaPlan vista={vista} filtro={filtro} />
+          <p className="fuente">
+            Fuente: {FUENTE_PLAN}
+            {vista === "anio" && <>; año y cuatrimestre: {FUENTE_ANIOS}</>}. La carga horaria se expresa en horas
+            cátedra.
+          </p>
 
           <h3 className="titulo-plan" id="correlatividades">
             Correlatividades
@@ -341,14 +323,16 @@ export default function Carrera() {
             </table>
           </div>
           <p className="fuente">
-            Transcripción de la {FUENTE_CORRELATIVIDADES}. Algunos nombres difieren de los de la tabla del
+            Transcripción del {FUENTE_CORRELATIVIDADES}. Algunos nombres difieren de los de la tabla del
             plan; ante cualquier duda, consultar en Bedelía.
           </p>
 
           <h3 className="titulo-plan">Documentos</h3>
           <div className="documentos">
             <Documento doc={DOCUMENTOS.resolucion} />
+            <Documento doc={DOCUMENTOS.anexo} />
             <Documento doc={DOCUMENTOS.correlatividades} />
+            <Documento doc={DOCUMENTOS.materiasPorAnio} />
           </div>
         </div>
       </section>

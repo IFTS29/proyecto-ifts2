@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
 import {
   ALCANCES_DEL_TITULO,
+  ANIOS,
   AREAS,
   CORRELATIVIDADES,
   FUENTE_ALCANCES,
@@ -10,6 +11,11 @@ import {
   SEMANAS,
   cantidadPorArea,
   detalleInstancia,
+  gruposDelPlan,
+  instanciasDeAnio,
+  nombreEnAnio,
+  totalPorAnio,
+  ubicacionInstancia,
   regimen,
   textoCantidad,
   totalCarrera,
@@ -125,13 +131,69 @@ test("correlatividades: las 13 filas de la resolución, con las dos columnas com
   assert.match(CORRELATIVIDADES[12].requiere, /hasta el 25% en curso simultáneo/);
 });
 
+// «Materias por año y cuatrimestre» del IFTS N.º 2, transcripto: año, cuatrimestre y nombre en esa vista.
+const POR_ANIO = {
+  "1-1": ["Elaboraciones a base de vegetales, cereales y huevos", "Nutrición", "Introducción a la Gastronomía", "Taller de primeros auxilios", "Taller de comunicación escrita"],
+  "1-anual": ["Seguridad e higiene en la Gastronomía"],
+  "1-2": ["Elaboraciones a base de carnes", "Elementos de Química", "Principios de Economía", "Industria de la hospitalidad", "Práctica profesional 1: Observación organizacional"],
+  "2-1": ["Elaboración de pizzas y pastas", "Elaboraciones de Panadería", "Introducción general a la microempresa", "Inglés", "Taller de Informática"],
+  "2-anual": ["Elementos de Administración y Contabilidad"],
+  "2-2": ["Pastelería básica", "Comercialización", "Inglés técnico", "Herramientas de investigación", "Práctica profesional 2: Organización de la producción"],
+  "3-1": ["Elaboraciones de buffet", "Seminario de actualización / profundización I", "Organización de eventos gastronómicos", "Compras y gestión de stock", "Recursos humanos", "Taller de Francés técnico", "Repostería", "Organización empresarial"],
+  "3-2": ["Servicios de catering", "Seminario de actualización / profundización II", "Cocina nacional e internacional", "Taller de conducción de equipos de trabajo", "Bebidas", "Laboratorio de tecnología de los alimentos", "Práctica profesional 3: Diseño de emprendimientos gastronómicos"],
+};
+
+test("por año: cada instancia está en el año y cuatrimestre del documento del instituto", () => {
+  for (const [clave, nombres] of Object.entries(POR_ANIO)) {
+    const [anio, cuatri] = clave.split("-");
+    const enDatos = instanciasDeAnio(Number(anio), cuatri === "anual" ? "anual" : Number(cuatri)).map(nombreEnAnio);
+    assert.deepEqual([...enDatos].sort(), [...nombres].sort(), clave);
+  }
+});
+
+test("por año: 11, 11 y 15 instancias; las anuales una sola vez; los totales siguen dando 2758", () => {
+  assert.deepEqual(ANIOS.map((a) => instanciasDeAnio(a).length), [11, 11, 15]);
+  assert.equal(INSTANCIAS.filter((x) => x.cuatrimestre === "anual").length, 2);
+  assert.equal(ANIOS.reduce((suma, a) => suma + totalPorAnio(a), 0), 2758);
+  assert.equal(textoCantidad(3), "15 instancias curriculares");
+  assert.equal(ubicacionInstancia(INSTANCIAS.find((x) => x.nombre === "Seguridad e higiene en la Gastronomía")), "1.º año, anual");
+  // Los seminarios no muestran en qué cuatrimestre se cursa cada uno: falta que el IFTS 2 confirme cuál es I y cuál II.
+  const seminarios = INSTANCIAS.filter((x) => x.formato === "Seminario");
+  assert.deepEqual(seminarios.map(ubicacionInstancia), ["3.º año, cuatrimestre por confirmar", "3.º año, cuatrimestre por confirmar"]);
+});
+
+test("grupos de la tabla: por año con cuatrimestres (anuales en el medio), por área sin subtítulos", () => {
+  const todos = gruposDelPlan("anio", "todos");
+  assert.deepEqual(todos.map((g) => g.titulo), ["1.º año", "2.º año", "3.º año"]);
+  assert.deepEqual(todos[0].secciones.map((s) => s.titulo), ["1.º cuatrimestre", "Anuales", "2.º cuatrimestre"]);
+  assert.deepEqual(todos[2].secciones.map((s) => s.titulo), ["1.º cuatrimestre", "2.º cuatrimestre"]);
+  const filas = todos.flatMap((g) => g.secciones.flatMap((s) => s.filas));
+  assert.equal(filas.length, 37, "cada instancia aparece una sola vez");
+  assert.deepEqual(gruposDelPlan("anio", 2).map((g) => g.total), [828]);
+  const areas = gruposDelPlan("area", "todos");
+  assert.equal(areas.length, 4);
+  assert.ok(areas.every((g) => g.secciones.length === 1 && g.secciones[0].titulo === null));
+  assert.equal(gruposDelPlan("area", "practicas")[0].secciones[0].filas.length, 3);
+});
+
+test("promocionables: las 14 del listado del instituto (5, 4 y 5 por año)", () => {
+  const promo = INSTANCIAS.filter((x) => x.promocionable);
+  assert.equal(promo.length, 14);
+  assert.deepEqual(ANIOS.map((a) => promo.filter((x) => x.anio === a).length), [5, 4, 5]);
+  assert.ok(promo.some((x) => x.nombre === "Bebidas"));
+  assert.ok(!INSTANCIAS.find((x) => x.nombre === "Nutrición").promocionable);
+});
+
 test("La carrera toma el plan de los datos: sin filas ni contadores escritos a mano", () => {
   const codigo = leer("src/pages/Carrera.jsx");
+  const tabla = leer("src/components/TablaPlan.jsx");
   assert.match(codigo, /from "\.\.\/planDeEstudios\.js"/);
-  assert.doesNotMatch(codigo, /<td>Introducción a la Gastronomía<\/td>/);
+  assert.match(tabla, /from "\.\.\/planDeEstudios\.js"/);
+  assert.doesNotMatch(codigo + tabla, /<td>Introducción a la Gastronomía<\/td>/);
   assert.doesNotMatch(codigo, /\d+ materias( y talleres)?<\/span>/);
-  assert.match(codigo, /scope="rowgroup"/);
-  assert.doesNotMatch(codigo, /scope="colgroup"/);
+  assert.match(tabla, /<th scope="rowgroup">\s*\{g\.titulo\}/, "el año o el área encabezan su grupo de filas");
+  assert.match(tabla, /<th scope="row">\{s\.titulo\}<\/th>/, "los cuatrimestres son encabezados de fila");
+  assert.doesNotMatch(tabla, /scope="colgroup"/);
   assert.doesNotMatch(codigo, /to="\/carrera#plan-estudios"/);
   assert.doesNotMatch(codigo, /Régimen de correlatividades \(PDF\)/);
 });
@@ -149,11 +211,12 @@ test("documentos: los archivos existen y el tamaño anunciado coincide con el re
 
 test("alcances del título: texto y página de la resolución", () => {
   assert.match(ALCANCES_DEL_TITULO, /^El egresado de esta carrera estará capacitado para diseñar su propio emprendimiento/);
-  assert.equal(FUENTE_ALCANCES, "Resolución N.º 1202/MEGC/2007, pág. 7");
+  assert.equal(FUENTE_ALCANCES, "Anexo de la Resolución N.º 1202/MEGC/2007, pág. 7");
 });
 
 test("documentos: el enlace dice tipo, tamaño y páginas, y se descarga con su nombre", () => {
-  assert.equal(datosDelArchivo(DOCUMENTOS.resolucion), "PDF, 340 KB, 66 páginas");
+  assert.equal(datosDelArchivo(DOCUMENTOS.anexo), "PDF, 340 KB, 66 páginas");
+  assert.equal(datosDelArchivo(DOCUMENTOS.resolucion), "PDF, 207 KB, 2 páginas");
   assert.equal(datosDelArchivo({ kb: 10, paginas: 1 }), "PDF, 10 KB, 1 página");
   assert.equal(nombreDeDescarga(DOCUMENTOS.correlatividades), "correlatividades-resolucion-1202-MEGC-2007.pdf");
   assert.equal(
