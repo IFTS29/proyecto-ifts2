@@ -4027,3 +4027,210 @@ body[data-rol="bedelia"] [data-solo-admin] {
   padding: 0;
   border: 0;
 }
+
+/* ---- La carrera: plan de estudios, correlatividades y documentos ---- */
+.titulo-alcances {
+  margin: 28px 0 8px;
+}
+
+.fuente,
+.texto-largo .fuente {
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.datos-carrera {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.datos-carrera div {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.datos-carrera dt {
+  font-weight: 700;
+}
+
+.datos-carrera dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.tabla-plan .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tabla-plan .fila-area th,
+.tabla-plan .fila-area td {
+  background: var(--superficie-2);
+  color: var(--texto);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tabla-plan .cuenta-area {
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--suave);
+}
+
+.tabla-plan tfoot th,
+.tabla-plan tfoot td {
+  background: var(--superficie-2);
+  border-top: 2px solid var(--borde);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.detalle-instancia,
+.regimen-movil {
+  display: block;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.regimen-movil {
+  display: none;
+}
+
+.titulo-plan {
+  margin: 40px 0 8px;
+}
+
+.tabla-correlatividades th[scope="row"] {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+  background: none;
+}
+
+.documentos {
+  display: grid;
+  gap: 12px;
+}
+
+.documento {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--superficie);
+}
+
+.icono-doc {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+  color: var(--verde);
+}
+
+.icono-doc svg {
+  width: 24px;
+  height: 24px;
+}
+
+.texto-doc strong,
+.texto-doc span {
+  display: block;
+}
+
+.texto-doc span {
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.texto-doc .datos-doc {
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.acciones-doc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aviso-doc {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 14px;
+}
+
+.aviso-doc:empty {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .tabla-plan .col-regimen {
+    display: none;
+  }
+
+  /* La columna de horas ocupa solo lo que necesita y su título puede ir en dos líneas. */
+  .tabla-plan .num {
+    width: 1%;
+  }
+
+  .tabla-plan th.num {
+    white-space: normal;
+  }
+
+  /* Correlatividades en celular: cada fila como bloque, el requisito debajo de la instancia. */
+  /* Los encabezados no se ven, pero siguen disponibles para los lectores de pantalla. */
+  .tabla-correlatividades thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .tabla-correlatividades tr,
+  .tabla-correlatividades th[scope="row"],
+  .tabla-correlatividades td {
+    display: block;
+  }
+
+  .tabla-correlatividades th[scope="row"] {
+    padding-bottom: 4px;
+    border-bottom: 0;
+  }
+
+  .tabla-correlatividades td::before {
+    content: "Requiere tener: ";
+    font-weight: 600;
+  }
+
+  .tabla-plan .regimen-movil {
+    display: block;
+  }
+
+  .tabla-plan th,
+  .tabla-plan td,
+  .tabla-correlatividades th,
+  .tabla-correlatividades td {
+    padding: 12px;
+  }
+
+  .documento {
+    grid-template-columns: auto 1fr;
+  }
+
+  .acciones-doc {
+    grid-column: 1 / -1;
+  }
+}

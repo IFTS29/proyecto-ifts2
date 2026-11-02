@@ -3,9 +3,26 @@ import { Link, useLocation } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { irA } from "../utils";
 import { SIN_DATOS, agruparPersonas, iniciales, useContenidoInstitucional } from "../contenido.js";
+import {
+  ALCANCES_DEL_TITULO,
+  AREAS,
+  CORRELATIVIDADES,
+  FUENTE_ALCANCES,
+  FUENTE_CORRELATIVIDADES,
+  FUENTE_PLAN,
+  detalleInstancia,
+  instanciasDeArea,
+  regimen,
+  textoCantidad,
+  totalCarrera,
+  totalPorArea,
+} from "../planDeEstudios.js";
+import { DOCUMENTOS } from "../documentos.js";
+import Documento from "../components/Documento.jsx";
 
 export default function Carrera() {
-  const [tabPlan, setTabPlan] = useState("p1");
+  // Área del plan que se muestra: al entrar, todas.
+  const [area, setArea] = useState("todas");
   const { hash } = useLocation();
   const { estado, contenido } = useContenidoInstitucional();
 
@@ -13,9 +30,9 @@ export default function Carrera() {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
   }, [hash]);
 
-  const abrirPlan = (e, id) => {
+  const abrirPlan = (e, clave) => {
     e.preventDefault();
-    setTabPlan(id);
+    setArea(clave);
     irA("plan-estudios");
   };
 
@@ -57,51 +74,38 @@ export default function Carrera() {
             ) : (
               <p>{estado === "error" ? SIN_DATOS : "Cargando…"}</p>
             )}
+            <h3 className="titulo-alcances">Alcances del título</h3>
+            <p>{ALCANCES_DEL_TITULO}</p>
+            <p className="fuente">Fuente: {FUENTE_ALCANCES}.</p>
             <div className="acciones">
-              <Link className="boton boton-verde" to="/carrera#plan-estudios">
+              <button className="boton boton-verde" type="button" onClick={() => irA("plan-estudios")}>
                 Ver plan de estudios
-              </Link>
+              </button>
               <Link className="enlace" to="/contacto">
                 Consultar por la inscripción
               </Link>
             </div>
           </div>
           <div className="tarjeta-simple">
-            <h3 style={{ marginBottom: "16px" }}>Datos de la carrera</h3>
-            <ul className="enlaces">
-              <li>
-                <Link to="/carrera#plan-estudios">
-                  <span>
-                    <strong>Título</strong>
-                    <span>Técnico/a Superior en Emprendimientos Gastronómicos</span>
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/carrera#plan-estudios">
-                  <span>
-                    <strong>Duración y carga horaria</strong>
-                    <span>3 años, 2758 horas cátedra</span>
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/carrera#plan-estudios">
-                  <span>
-                    <strong>Requisito</strong>
-                    <span>Secundario completo</span>
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/contacto">
-                  <span>
-                    <strong>Cursada</strong>
-                    <span>Presencial, de lunes a viernes de 18 a 22 h</span>
-                  </span>
-                </Link>
-              </li>
-            </ul>
+            <h3 className="titulo-tarjeta">Datos de la carrera</h3>
+            <dl className="datos-carrera">
+              <div>
+                <dt>Título</dt>
+                <dd>Técnico/a Superior en Emprendimientos Gastronómicos</dd>
+              </div>
+              <div>
+                <dt>Duración y carga horaria</dt>
+                <dd>3 años, {totalCarrera()} horas cátedra</dd>
+              </div>
+              <div>
+                <dt>Requisito</dt>
+                <dd>Nivel secundario completo</dd>
+              </div>
+              <div>
+                <dt>Cursada</dt>
+                <dd>Presencial, de lunes a viernes de 18 a 22 h</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>
@@ -117,7 +121,7 @@ export default function Carrera() {
               <a
                 className="area area-verde"
                 href="#plan-estudios"
-                onClick={(e) => abrirPlan(e, "p2")}
+                onClick={(e) => abrirPlan(e, "produccion")}
               >
                 <div className="area-cab">
                   <span className="icono ic-verde">
@@ -140,7 +144,7 @@ export default function Carrera() {
                   catering y cocina nacional e internacional.
                 </p>
                 <span className="base-area">
-                  <span className="cuenta">11 materias y talleres</span>
+                  <span className="cuenta">{textoCantidad("produccion")}</span>
                   <span className="ver-mat">Ver materias</span>
                 </span>
               </a>
@@ -149,7 +153,7 @@ export default function Carrera() {
               <a
                 className="area area-naranja"
                 href="#plan-estudios"
-                onClick={(e) => abrirPlan(e, "p3")}
+                onClick={(e) => abrirPlan(e, "gestion")}
               >
                 <div className="area-cab">
                   <span className="icono ic-naranja">
@@ -172,7 +176,7 @@ export default function Carrera() {
                   organización de eventos gastronómicos.
                 </p>
                 <span className="base-area">
-                  <span className="cuenta">8 materias</span>
+                  <span className="cuenta">{textoCantidad("gestion")}</span>
                   <span className="ver-mat">Ver materias</span>
                 </span>
               </a>
@@ -181,7 +185,7 @@ export default function Carrera() {
               <a
                 className="area area-verde"
                 href="#plan-estudios"
-                onClick={(e) => abrirPlan(e, "p1")}
+                onClick={(e) => abrirPlan(e, "analisis")}
               >
                 <div className="area-cab">
                   <span className="icono ic-verde">
@@ -205,7 +209,7 @@ export default function Carrera() {
                   organización empresarial.
                 </p>
                 <span className="base-area">
-                  <span className="cuenta">5 materias</span>
+                  <span className="cuenta">{textoCantidad("analisis")}</span>
                   <span className="ver-mat">Ver materias</span>
                 </span>
               </a>
@@ -214,7 +218,7 @@ export default function Carrera() {
               <a
                 className="area area-naranja"
                 href="#plan-estudios"
-                onClick={(e) => abrirPlan(e, "p4")}
+                onClick={(e) => abrirPlan(e, "practicas")}
               >
                 <div className="area-cab">
                   <span className="icono ic-naranja">
@@ -237,7 +241,7 @@ export default function Carrera() {
                   de emprendimientos gastronómicos.
                 </p>
                 <span className="base-area">
-                  <span className="cuenta">3 prácticas</span>
+                  <span className="cuenta">{textoCantidad("practicas")}</span>
                   <span className="ver-mat">Ver materias</span>
                 </span>
               </a>
@@ -250,266 +254,101 @@ export default function Carrera() {
           <div className="cabecera">
             <h2>Plan de estudios</h2>
             <span className="raya" aria-hidden="true" />
-            <p>
-              Materias, régimen y carga horaria de la tecnicatura, según la Resolución N.°
-              1202/MEGC/2007.
-            </p>
+            <p>Materias, talleres y prácticas de la tecnicatura, con su régimen y su carga horaria.</p>
           </div>
-          <div className="pestanas" role="tablist">
-            <button role="tab" aria-selected={tabPlan === "p1"} onClick={() => setTabPlan("p1")}>
-              Análisis del sector
+          <div className="pestanas" role="group" aria-label="Área formativa">
+            <button type="button" aria-pressed={area === "todas"} onClick={() => setArea("todas")}>
+              Todas
             </button>
-            <button role="tab" aria-selected={tabPlan === "p2"} onClick={() => setTabPlan("p2")}>
-              Producción gastronómica
-            </button>
-            <button role="tab" aria-selected={tabPlan === "p3"} onClick={() => setTabPlan("p3")}>
-              Gestión y administración
-            </button>
-            <button role="tab" aria-selected={tabPlan === "p4"} onClick={() => setTabPlan("p4")}>
-              Prácticas profesionales
-            </button>
+            {AREAS.map((a) => (
+              <button key={a.clave} type="button" aria-pressed={area === a.clave} onClick={() => setArea(a.clave)}>
+                {a.nombre}
+              </button>
+            ))}
           </div>
-          <div
-            id="p1"
-            role="tabpanel"
-            className={"panel-tab" + (tabPlan === "p1" ? " activa" : "")}
-          >
-            <div className="tabla-caja">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Materia</th>
-                    <th>Régimen</th>
-                    <th>Horas cátedra</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Introducción a la Gastronomía</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Industria de la hospitalidad</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Principios de Economía</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Herramientas de Investigación</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Organización empresarial</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
+          <div className="tabla-caja tabla-plan">
+            <table>
+              <caption className="solo-lectores">
+                Plan de estudios: {area === "todas" ? "todas las áreas" : AREAS.find((a) => a.clave === area).nombre}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Instancia curricular</th>
+                  <th scope="col" className="col-regimen">
+                    Régimen
+                  </th>
+                  <th scope="col" className="num">
+                    Horas cátedra
+                  </th>
+                </tr>
+              </thead>
+              {AREAS.filter((a) => area === "todas" || a.clave === area).map((a) => (
+                <tbody key={a.clave}>
+                  {area === "todas" && (
+                    <tr className="fila-area">
+                      <th scope="rowgroup">
+                        {a.nombre}
+                        <span className="cuenta-area">{textoCantidad(a.clave)}</span>
+                      </th>
+                      <td className="col-regimen" />
+                      <td className="num">{totalPorArea(a.clave)}</td>
+                    </tr>
+                  )}
+                  {instanciasDeArea(a.clave).map((x) => (
+                    <tr key={x.nombre}>
+                      <td>
+                        {x.nombre}
+                        <span className="regimen-movil">{regimen(x)}</span>
+                        {detalleInstancia(x) && <span className="detalle-instancia">{detalleInstancia(x)}</span>}
+                      </td>
+                      <td className="col-regimen">{regimen(x)}</td>
+                      <td className="num">{x.total}</td>
+                    </tr>
+                  ))}
                 </tbody>
-              </table>
-            </div>
+              ))}
+              <tfoot>
+                <tr>
+                  <th scope="row">{area === "todas" ? "Total de la carrera" : "Total del área"}</th>
+                  <td className="col-regimen" />
+                  <td className="num">{area === "todas" ? totalCarrera() : totalPorArea(area)}</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-          <div
-            id="p2"
-            role="tabpanel"
-            className={"panel-tab" + (tabPlan === "p2" ? " activa" : "")}
-          >
-            <div className="tabla-caja">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Materia</th>
-                    <th>Régimen</th>
-                    <th>Horas cátedra</th>
+          <p className="fuente">Fuente: {FUENTE_PLAN}. La carga horaria se expresa en horas cátedra.</p>
+
+          <h3 className="titulo-plan" id="correlatividades">
+            Correlatividades
+          </h3>
+          <p>Para cursar cada instancia hay que tener aprobadas, cursadas o en curso las que se indican.</p>
+          <div className="tabla-caja tabla-correlatividades">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Para cursar</th>
+                  <th scope="col">Requiere tener</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CORRELATIVIDADES.map((c) => (
+                  <tr key={c.paraCursar}>
+                    <th scope="row">{c.paraCursar}</th>
+                    <td>{c.requiere}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Elaboraciones a base de vegetales, cereales y huevos</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>144</td>
-                  </tr>
-                  <tr>
-                    <td>Elaboraciones a base de carnes</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>144</td>
-                  </tr>
-                  <tr>
-                    <td>Elaboración de pizzas y pastas</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Elaboraciones de buffet</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Servicios de catering</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Cocina nacional e internacional</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Elaboraciones de Panadería</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>80</td>
-                  </tr>
-                  <tr>
-                    <td>Pastelería básica</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Repostería</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Seguridad e higiene en la Gastronomía</td>
-                    <td>Materia anual</td>
-                    <td>96</td>
-                  </tr>
-                  <tr>
-                    <td>Nutrición</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div
-            id="p3"
-            role="tabpanel"
-            className={"panel-tab" + (tabPlan === "p3" ? " activa" : "")}
-          >
-            <div className="tabla-caja">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Materia</th>
-                    <th>Régimen</th>
-                    <th>Horas cátedra</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Introducción general a la microempresa</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Elementos de Administración y Contabilidad</td>
-                    <td>Materia anual</td>
-                    <td>128</td>
-                  </tr>
-                  <tr>
-                    <td>Comercialización</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Recursos humanos</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>64</td>
-                  </tr>
-                  <tr>
-                    <td>Compras y gestión de stock</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Organización de eventos gastronómicos</td>
-                    <td>Materia cuatrimestral</td>
-                    <td>80</td>
-                  </tr>
-                  <tr>
-                    <td>Taller de comunicación escrita</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>72</td>
-                  </tr>
-                  <tr>
-                    <td>Inglés técnico</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>48</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div
-            id="p4"
-            role="tabpanel"
-            className={"panel-tab" + (tabPlan === "p4" ? " activa" : "")}
-          >
-            <div className="tabla-caja">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Materia</th>
-                    <th>Régimen</th>
-                    <th>Horas cátedra</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Práctica Profesional 1: Observación organizacional</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Práctica Profesional 2: Organización de la producción</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Práctica Profesional 3: Diseño de Emprendimientos Gastronómicos</td>
-                    <td>Taller cuatrimestral</td>
-                    <td>160</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="acciones">
-            <Link className="boton boton-verde" to="/carrera#plan-estudios">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                <path d="M14 3v6h6M8 13h8M8 17h5" />
-              </svg>
-              Régimen de correlatividades (PDF)
-            </Link>
-            <Link className="boton boton-linea" to="/carrera#plan-estudios">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17L17 7M9 7h8v8" />
-              </svg>
-              Resolución oficial del plan
-            </Link>
+          <p className="fuente">
+            Transcripción de la {FUENTE_CORRELATIVIDADES}. Algunos nombres difieren de los de la tabla del
+            plan; ante cualquier duda, consultar en Bedelía.
+          </p>
+
+          <h3 className="titulo-plan">Documentos</h3>
+          <div className="documentos">
+            <Documento doc={DOCUMENTOS.resolucion} />
+            <Documento doc={DOCUMENTOS.correlatividades} />
           </div>
         </div>
       </section>
