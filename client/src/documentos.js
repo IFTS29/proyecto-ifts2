@@ -7,17 +7,31 @@
 export const DOCUMENTOS = {
   resolucion: {
     titulo: "Resolución N.º 1202/MEGC/2007",
-    descripcion: "Plan de estudios completo: perfil, áreas, instancias, correlatividades y encuadre.",
+    descripcion: "Aprueba el plan de estudios y autoriza su dictado en el IFTS N.º 2 desde el ciclo lectivo 2007.",
     archivo: "/docs/resolucion-1202-MEGC-2007.pdf",
+    kb: 207,
+    paginas: 2,
+  },
+  anexo: {
+    titulo: "Plan de estudios (Anexo de la Resolución N.º 1202/MEGC/2007)",
+    descripcion: "Perfil del egresado, áreas, instancias curriculares, correlatividades y encuadre.",
+    archivo: "/docs/plan-de-estudios-anexo-resolucion-1202-MEGC-2007.pdf",
     kb: 340,
     paginas: 66,
   },
   correlatividades: {
     titulo: "Correlatividades",
-    descripcion: "Páginas 60 y 61 de la Resolución N.º 1202/MEGC/2007.",
+    descripcion: "Páginas 60 y 61 del anexo de la Resolución N.º 1202/MEGC/2007.",
     archivo: "/docs/correlatividades-resolucion-1202-MEGC-2007.pdf",
-    kb: 64,
+    kb: 65,
     paginas: 2,
+  },
+  materiasPorAnio: {
+    titulo: "Materias por año y cuatrimestre",
+    descripcion: "Distribución de las instancias curriculares en los tres años de la carrera (IFTS N.º 2).",
+    archivo: "/docs/materias-por-anio-y-cuatrimestre.pdf",
+    kb: 17,
+    paginas: 1,
   },
 };
 

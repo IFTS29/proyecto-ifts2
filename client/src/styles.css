@@ -4066,15 +4066,21 @@ body[data-rol="bedelia"] [data-solo-admin] {
   white-space: nowrap;
 }
 
-.tabla-plan .fila-area th,
-.tabla-plan .fila-area td {
+/* Jerarquía de la tabla: año o área (encabezado de bloque) > período > instancia.
+   El verde queda solo para la etiqueta «Promocionable», para no confundirla con los subtítulos. */
+.tabla-plan .fila-grupo th,
+.tabla-plan .fila-grupo td {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  border-top: 2px solid var(--suave);
   background: var(--superficie-2);
   color: var(--texto);
-  font-size: 16px;
+  font-family: var(--titulos);
+  font-size: 19px;
   font-weight: 700;
 }
 
-.tabla-plan .cuenta-area {
+.tabla-plan .cuenta-grupo {
   margin-left: 10px;
   font-size: 14px;
   font-weight: 400;
@@ -4088,6 +4094,52 @@ body[data-rol="bedelia"] [data-solo-admin] {
   font-size: 16px;
   font-weight: 700;
   color: var(--texto);
+}
+
+/* Subtítulo de cuatrimestre dentro de cada año */
+.tabla-plan .fila-periodo th,
+.tabla-plan .fila-periodo td {
+  padding-top: 18px;
+  padding-bottom: 6px;
+  border-bottom: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--texto);
+  background: var(--superficie);
+}
+
+/* Las instancias de un período van con sangría, debajo de su subtítulo. */
+.tabla-plan .fila-periodo ~ tr > td:first-child {
+  padding-left: 38px;
+}
+
+.vistas-plan {
+  margin-bottom: 12px;
+}
+
+.filtros-plan button {
+  min-height: 40px;
+  font-weight: 500;
+}
+
+.marca-promocionable {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--verde-suave);
+  color: var(--verde);
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.fuente .marca-promocionable {
+  margin: 0 4px 0 0;
+}
+
+.aviso-promocionables {
+  margin: 4px 0 16px;
 }
 
 .detalle-instancia,
@@ -4224,6 +4276,16 @@ body[data-rol="bedelia"] [data-solo-admin] {
   .tabla-correlatividades th,
   .tabla-correlatividades td {
     padding: 12px;
+  }
+
+  .tabla-plan .fila-periodo th,
+  .tabla-plan .fila-periodo td {
+    padding-top: 16px;
+    padding-bottom: 4px;
+  }
+
+  .tabla-plan .fila-periodo ~ tr > td:first-child {
+    padding-left: 24px;
   }
 
   .documento {
