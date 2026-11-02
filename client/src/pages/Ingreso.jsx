@@ -1,9 +1,16 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { ENLACES, EXTERNO } from "../enlaces.js";
 import { DOCUMENTOS } from "../documentos.js";
 import { almacenContenido, useContenidoInstitucional } from "../contenido.js";
-import { FECHAS_A_CONFIRMAR, cronogramaDe, esConvocatoriaAnterior, estadoDePreinscripcion } from "../ingreso.js";
+import {
+  FECHAS_A_CONFIRMAR,
+  cronogramaDe,
+  esConvocatoriaAnterior,
+  estadoDePreinscripcion,
+  videoDeYoutube,
+} from "../ingreso.js";
 import Documento from "../components/Documento.jsx";
 
 // Solo «Preinscripción abierta» se destaca (en verde). Los demás estados son informativos, en gris: el naranja
@@ -38,9 +45,16 @@ const EnlaceExterno = ({ href, clase, children }) => (
   </a>
 );
 
+// Enlace de una etapa (por ejemplo, el aula virtual del curso). Solo direcciones https, como valida el servidor.
+const enlaceDe = (paso) =>
+  paso.textoEnlace && /^https:\/\//.test(paso.urlEnlace ?? "")
+    ? { texto: paso.textoEnlace, url: paso.urlEnlace }
+    : null;
+
 // Lista de etapas con sus fechas. Las que están en curso se marcan (en la convocatoria anterior no hay ninguna,
-// porque ya pasaron todas sus fechas).
-function Cronograma({ pasos }) {
+// porque ya pasaron todas sus fechas). Los enlaces de las etapas se muestran solo en la convocatoria vigente:
+// en la anterior no se invita a entrar a un aula o a una inscripción que ya pasó.
+function Cronograma({ pasos, conEnlaces = false }) {
   return (
     <ol className="cronograma">
       {pasos.map((paso, i) => (
@@ -50,14 +64,45 @@ function Cronograma({ pasos }) {
           <h3>{paso.nombre}</h3>
           <p className="paso-fecha">{paso.fechas}</p>
           {paso.detalle && <p>{paso.detalle}</p>}
+          {conEnlaces && enlaceDe(paso) && (
+            <p className="paso-enlace">
+              <EnlaceExterno href={enlaceDe(paso).url} clase="enlace">
+                {enlaceDe(paso).texto}
+              </EnlaceExterno>
+            </p>
+          )}
         </li>
       ))}
     </ol>
   );
 }
 
-// Ingreso: la convocatoria, sus fechas y las preguntas frecuentes salen de la sección «Ingreso» del contenido
-// institucional, que se edita desde el panel.
+// Video de YouTube de la convocatoria, debajo de las etapas. Sin video, no se muestra nada.
+function Video({ direccion }) {
+  const video = videoDeYoutube(direccion);
+  if (!video) return null;
+  return (
+    <div className="video-ingreso">
+      <h3>Video sobre el ingreso</h3>
+      <div className="video-marco">
+        <iframe
+          src={video.insertar}
+          title="Video sobre el ingreso"
+          loading="lazy"
+          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+      <EnlaceExterno href={video.ver} clase="enlace">
+        Ver en YouTube
+      </EnlaceExterno>
+    </div>
+  );
+}
+
+// Ingreso: la convocatoria y sus fechas salen de la sección «ingreso» del contenido institucional, y las
+// preguntas frecuentes de «ingresoPreguntas». Las dos se editan desde el panel, cada una con su guardado.
 // - Sin convocatoria cargada: «Próxima convocatoria» con las fechas a confirmar.
 // - Convocatoria con alguna fecha por delante: arriba, con el estado de la preinscripción y las etapas en curso.
 // - Convocatoria con todas sus fechas pasadas: arriba, la próxima (a confirmar); debajo, la anterior como
@@ -67,9 +112,24 @@ export default function Ingreso() {
   const ingreso = contenido?.ingreso?.datos;
   const preinscripcion = estadoDePreinscripcion(ingreso);
   const pasos = cronogramaDe(ingreso);
-  const preguntas = ingreso?.preguntas ?? [];
+  const preguntas = contenido?.ingresoPreguntas?.datos?.preguntas ?? [];
   const anterior = esConvocatoriaAnterior(ingreso);
   const actual = Boolean(ingreso?.convocatoria) && !anterior;
+  // Mientras la preinscripción está abierta, su paso lleva el enlace a SIU Guaraní.
+  const pasosActuales =
+    actual && preinscripcion.tipo === "abierta"
+      ? pasos.map((paso, i) =>
+          i === 0
+            ? { ...paso, textoEnlace: "SIU Guaraní", urlEnlace: ENLACES.preinscripcion }
+            : paso,
+        )
+      : pasos;
+
+  // «Ver cómo queda en el sitio» del panel lleva a /ingreso#preguntas: se baja cuando las preguntas ya cargaron.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash === "#preguntas" && preguntas.length > 0) document.getElementById("preguntas")?.scrollIntoView();
+  }, [hash, preguntas.length]);
 
   return (
     <div className="pagina activa">
@@ -128,7 +188,7 @@ export default function Ingreso() {
                       Las fechas de la próxima convocatoria las publica la Agencia de Habilidades para el Futuro.
                     </p>
                   )}
-                  <Cronograma pasos={pasos} />
+                  <Cronograma pasos={pasosActuales} conEnlaces />
                 </>
               ) : (
                 <>
@@ -153,6 +213,8 @@ export default function Ingreso() {
                   Ver carreras y fechas en el sitio oficial
                 </EnlaceExterno>
               </div>
+              {/* Debajo de los botones, para no alejar «Ir a la preinscripción» de las etapas. */}
+              {actual && <Video direccion={ingreso.video} />}
 
               {anterior && (
                 <div className="convocatoria-anterior">
@@ -168,6 +230,7 @@ export default function Ingreso() {
                     convocatoria pueden cambiar.
                   </p>
                   <Cronograma pasos={pasos} />
+                  <Video direccion={ingreso.video} />
                 </div>
               )}
             </>
@@ -177,7 +240,7 @@ export default function Ingreso() {
       <section className="seccion seccion-alt">
         <div className={"contenedor" + (preguntas.length > 0 ? " dos" : "")}>
           {preguntas.length > 0 && (
-            <div>
+            <div id="preguntas">
               <div className="cabecera">
                 <h2>Preguntas frecuentes</h2>
                 <span className="raya" aria-hidden="true" />

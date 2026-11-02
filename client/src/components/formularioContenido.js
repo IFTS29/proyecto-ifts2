@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
-// Lo que comparten los tres formularios del contenido institucional: avisar si hay cambios sin guardar,
+// Lo que comparten los formularios del contenido institucional: avisar si hay cambios sin guardar,
 // avisar si se está guardando y mostrar el error que devuelve el servidor.
 // El formulario se vuelve a armar después de guardar (AdminContenido le cambia la "key"), así que lo
 // guardado pasa a ser el nuevo punto de partida.
-export function useFormularioDeContenido({ datos, inicial, alGuardar, alCambiarSucio, alCambiarOcupado }) {
+// "validar" (opcional) revisa algo que el servidor no puede saber, como un desplegable elegido a medias:
+// devuelve el mensaje de error o "".
+export function useFormularioDeContenido({ datos, inicial, alGuardar, alCambiarSucio, alCambiarOcupado, validar }) {
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -19,7 +21,9 @@ export function useFormularioDeContenido({ datos, inicial, alGuardar, alCambiarS
 
   const guardar = async (e) => {
     e.preventDefault();
-    setError("");
+    const problema = validar?.() ?? "";
+    setError(problema);
+    if (problema) return;
     setGuardando(true);
     try {
       await alGuardar(datos);

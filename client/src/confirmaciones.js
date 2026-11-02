@@ -13,12 +13,44 @@ export const DESCARTAR_CAMBIOS = {
 export const QUITAR_CONVOCATORIA = {
   titulo: "¿Quitar la convocatoria?",
   texto:
-    "Se borran del formulario el nombre, la preinscripción y las etapas. Al guardar, el sitio muestra «Fechas a " +
-    "confirmar». Las preguntas frecuentes y el correo de consultas se conservan.",
+    "Se borran del formulario el cuatrimestre, el año, todas las fechas, el video y los enlaces de las etapas. Al " +
+    "guardar, el sitio muestra «Fechas a confirmar». Los nombres y las aclaraciones de las etapas se conservan para " +
+    "la próxima convocatoria: conviene revisarlos al cargar las fechas nuevas. El correo de consultas y las " +
+    "preguntas frecuentes no cambian.",
   accion: "Quitar convocatoria",
   cancelar: "Cancelar",
   peligro: true,
 };
+
+// Cambiar el cuatrimestre o el año de una convocatoria guardada: se prepara una nueva, sin los datos de la anterior.
+// Cancelar deja todo como estaba.
+export const prepararConvocatoria = (anterior, nueva) => ({
+  titulo: `¿Preparar la convocatoria del ${nueva}?`,
+  texto:
+    `Para no publicar datos de la convocatoria del ${anterior}, se borran del formulario sus fechas, el video y los enlaces de las ` +
+    "etapas. Se conservan los nombres y las aclaraciones de las etapas, para revisarlos. Nada se publica hasta " +
+    "guardar.",
+  accion: "Preparar convocatoria nueva",
+  cancelar: "Cancelar",
+  peligro: true,
+});
+
+// Quitar una etapa o una pregunta frecuente del formulario. El cambio se publica al guardar.
+export const quitarEtapa = (nombre) => ({
+  titulo: nombre ? `¿Quitar la etapa «${nombre}»?` : "¿Quitar la etapa?",
+  texto: "Se quita del formulario. Al guardar, deja de mostrarse en el sitio.",
+  accion: "Quitar etapa",
+  cancelar: "Cancelar",
+  peligro: true,
+});
+
+export const quitarPregunta = (pregunta) => ({
+  titulo: "¿Quitar la pregunta?",
+  texto: (pregunta ? `«${pregunta}». ` : "") + "Se quita del formulario. Al guardar, deja de mostrarse en el sitio.",
+  accion: "Quitar pregunta",
+  cancelar: "Cancelar",
+  peligro: true,
+});
 
 // Maneja una confirmación por vez. "pedir" muestra la pregunta (con alMostrar) y devuelve una promesa que
 // siempre termina: true si se confirma; false si se cancela, se cierra con la X o con Escape.

@@ -6,6 +6,7 @@ import FormPerfil from "../components/FormPerfil.jsx";
 import FormPersonas from "../components/FormPersonas.jsx";
 import FormContacto from "../components/FormContacto.jsx";
 import FormIngreso from "../components/FormIngreso.jsx";
+import FormPreguntasIngreso from "../components/FormPreguntasIngreso.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
 import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
 import { DESCARTAR_CAMBIOS } from "../confirmaciones.js";
@@ -21,7 +22,14 @@ const SECCIONES = [
     enElSitio: "/carrera#autoridades",
   },
   { clave: "contacto", titulo: "Datos de contacto", Formulario: FormContacto, enElSitio: "/contacto" },
-  { clave: "ingreso", titulo: "Ingreso", Formulario: FormIngreso, enElSitio: "/ingreso" },
+  // Ingreso en dos secciones con guardado propio: la convocatoria cambia cada cuatrimestre; las preguntas, casi nunca.
+  { clave: "ingreso", titulo: "Ingreso: convocatoria", Formulario: FormIngreso, enElSitio: "/ingreso" },
+  {
+    clave: "ingresoPreguntas",
+    titulo: "Ingreso: preguntas frecuentes",
+    Formulario: FormPreguntasIngreso,
+    enElSitio: "/ingreso#preguntas",
+  },
 ];
 
 export default function AdminContenido() {
@@ -73,7 +81,7 @@ export default function AdminContenido() {
         <div className="cab-admin">
           <div>
             <h1>Contenido institucional</h1>
-            <p>Perfil del egresado, autoridades y tutoría, datos de contacto e ingreso.</p>
+            <p>Perfil del egresado, autoridades y tutoría, datos de contacto, convocatoria de ingreso y preguntas frecuentes.</p>
             <p>Al guardar, los cambios se publican enseguida en el sitio.</p>
           </div>
         </div>

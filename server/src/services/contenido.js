@@ -1,11 +1,13 @@
 // Contenido institucional que se edita desde el panel (#36): perfil del egresado, autoridades y tutoría,
-// datos de contacto e ingreso (convocatoria, etapas, preguntas frecuentes y correo de consultas). Cada sección se guarda entera y se ve en el sitio en cuanto se guarda.
+// datos de contacto e ingreso. Ingreso tiene dos secciones que se guardan por separado: la convocatoria
+// (etapas, enlaces, video y correo de consultas), que cambia cada cuatrimestre, y las preguntas frecuentes,
+// que casi no cambian. Cada sección se guarda entera y se ve en el sitio en cuanto se guarda.
 //
 // Los valores iniciales son los que mostraba el sitio antes de que existiera esta función. No se escriben
 // en la base: solo se devuelven mientras la sección no se guardó nunca. Así, reiniciar el servidor no pisa
 // lo que guardó un administrador.
 
-export const SECCIONES = ["perfil", "personas", "contacto", "ingreso"];
+export const SECCIONES = ["perfil", "personas", "contacto", "ingreso", "ingresoPreguntas"];
 export const GRUPOS = ["autoridades", "tutoria"];
 
 export const LIMITES = {
@@ -27,6 +29,8 @@ export const LIMITES = {
   preguntas: { max: 10 },
   pregunta: 150,
   respuesta: 600,
+  textoEnlace: 60,
+  url: 300,
 };
 
 // Teléfono y correo empiezan vacíos: no se publican hasta que el IFTS 2 los confirme.
@@ -60,13 +64,26 @@ export const VALORES_INICIALES = {
     telefono: "",
     correo: "",
   },
-  // Sin convocatoria cargada, el sitio muestra «Fechas a confirmar». Las preguntas frecuentes son las que ya
-  // mostraba el portal, con respuestas generales que no dependen de una convocatoria (las condiciones de cada
-  // año cambian); el instituto las ajusta desde el panel.
+  // Sin convocatoria elegida, el sitio muestra «Fechas a confirmar». Las etapas son un modelo: nombres
+  // habituales, sin fechas ni aclaraciones que dependan de cada convocatoria; el instituto las completa.
   ingreso: {
     convocatoria: "",
-    preinscripcion: { desde: "", hasta: "", detalle: "" },
-    etapas: [],
+    preinscripcion: {
+      desde: "",
+      hasta: "",
+      detalle: "Se hace en SIU Guaraní, eligiendo la carrera, el instituto y el horario.",
+    },
+    etapas: [
+      { nombre: "Curso de ingreso (optativo)", desde: "", hasta: "", detalle: "", textoEnlace: "", urlEnlace: "" },
+      { nombre: "Examen de ingreso", desde: "", hasta: "", detalle: "", textoEnlace: "", urlEnlace: "" },
+      { nombre: "Confirmación de vacantes", desde: "", hasta: "", detalle: "", textoEnlace: "", urlEnlace: "" },
+      { nombre: "Inicio de clases", desde: "", hasta: "", detalle: "", textoEnlace: "", urlEnlace: "" },
+    ],
+    video: "",
+    correo: "",
+  },
+  // Las que ya mostraba el portal, con respuestas generales que no dependen de una convocatoria.
+  ingresoPreguntas: {
     preguntas: [
       {
         pregunta: "¿Qué se necesita para inscribirse?",
@@ -98,7 +115,6 @@ export const VALORES_INICIALES = {
           "Agencia de Habilidades para el Futuro.",
       },
     ],
-    correo: "",
   },
 };
 
@@ -215,62 +231,134 @@ function rango(datos, prefijo, { hastaObligatoria = false } = {}) {
 
 const estaVacia = (fila, campos) => campos.every((campo) => !String(fila?.[campo] ?? "").trim());
 
+// Convocatoria: vacía o «1.º cuatrimestre 2027». El panel la arma con dos desplegables. No se rechazan años
+// pasados: una convocatoria anterior tiene que poder seguir guardada como referencia.
+const REGEX_CONVOCATORIA = /^([12])\.º cuatrimestre (\d{4})$/;
+
+// Enlace de una etapa: texto y dirección van juntos; la dirección tiene que ser https.
+function enlace(fila, prefijo) {
+  const textoEnlace = texto(fila.textoEnlace, { nombre: "el texto del enlace", max: LIMITES.textoEnlace, prefijo });
+  if (textoEnlace.error) return textoEnlace;
+  const url = texto(fila.urlEnlace, { nombre: "la dirección del enlace", max: LIMITES.url, prefijo });
+  if (url.error) return url;
+  if (Boolean(textoEnlace.valor) !== Boolean(url.valor)) {
+    return { error: `${prefijo}completar el texto y la dirección del enlace, o dejar los dos vacíos.` };
+  }
+  if (url.valor && !esDireccionSegura(url.valor)) {
+    return { error: `${prefijo}la dirección del enlace tiene que empezar con https://.` };
+  }
+  return { textoEnlace: textoEnlace.valor, urlEnlace: url.valor };
+}
+
+function esDireccionSegura(valor) {
+  try {
+    return new URL(valor).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Video de YouTube: solo se guarda una dirección de un video (watch, youtu.be, shorts o embed), nunca código.
+export function idDeYoutube(valor) {
+  let url;
+  try {
+    url = new URL(String(valor || "").trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  const host = url.hostname.replace(/^(www|m)\./, "");
+  let id = null;
+  if (host === "youtu.be") id = url.pathname.slice(1);
+  else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    const ruta = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/);
+    id = url.pathname === "/watch" ? url.searchParams.get("v") : ruta?.[1];
+  }
+  return id && /^[\w-]{11}$/.test(id) ? id : null;
+}
+
 function validarIngreso(datos) {
-  const conv = texto(datos.convocatoria, { nombre: "el nombre de la convocatoria", max: LIMITES.convocatoria });
+  const conv = texto(datos.convocatoria, { nombre: "la convocatoria", max: LIMITES.convocatoria });
   if (conv.error) return conv;
   const convocatoria = conv.valor;
+  const partes = convocatoria.match(REGEX_CONVOCATORIA);
+  if (convocatoria && (!partes || Number(partes[2]) < 2000 || Number(partes[2]) > 2100)) {
+    return { error: "Elegir el cuatrimestre y el año de la convocatoria." };
+  }
 
-  const pre = esObjeto(datos.preinscripcion) ? datos.preinscripcion : {};
   if (datos.preinscripcion !== undefined && !esObjeto(datos.preinscripcion)) {
     return { error: "Los datos de la preinscripción no son válidos." };
   }
+  const pre = datos.preinscripcion ?? {};
   const etapasRecibidas = datos.etapas ?? [];
-  const preguntasRecibidas = datos.preguntas ?? [];
   if (!Array.isArray(etapasRecibidas)) return { error: "La lista de etapas no es válida." };
-  if (!Array.isArray(preguntasRecibidas)) return { error: "La lista de preguntas frecuentes no es válida." };
 
-  // Las filas que quedaron completamente vacías se descartan, como los párrafos vacíos del perfil.
-  const etapasCargadas = etapasRecibidas.filter((e) => !estaVacia(e, ["nombre", "desde", "hasta", "detalle"]));
-  const hayFechas = !estaVacia(pre, ["desde", "hasta", "detalle"]) || etapasCargadas.length > 0;
-
-  let preinscripcion = { desde: "", hasta: "", detalle: "" };
-  const etapas = [];
-  if (!convocatoria && hayFechas) return { error: "Completar el nombre de la convocatoria." };
-  if (convocatoria) {
-    const prefijo = "Preinscripción: ";
-    const r = rango(pre, prefijo, { hastaObligatoria: true });
-    if (r.error) return r;
-    const detalle = texto(pre.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo });
-    if (detalle.error) return detalle;
-    preinscripcion = { desde: r.desde, hasta: r.hasta, detalle: detalle.valor };
-
-    if (etapasCargadas.length > LIMITES.etapas.max) {
-      return { error: `Se pueden cargar hasta ${LIMITES.etapas.max} etapas, además de la preinscripción.` };
-    }
-    for (const [i, etapa] of etapasCargadas.entries()) {
-      const prefijoEtapa = `Etapa ${i + 1}: `;
-      if (!esObjeto(etapa)) return { error: `${prefijoEtapa}los datos no son válidos.` };
-      const nombre = texto(etapa.nombre, {
-        nombre: "el nombre",
-        max: LIMITES.nombreEtapa,
-        obligatorio: true,
-        prefijo: prefijoEtapa,
-      });
-      if (nombre.error) return nombre;
-      const re = rango(etapa, prefijoEtapa);
-      if (re.error) return re;
-      const det = texto(etapa.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo: prefijoEtapa });
-      if (det.error) return det;
-      etapas.push({ nombre: nombre.valor, desde: re.desde, hasta: re.hasta, detalle: det.valor });
-    }
+  // Las filas completamente vacías se descartan, como los párrafos vacíos del perfil.
+  const campos = ["nombre", "desde", "hasta", "detalle", "textoEnlace", "urlEnlace"];
+  const etapasCargadas = etapasRecibidas.filter((e) => !estaVacia(e, campos));
+  if (etapasCargadas.length > LIMITES.etapas.max) {
+    return { error: `Se pueden cargar hasta ${LIMITES.etapas.max} etapas, además de la preinscripción.` };
   }
 
-  const preguntasCargadas = preguntasRecibidas.filter((p) => !estaVacia(p, ["pregunta", "respuesta"]));
-  if (preguntasCargadas.length > LIMITES.preguntas.max) {
+  // Sin convocatoria, las etapas son un modelo (nombres y aclaraciones, sin fechas) que no se muestra en el sitio.
+  const hayFechas = [pre, ...etapasCargadas].some((e) => !estaVacia(e, ["desde", "hasta"]));
+  if (!convocatoria && hayFechas) return { error: "Elegir el cuatrimestre y el año de la convocatoria." };
+
+  const prefijoPre = "Preinscripción: ";
+  let fechasPre = { desde: "", hasta: "" };
+  if (convocatoria) {
+    fechasPre = rango(pre, prefijoPre, { hastaObligatoria: true });
+    if (fechasPre.error) return fechasPre;
+  }
+  const detallePre = texto(pre.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo: prefijoPre });
+  if (detallePre.error) return detallePre;
+  const preinscripcion = { desde: fechasPre.desde, hasta: fechasPre.hasta, detalle: detallePre.valor };
+
+  const etapas = [];
+  for (const [i, etapa] of etapasCargadas.entries()) {
+    const prefijo = `Etapa ${i + 1}: `;
+    if (!esObjeto(etapa)) return { error: `${prefijo}los datos no son válidos.` };
+    const nombre = texto(etapa.nombre, { nombre: "el nombre", max: LIMITES.nombreEtapa, obligatorio: true, prefijo });
+    if (nombre.error) return nombre;
+    let fechas = { desde: "", hasta: "" };
+    if (convocatoria) {
+      fechas = rango(etapa, prefijo);
+      if (fechas.error) return fechas;
+    }
+    const detalle = texto(etapa.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo });
+    if (detalle.error) return detalle;
+    const e = enlace(etapa, prefijo);
+    if (e.error) return e;
+    etapas.push({ nombre: nombre.valor, desde: fechas.desde, hasta: fechas.hasta, detalle: detalle.valor, ...e });
+  }
+
+  const video = texto(datos.video, { nombre: "el enlace del video", max: LIMITES.url });
+  if (video.error) return video;
+  if (video.valor && !idDeYoutube(video.valor)) {
+    return { error: "El enlace del video tiene que ser la dirección de un video de YouTube." };
+  }
+
+  const correo = texto(datos.correo, { nombre: "el correo de consultas", max: LIMITES.correo });
+  if (correo.error) return correo;
+  if (correo.valor && !REGEX_CORREO.test(correo.valor)) {
+    return { error: "El correo de consultas no tiene un formato válido." };
+  }
+
+  // Las preguntas frecuentes tienen su propia sección (ingresoPreguntas): si llegan acá, no se guardan.
+  return {
+    datos: { convocatoria, preinscripcion, etapas, video: video.valor, correo: correo.valor.toLowerCase() },
+  };
+}
+
+function validarPreguntasIngreso(datos) {
+  const recibidas = datos.preguntas ?? [];
+  if (!Array.isArray(recibidas)) return { error: "La lista de preguntas frecuentes no es válida." };
+  const cargadas = recibidas.filter((p) => !estaVacia(p, ["pregunta", "respuesta"]));
+  if (cargadas.length > LIMITES.preguntas.max) {
     return { error: `Se pueden cargar hasta ${LIMITES.preguntas.max} preguntas frecuentes.` };
   }
   const preguntas = [];
-  for (const [i, fila] of preguntasCargadas.entries()) {
+  for (const [i, fila] of cargadas.entries()) {
     const prefijo = `Pregunta ${i + 1}: `;
     if (!esObjeto(fila)) return { error: `${prefijo}los datos no son válidos.` };
     const pregunta = texto(fila.pregunta, { nombre: "la pregunta", max: LIMITES.pregunta, obligatorio: true, prefijo });
@@ -284,14 +372,17 @@ function validarIngreso(datos) {
     if (respuesta.error) return respuesta;
     preguntas.push({ pregunta: pregunta.valor, respuesta: respuesta.valor });
   }
+  return { datos: { preguntas } };
+}
 
-  const correo = texto(datos.correo, { nombre: "el correo de consultas", max: LIMITES.correo });
-  if (correo.error) return correo;
-  if (correo.valor && !REGEX_CORREO.test(correo.valor)) {
-    return { error: "El correo de consultas no tiene un formato válido." };
-  }
-
-  return { datos: { convocatoria, preinscripcion, etapas, preguntas, correo: correo.valor.toLowerCase() } };
+// Compatibilidad con lo guardado antes de separar las preguntas: estaban dentro de «ingreso». Si la sección
+// nueva todavía no se guardó nunca, se toman de ahí (y no los valores iniciales) para no perderlas.
+export function preguntasGuardadasAntes(guardadas) {
+  if (guardadas.get("ingresoPreguntas")) return null;
+  const anterior = guardadas.get("ingreso");
+  const preguntas = anterior?.datos?.preguntas;
+  if (!Array.isArray(preguntas)) return null;
+  return { clave: "ingresoPreguntas", datos: { preguntas }, actualizadoEn: anterior.actualizadoEn };
 }
 
 const VALIDADORES = {
@@ -299,6 +390,7 @@ const VALIDADORES = {
   personas: validarPersonas,
   contacto: validarContacto,
   ingreso: validarIngreso,
+  ingresoPreguntas: validarPreguntasIngreso,
 };
 
 // Devuelve { datos } con los valores limpios, o { error } con un mensaje para mostrar en el panel.
@@ -312,5 +404,11 @@ export function validarSeccion(clave, datos) {
 // No incluye quién la guardó: es un dato del panel, no del sitio.
 export function seccionPublica(clave, guardada) {
   if (!guardada) return { datos: structuredClone(VALORES_INICIALES[clave]), actualizadoEn: null, inicial: true };
-  return { datos: guardada.datos, actualizadoEn: guardada.actualizadoEn, inicial: false };
+  let datos = guardada.datos;
+  // Lo guardado antes de separar las preguntas puede traerlas adentro: se publican solo en su sección.
+  if (clave === "ingreso" && datos && "preguntas" in datos) {
+    datos = { ...datos };
+    delete datos.preguntas;
+  }
+  return { datos, actualizadoEn: guardada.actualizadoEn, inicial: false };
 }
