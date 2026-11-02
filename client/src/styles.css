@@ -1321,9 +1321,14 @@ p {
   object-fit: cover;
 }
 
-.info-evento h2 {
+/* Título repetido junto a las fotos (copia visual del h1 del banner). */
+.info-evento .titulo-evento {
+  margin: 0.75rem 0 0;
+  font-family: var(--titulos);
   font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2.125rem);
-  margin: 0.75rem 0;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--texto);
 }
 
 .info-evento .meta {
@@ -4295,4 +4300,175 @@ body[data-rol="bedelia"] [data-solo-admin] {
   .acciones-doc {
     grid-column: 1 / -1;
   }
+}
+
+/* ----- Eventos: galería por año, detalle e Instagram ----- */
+
+/* Un bloque por año (plegable). No es el archivado de eventos (#35): solo agrupa lo publicado. */
+.anio-eventos {
+  border-top: 1px solid var(--borde);
+}
+
+.anio-eventos:last-child {
+  border-bottom: 1px solid var(--borde);
+}
+
+.anio-eventos summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.anio-eventos summary::-webkit-details-marker {
+  display: none;
+}
+
+.anio-eventos .anio {
+  font-family: var(--titulos);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.anio-eventos .cuenta {
+  font-size: 15px;
+  color: var(--suave);
+}
+
+.anio-eventos .flecha {
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  align-self: center;
+  transition: transform 0.2s;
+}
+
+.anio-eventos[open] .flecha {
+  transform: rotate(180deg);
+}
+
+.anio-eventos .grilla-eventos {
+  padding-bottom: 32px;
+}
+
+.estado-vacio .boton {
+  margin-top: 12px;
+}
+
+/* Detalle: pantallas de carga, error y evento no encontrado. */
+.sin-evento {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.sin-evento p {
+  color: var(--suave);
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.sin-evento .acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Publicación de Instagram incrustada: sin el recorte de 4:3 de las fotos. */
+.galeria .principal.con-publicacion {
+  aspect-ratio: auto;
+  overflow: visible;
+  border: 0;
+  background: none;
+}
+
+.publicacion-incrustada {
+  margin: 0;
+}
+
+.publicacion-incrustada .instagram-media {
+  width: 100%;
+  max-width: 540px;
+  min-width: 280px;
+  min-height: 480px;
+  margin: 0 auto;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--superficie);
+}
+
+.publicacion-incrustada .instagram-media p {
+  padding: 2rem;
+  text-align: center;
+  color: var(--suave);
+}
+
+.publicacion-incrustada figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.icono-ig {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--naranja);
+}
+
+.caja-ig strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.caja-ig .hashtags {
+  color: var(--suave);
+  word-break: break-word;
+}
+
+.caja-ig .enlace {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+/* Miniatura de un video en la galería del detalle. */
+.miniaturas button {
+  position: relative;
+}
+
+.marca-video {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tarjeta de un evento sin fotos: la imagen de reemplazo entera y arriba, para que la fecha y el título
+   no tapen su texto. */
+.tarjeta.sin-foto img {
+  height: 62%;
+  object-fit: contain;
+  background: var(--superficie-2);
+}
+
+.tarjeta.sin-foto {
+  background: var(--superficie-2);
+}
+
+.grilla-eventos.lista .tarjeta.sin-foto img {
+  height: 100%;
 }

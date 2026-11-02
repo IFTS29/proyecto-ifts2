@@ -191,3 +191,177 @@ export function textosDelBloqueDeInstagram(estado = {}, ahora = new Date()) {
 // ("configurado"). Mientras se consulta el estado, o si la consulta falla, queda deshabilitado. Después de un
 // error de sincronización sigue habilitado, para reintentar.
 export const puedeSincronizar = (estado = {}, sincronizando = false) => estado.configurado === true && !sincronizando;
+
+// ----- Galería pública: Inicio, Eventos y detalle de un evento -----
+
+export const IMAGEN_DE_REEMPLAZO = "/media/instagram/placeholder.svg";
+
+// Dirección de una publicación de Instagram, o null si no lo es. Solo acepta https en instagram.com
+// (con o sin www) y una publicación, reel o video (/p/, /reel/, /tv/). Se revisa con URL y no buscando
+// el texto «instagram.com», así un enlace como «javascript:…» o «https://otro.sitio/instagram.com/p/x»
+// nunca se usa como enlace. Devuelve la dirección sin parámetros, que es la que acepta la publicación incrustada.
+export function direccionDeInstagram(texto) {
+  let url;
+  try {
+    url = new URL(String(texto || "").trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" || !["instagram.com", "www.instagram.com"].includes(url.hostname)) return null;
+  const ruta = url.pathname.match(/^\/(?:[\w.]+\/)?(p|reel|tv)\/([\w-]+)\/?$/);
+  return ruta ? `https://www.instagram.com/${ruta[1]}/${ruta[2]}/` : null;
+}
+
+// Publicación de Instagram de un evento: el enlace de la sincronización (permalink) o el que se cargó a mano.
+export const enlaceDeInstagram = (evento = {}) =>
+  direccionDeInstagram(evento.permalink) || direccionDeInstagram(evento.videoUrl);
+
+// Un evento es de Instagram si llegó por la sincronización o si se cargó con el enlace de una publicación.
+// Los cargados a mano con fotos de la computadora no lo son.
+export const esDeInstagram = (evento = {}) => evento.origen === "instagram" || Boolean(enlaceDeInstagram(evento));
+
+const miniaturaUtil = (url) => (url && !esReemplazo(url) ? url : null);
+
+// Archivo de video que el sitio puede reproducir: https o una ruta del propio sitio, con extensión de video
+// o subido como video a Cloudinary. Un enlace a una página (Instagram, YouTube) o «javascript:» no lo es.
+const esArchivoDeVideo = (url) =>
+  /^(https:\/\/|\/(?!\/))\S+$/i.test(String(url || "")) && esVideo({ url });
+
+// Fotos y videos propios del evento, en orden, para la galería del detalle. Las fotos siguen las reglas de
+// fotosDeEvento (las mismas del panel y del visor); los videos, las de esVideo. Una publicación de Instagram
+// no es un video propio: se muestra incrustada solo si no hay nada más (ver medioPrincipal).
+export function galeriaDeEvento(evento = {}) {
+  const fotos = new Set(fotosDeEvento(evento).map((foto) => foto.url));
+  const items = [];
+  const suelta = portadaSuelta(evento);
+  if (suelta) items.push({ tipo: "foto", url: suelta });
+  for (const medio of evento.medios || []) {
+    if (!medio.url || direccionDeInstagram(medio.url)) continue;
+    if (esVideo(medio, evento)) {
+      if (!esArchivoDeVideo(medio.url)) continue;
+      const miniatura = miniaturaUtil(medio.thumbnailUrl) || miniaturaUtil(evento.videoThumbnail);
+      items.push({ tipo: "video", url: medio.url, miniatura });
+    } else if (fotos.has(medio.url)) {
+      items.push({ tipo: "foto", url: medio.url });
+    }
+  }
+  // Video de Instagram guardado fuera de la galería (sincronización de un video suelto).
+  const video = evento.videoUrl;
+  if (esArchivoDeVideo(video) && !items.some((item) => item.url === video)) {
+    items.push({ tipo: "video", url: video, miniatura: miniaturaUtil(evento.videoThumbnail) });
+  }
+  return items;
+}
+
+// Qué se muestra primero en el detalle: una foto (se amplía en el visor), si no un video propio, si no la
+// publicación de Instagram incrustada y, si no hay nada, la imagen de reemplazo.
+export function medioPrincipal(evento = {}) {
+  const galeria = galeriaDeEvento(evento);
+  const foto = galeria.findIndex((item) => item.tipo === "foto");
+  if (foto >= 0) return { tipo: "foto", indice: foto };
+  if (galeria.length > 0) return { tipo: "video", indice: 0 };
+  const enlace = enlaceDeInstagram(evento);
+  if (enlace) return { tipo: "instagram", url: enlace };
+  return { tipo: "reemplazo" };
+}
+
+const plural = (n, singular, varios) => `${n} ${n === 1 ? singular : varios}`;
+
+// Etiqueta de la tarjeta y del detalle con lo que el evento tiene de verdad, el texto de la acción y el tipo
+// (para el ícono). Sin fotos, videos ni publicación no hay etiqueta (nunca «1 foto» por la imagen de reemplazo).
+export function contenidoDeEvento(evento = {}) {
+  const galeria = galeriaDeEvento(evento);
+  const fotos = galeria.filter((item) => item.tipo === "foto").length;
+  const videos = galeria.length - fotos;
+  if (fotos > 0) {
+    const etiqueta = videos > 0 ? `${plural(fotos, "foto", "fotos")} y ${plural(videos, "video", "videos")}` : plural(fotos, "foto", "fotos");
+    return { tipo: "fotos", etiqueta, accion: "Ver fotos" };
+  }
+  if (videos > 0) {
+    return { tipo: "video", etiqueta: videos === 1 ? "Video" : plural(videos, "video", "videos"), accion: "Ver video" };
+  }
+  if (enlaceDeInstagram(evento)) return { tipo: "instagram", etiqueta: "Publicación de Instagram", accion: "Ver evento" };
+  return { tipo: null, etiqueta: null, accion: "Ver evento" };
+}
+
+// Fecha del evento como objeto Date, o null si falta o no es válida (eventos viejos).
+const fechaValida = (valor) => {
+  if (!valor) return null;
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+};
+
+// «octubre de 2026» (tarjetas) o «5 de octubre de 2026» (detalle), en hora de Argentina; "" sin fecha válida.
+export function textoDeFecha(valor, { conDia = false } = {}) {
+  const fecha = fechaValida(valor);
+  if (!fecha) return "";
+  return fecha.toLocaleDateString("es-AR", {
+    ...(conDia ? { day: "numeric" } : {}),
+    month: "long",
+    year: "numeric",
+    timeZone: ZONA_HORARIA,
+  });
+}
+
+// Corta un texto largo en la última palabra completa y agrega «…».
+export function recortar(texto = "", maximo = 110) {
+  const limpio = String(texto || "").trim();
+  if (limpio.length <= maximo) return limpio;
+  return `${limpio.slice(0, maximo).replace(/\s+\S*$/, "").replace(/[\s,;.:…]+$/, "")}…`;
+}
+
+// Todo lo que muestra una tarjeta (Inicio y Eventos), calculado en un solo lugar.
+export function datosDeTarjeta(evento = {}) {
+  const galeria = galeriaDeEvento(evento);
+  const primeraFoto = galeria.find((item) => item.tipo === "foto");
+  const primerVideo = galeria.find((item) => item.tipo === "video");
+  const imagen =
+    primeraFoto?.url || primerVideo?.miniatura || miniaturaUtil(evento.videoThumbnail) || IMAGEN_DE_REEMPLAZO;
+  return {
+    titulo: String(evento.titulo || "").trim() || "Evento institucional",
+    resumen: recortar(evento.resumen),
+    fecha: textoDeFecha(evento.fechaEvento),
+    imagen,
+    ...contenidoDeEvento(evento),
+  };
+}
+
+// Agrupa los eventos por año (en hora de Argentina), del más reciente al más antiguo; dentro de cada año,
+// también del más reciente al más antiguo. Los que no tienen una fecha válida van al final, en «Sin fecha»,
+// para que no desaparezcan. Es solo una forma de mostrarlos: no tiene que ver con el archivado (#35).
+export function eventosPorAnio(eventos = []) {
+  const grupos = new Map();
+  const sinFecha = [];
+  for (const evento of eventos) {
+    const fecha = fechaValida(evento.fechaEvento);
+    if (!fecha) {
+      sinFecha.push(evento);
+      continue;
+    }
+    const anio = Number(diaEnArgentina(fecha).slice(0, 4));
+    if (!grupos.has(anio)) grupos.set(anio, []);
+    grupos.get(anio).push(evento);
+  }
+  const resultado = [...grupos.entries()]
+    .sort(([a], [b]) => b - a)
+    .map(([anio, lista]) => ({
+      clave: String(anio),
+      titulo: String(anio),
+      eventos: lista.sort((a, b) => new Date(b.fechaEvento) - new Date(a.fechaEvento)),
+    }));
+  if (sinFecha.length > 0) resultado.push({ clave: "sin-fecha", titulo: "Sin fecha", eventos: sinFecha });
+  return resultado;
+}
+
+// Hashtags del texto original de una publicación sincronizada, sin repetir. Lista vacía si no tiene.
+export function hashtagsDeEvento(evento = {}) {
+  const encontrados = String(evento.captionOriginal || "").match(/#[\p{L}\p{N}_]+/gu) || [];
+  return [...new Set(encontrados)];
+}
+
+// Párrafos de la descripción (una línea en blanco o un salto separan párrafos).
+export const parrafosDe = (texto = "") =>
+  String(texto || "")
+    .split(/\r?\n/)
+    .map((parrafo) => parrafo.trim())
+    .filter(Boolean);

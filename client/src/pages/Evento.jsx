@@ -1,401 +1,76 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { api } from "../api";
 import VisorFotos from "../components/VisorFotos.jsx";
-import { esVideo, fotosDeEvento } from "../eventos.js";
+import {
+  IMAGEN_DE_REEMPLAZO,
+  contenidoDeEvento,
+  enlaceDeInstagram,
+  esDeInstagram,
+  galeriaDeEvento,
+  hashtagsDeEvento,
+  medioPrincipal,
+  parrafosDe,
+  textoDeFecha,
+} from "../eventos.js";
 
-const IMAGEN_DE_REEMPLAZO = "/media/instagram/placeholder.svg";
+const BAJADA_GENERAL = "Jornadas, muestras y encuentros que reflejan la experiencia real de la carrera y del instituto.";
 
-function urlEmbedInstagram(url) {
-  if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
-  return url.split("?")[0].replace(/\/$/, "") + "/";
-}
+const IconoInstagram = () => (
+  <svg
+    className="icono-ig"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+  </svg>
+);
 
-function InstagramEmbed({ url, titulo }) {
+// Publicación de Instagram incrustada. Se usa solo si el evento no tiene fotos ni videos propios
+// (por ejemplo, un reel que Instagram no deja descargar). Se avisa que es contenido de Instagram:
+// tocarlo puede abrir Instagram, a diferencia de las fotos propias, que se amplían en el visor.
+function PublicacionIncrustada({ url }) {
   useEffect(() => {
-    const procesar = () => {
-      if (window.instgrm?.Embeds) {
-        window.instgrm.Embeds.process();
-      }
-    };
-
+    const procesar = () => window.instgrm?.Embeds?.process();
     if (window.instgrm) {
       procesar();
-    } else {
-      const scriptId = "instagram-embed-script";
-      let script = document.getElementById(scriptId);
-      if (!script) {
-        script = document.createElement("script");
-        script.id = scriptId;
-        script.src = "https://www.instagram.com/embed.js";
-        script.async = true;
-        script.defer = true;
-        script.onload = procesar;
-        document.body.appendChild(script);
-      } else {
-        script.addEventListener("load", procesar);
-      }
+      return;
     }
+    let script = document.getElementById("instagram-embed-script");
+    if (!script) {
+      script = document.createElement("script");
+      script.id = "instagram-embed-script";
+      script.src = "https://www.instagram.com/embed.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+    script.addEventListener("load", procesar);
+    return () => script.removeEventListener("load", procesar);
   }, [url]);
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "480px" }}>
-      <blockquote
-        key={url}
-        className="instagram-media"
-        data-instgrm-permalink={url}
-        data-instgrm-version="14"
-        style={{
-          background: "var(--blanco, #fff)",
-          border: "1px solid var(--borde, #e5e7eb)",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-          margin: "0 auto",
-          maxWidth: "540px",
-          minWidth: "326px",
-          padding: "0",
-          width: "100%",
-        }}
-      >
-        <div style={{ padding: "2rem", textAlign: "center" }}>
-          <p style={{ margin: "0 0 1rem", color: "var(--suave)" }}>Cargando publicación oficial de Instagram...</p>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--naranja)", fontWeight: "600" }}
-          >
-            Ver publicación en Instagram ↗
-          </a>
-        </div>
+    <figure className="publicacion-incrustada">
+      <blockquote key={url} className="instagram-media" data-instgrm-permalink={url} data-instgrm-version="14">
+        <p>Cargando la publicación de Instagram…</p>
       </blockquote>
-    </div>
+      <figcaption>
+        <IconoInstagram />
+        Contenido de Instagram: al tocar la publicación se puede abrir Instagram.
+      </figcaption>
+    </figure>
   );
 }
 
-export default function Evento() {
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const postId = searchParams.get("id");
-
-  const [post, setPost] = useState(location.state?.post || null);
-  const [indiceFoto, setIndiceFoto] = useState(0);
-  const [fotoFallback, setFotoFallback] = useState("PLATO");
-  const [visor, setVisor] = useState(null); // { fotos, desde } mientras el visor está abierto
-  const [fallidas, setFallidas] = useState(() => new Set()); // fotos que no cargaron: no se ofrecen para ampliar
-  const marcarFallida = (url) =>
-    setFallidas((actuales) => (actuales.has(url) ? actuales : new Set(actuales).add(url)));
-
-  useEffect(() => {
-    if (postId) {
-      api(`/events/${postId}`)
-        .then((data) => {
-          if (data?.evento) setPost(data.evento);
-        })
-        .catch(() => {});
-    }
-  }, [postId]);
-
-  // Si hay publicación de Instagram cargada
-  if (post) {
-    const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
-    let titulo = post.titulo || post.parsed?.title || "";
-    let parrafos = post.descripcion
-      ? post.descripcion.split(/\r?\n/).map((p) => p.trim()).filter(Boolean)
-      : Array.isArray(post.parsed?.bodyParagraphs) && post.parsed.bodyParagraphs.length > 0
-      ? post.parsed.bodyParagraphs
-      : [];
-
-    // Si el título es muy largo o contiene un emoji demarcador (ej. 💻, 🚀, 🎓), separarlo limpiamente del cuerpo
-    if (!titulo || parrafos.length === 0 || titulo.length > 70) {
-      const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
-      if (emojiMatch && emojiMatch.index > 5) {
-        titulo = rawText.slice(0, emojiMatch.index).trim();
-        const resto = rawText.slice(emojiMatch.index + emojiMatch[0].length).trim();
-        if (resto) parrafos = [resto];
-      }
-    }
-    if (!titulo) titulo = rawText || "Evento institucional";
-    if (parrafos.length === 0 && rawText && rawText !== titulo) {
-      parrafos = [rawText];
-    }
-
-    const subtitulo = post.resumen || post.parsed?.summary || (parrafos[0] ? parrafos[0].slice(0, 110) + "..." : "");
-    let fecha = post.fechaEvento
-      ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
-      : (post.fechaFormateada || "Reciente");
-    const esVideoDirecto =
-      post.videoUrl &&
-      (post.videoUrl.endsWith(".mp4") ||
-        post.videoUrl.startsWith("/media/") ||
-        post.videoUrl.includes("res.cloudinary.com") ||
-        post.videoUrl.includes("blob:"));
-
-    const igUrl = !esVideoDirecto ? (post.videoUrl || post.permalink) : post.permalink;
-    const tieneInstagram = Boolean(urlEmbedInstagram(igUrl));
-    const fotosReales = (Array.isArray(post.medios) ? post.medios : [])
-      .filter((m) => m?.url && !m.url.includes("placeholder") && !urlEmbedInstagram(m.url));
-
-    let items;
-    if (fotosReales.length > 0) {
-      items = fotosReales.map((m, idx) => ({
-        id: m.id || String(idx + 1),
-        // Mismo criterio que el visor y el panel, para que un video no se muestre como foto.
-        mediaType: esVideo(m, post) ? "VIDEO" : "IMAGE",
-        url: m.url,
-        thumbnailUrl: m.thumbnailUrl || m.url,
-      }));
-    } else if (esVideoDirecto || post.videoUrl || post.localVideo) {
-      items = [
-        {
-          id: "video-directo",
-          mediaType: "VIDEO",
-          url: post.videoUrl || post.localVideo,
-          thumbnailUrl:
-            post.videoThumbnail ||
-            post.localThumbnail ||
-            post.fotoPrincipal ||
-            "/media/instagram/placeholder.svg",
-        },
-      ];
-    } else if (tieneInstagram) {
-      items = [
-        {
-          id: "instagram-embed",
-          mediaType: "VIDEO",
-          url: igUrl,
-          thumbnailUrl:
-            post.videoThumbnail ||
-            post.localThumbnail ||
-            post.fotoPrincipal ||
-            "/media/instagram/placeholder.svg",
-        },
-      ];
-    } else {
-      items = [
-        {
-          id: post.id || "1",
-          mediaType: "IMAGE",
-          url: post.fotoPrincipal || post.localImage || "/media/instagram/placeholder.svg",
-          thumbnailUrl:
-            post.fotoPrincipal ||
-            post.localThumbnail ||
-            post.localImage ||
-            "/media/instagram/placeholder.svg",
-        },
-      ];
-    }
-
-    const medioActivo = items[indiceFoto] || items[0];
-    // Fotos que se pueden ampliar: las mismas reglas que el panel (sin videos ni imagen de reemplazo)
-    // y sin las que no cargaron.
-    const fotosVisor = fotosDeEvento(post).filter((foto) => !fallidas.has(foto.url));
-    const posicionEnVisor = fotosVisor.findIndex((foto) => foto.url === medioActivo.url);
-    const isActivoVideo =
-      medioActivo.mediaType?.toUpperCase() === "VIDEO" ||
-      medioActivo.url?.endsWith(".mp4") ||
-      post.tipoMedio?.toUpperCase() === "VIDEO" ||
-      post.isVideo;
-    const cantidadTexto = tieneInstagram && fotosReales.length === 0
-      ? "Instagram"
-      : post.isVideo
-      ? "Video"
-      : `${items.length} ${items.length === 1 ? "foto" : "fotos"}`;
-
-    const hashtagsTexto =
-      Array.isArray(post.parsed?.hashtags) && post.parsed.hashtags.length > 0
-        ? post.parsed.hashtags.join(" ")
-        : "#eventosIFTS2";
-
-    // Banner institucional idéntico a develop: nunca usa un SVG/placeholder ni URL de Instagram como fondo
-    const esFotoValida =
-      items[0]?.url &&
-      !urlEmbedInstagram(items[0].url) &&
-      !items[0].url.endsWith(".mp4") &&
-      !items[0].url.endsWith(".svg") &&
-      !items[0].url.includes("placeholder");
-
-    const fotoBanner = esFotoValida ? items[0].url : IMGS.B_EVENTOS;
-
-    const esSubtituloDistinto =
-      subtitulo &&
-      subtitulo.trim().toLowerCase() !== titulo.trim().toLowerCase() &&
-      !titulo.trim().toLowerCase().startsWith(subtitulo.replace(/\.\.\.$/, "").trim().toLowerCase());
-
-    const bajadaBanner = esSubtituloDistinto
-      ? subtitulo
-      : "Jornadas, muestras y encuentros que reflejan la experiencia real de la carrera y del instituto.";
-
-    return (
-      <div className="pagina activa">
-        <section className="banner velo-suave" style={{ "--foto": `url(${fotoBanner})` }}>
-          <div className="contenedor">
-            <p className="migas">
-              <Link to="/eventos">Galería de eventos</Link>
-            </p>
-            <h1>{titulo}</h1>
-            <span className="raya" aria-hidden="true" />
-            <p>{bajadaBanner}</p>
-          </div>
-        </section>
-        <section className="seccion">
-          <div className="contenedor detalle">
-            <div className="galeria">
-              <div className="principal">
-                {urlEmbedInstagram(medioActivo.url) ? (
-                  <InstagramEmbed url={urlEmbedInstagram(medioActivo.url)} titulo={titulo} />
-                ) : isActivoVideo ? (
-                  <video
-                    controls
-                    playsInline
-                    poster={medioActivo.thumbnailUrl}
-                    src={medioActivo.url}
-                  />
-                ) : posicionEnVisor >= 0 ? (
-                  <button
-                    type="button"
-                    className="ampliar"
-                    onClick={() => setVisor({ fotos: fotosVisor, desde: posicionEnVisor })}
-                    aria-label="Ampliar foto"
-                    title="Ampliar foto"
-                  >
-                    <img
-                      id="foto-principal"
-                      alt={`Foto del evento ${titulo}`}
-                      src={medioActivo.url}
-                      onError={() => marcarFallida(medioActivo.url)}
-                    />
-                    <span className="ampliar-icono" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                        <circle cx="11" cy="11" r="6.5" />
-                        <path d="M16 16l4.5 4.5M11 8.5v5M8.5 11h5" />
-                      </svg>
-                    </span>
-                  </button>
-                ) : (
-                  <img
-                    id="foto-principal"
-                    alt={`Foto del evento ${titulo}`}
-                    src={!medioActivo.url || fallidas.has(medioActivo.url) ? IMAGEN_DE_REEMPLAZO : medioActivo.url}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "/media/instagram/placeholder.svg";
-                    }}
-                  />
-                )}
-              </div>
-              {items.length > 1 && (
-                <div className="miniaturas">
-                  {items.map((item, idx) => (
-                    <button
-                      key={item.id || idx}
-                      type="button"
-                      aria-pressed={indiceFoto === idx}
-                      onClick={() => setIndiceFoto(idx)}
-                    >
-                      <img
-                        src={item.thumbnailUrl || item.url || "/media/instagram/placeholder.svg"}
-                        alt={`Miniatura ${idx + 1}`}
-                        onError={(e) => {
-                          // Si la miniatura es la misma foto, tampoco se ofrece para ampliar.
-                          if (item.thumbnailUrl === item.url) marcarFallida(item.url);
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = IMAGEN_DE_REEMPLAZO;
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-              {visor && (
-                <VisorFotos
-                  fotos={visor.fotos}
-                  inicio={visor.desde}
-                  titulo={titulo}
-                  alFallar={marcarFallida}
-                  alCerrar={(ultima) => {
-                    setVisor(null);
-                    // La galería queda en la última foto que se vio en el visor.
-                    const enGaleria = items.findIndex((item) => item.url === visor.fotos[ultima].url);
-                    if (enGaleria >= 0) setIndiceFoto(enGaleria);
-                  }}
-                />
-              )}
-            </div>
-            <div className="info-evento">
-              <div className="meta">
-                <span className="etiqueta et-naranja">{fecha}</span>
-                <span className="etiqueta et-gris">{cantidadTexto}</span>
-              </div>
-              <h2>{titulo}</h2>
-              {parrafos.map((p, idx) => (
-                <p key={idx}>{p}</p>
-              ))}
-              <div className="caja-ig">
-                <strong style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <svg
-                    width="22"
-                    height="22"
-                    style={{ color: "var(--naranja)" }}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="5" />
-                    <circle cx="12" cy="12" r="4" />
-                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-                  </svg>
-                  Publicado desde Instagram
-                </strong>
-                {post.origen === "instagram" ? (
-                  <p>Esta publicación llegó al sitio con el hashtag {hashtagsTexto}.</p>
-                ) : (
-                  <p>Publicación institucional vinculada con Instagram.</p>
-                )}
-                {post.permalink || post.videoUrl ? (
-                  <a
-                    className="enlace"
-                    href={post.permalink || post.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Ver la publicación en Instagram ↗
-                  </a>
-                ) : (
-                  <Link className="enlace" to="/eventos">
-                    Ver más eventos
-                  </Link>
-                )}
-              </div>
-              <div className="acciones">
-                <Link className="boton boton-linea" to="/eventos">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M15 6l-6 6 6 6" />
-                  </svg>
-                  Volver a eventos
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  // Estado cuando no hay evento seleccionado o no existe
+// Pantallas sin evento: cargando, no encontrado o error de conexión (con «Reintentar»).
+function SinEvento({ titulo, texto, children }) {
   return (
     <div className="pagina activa">
       <section className="banner velo-suave" style={{ "--foto": `url(${IMGS.B_EVENTOS})` }}>
@@ -403,19 +78,255 @@ export default function Evento() {
           <p className="migas">
             <Link to="/eventos">Galería de eventos</Link>
           </p>
-          <h1>Evento no encontrado</h1>
+          <h1>{titulo}</h1>
           <span className="raya" aria-hidden="true" />
-          <p>La publicación que buscás no existe o fue retirada de la galería institucional.</p>
         </div>
       </section>
       <section className="seccion">
-        <div className="contenedor" style={{ textAlign: "center", padding: "3rem 1rem" }}>
-          <p style={{ color: "var(--suave)", fontSize: "1.125rem", marginBottom: "1.5rem" }}>
-            Podés explorar los eventos y actividades vigentes en la galería principal.
+        <div className="contenedor sin-evento">
+          <p role={children ? "alert" : "status"}>{texto}</p>
+          <div className="acciones">
+            {children}
+            <Link className="boton boton-verde" to="/eventos">
+              Volver a eventos
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default function Evento() {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
+
+  // Siempre se piden los datos al servidor, aunque se llegue desde una tarjeta: así no se muestra
+  // un evento que se ocultó o se editó después. "estado": cargando, listo, no-encontrado o error.
+  const [evento, setEvento] = useState(null);
+  const [estado, setEstado] = useState(id ? "cargando" : "no-encontrado");
+  const [intento, setIntento] = useState(0);
+  const [indice, setIndice] = useState(null); // ítem de la galería elegido (null: el principal)
+  const [visor, setVisor] = useState(null); // { fotos, desde } mientras el visor está abierto
+  const [fallidas, setFallidas] = useState(() => new Set()); // fotos que no cargaron: no se ofrecen para ampliar
+  const marcarFallida = (url) => setFallidas((actuales) => (actuales.has(url) ? actuales : new Set(actuales).add(url)));
+
+  useEffect(() => {
+    if (!id) {
+      setEstado("no-encontrado");
+      return;
+    }
+    let cancelado = false;
+    setEstado("cargando");
+    setIndice(null);
+    api(`/events/${encodeURIComponent(id)}`)
+      .then((datos) => {
+        if (cancelado) return;
+        if (datos?.evento) {
+          setEvento(datos.evento);
+          setEstado("listo");
+        } else {
+          setEstado("no-encontrado");
+        }
+      })
+      .catch((error) => {
+        if (!cancelado) setEstado(error.estado === 404 ? "no-encontrado" : "error");
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [id, intento]);
+
+  if (estado === "cargando") return <SinEvento titulo="Evento" texto="Cargando el evento…" />;
+  if (estado === "no-encontrado") {
+    return (
+      <SinEvento
+        titulo="No se encontró el evento"
+        texto="El evento no existe o ya no está publicado. Los eventos vigentes están en la galería."
+      />
+    );
+  }
+  if (estado === "error") {
+    return (
+      <SinEvento titulo="Evento" texto="No se pudo cargar el evento.">
+        <button type="button" className="boton boton-linea" onClick={() => setIntento((n) => n + 1)}>
+          Reintentar
+        </button>
+      </SinEvento>
+    );
+  }
+
+  const titulo = String(evento.titulo || "").trim() || "Evento institucional";
+  const parrafos = parrafosDe(evento.descripcion || evento.resumen);
+  const fecha = textoDeFecha(evento.fechaEvento, { conDia: true });
+  const { etiqueta } = contenidoDeEvento(evento);
+  const galeria = galeriaDeEvento(evento);
+  const principal = medioPrincipal(evento);
+  const activo = galeria[indice ?? principal.indice] || null;
+
+  // Fotos que se pueden ampliar, en el orden de la galería, sin las que no cargaron.
+  const fotosVisor = galeria.filter((item) => item.tipo === "foto" && !fallidas.has(item.url));
+  const posicionEnVisor = activo ? fotosVisor.findIndex((foto) => foto.url === activo.url) : -1;
+  const numeroDeFoto = (url) => galeria.filter((item) => item.tipo === "foto").findIndex((item) => item.url === url) + 1;
+  const totalDeFotos = galeria.filter((item) => item.tipo === "foto").length;
+
+  const deInstagram = esDeInstagram(evento);
+  const enlace = enlaceDeInstagram(evento);
+  const hashtags = hashtagsDeEvento(evento);
+
+  const resumen = String(evento.resumen || "").trim();
+  const bajada = resumen && resumen.toLowerCase() !== titulo.toLowerCase() ? resumen : BAJADA_GENERAL;
+
+  let contenidoPrincipal;
+  if (activo?.tipo === "video") {
+    contenidoPrincipal = <video controls playsInline poster={activo.miniatura || undefined} src={activo.url} />;
+  } else if (activo?.tipo === "foto" && posicionEnVisor >= 0) {
+    const n = numeroDeFoto(activo.url);
+    contenidoPrincipal = (
+      <button
+        type="button"
+        className="ampliar"
+        onClick={() => setVisor({ fotos: fotosVisor, desde: posicionEnVisor })}
+        aria-label={`Ampliar la foto ${n} de ${totalDeFotos}`}
+        title="Ampliar foto"
+      >
+        <img
+          id="foto-principal"
+          alt={`Foto ${n} de ${totalDeFotos} del evento «${titulo}»`}
+          src={activo.url}
+          onError={() => marcarFallida(activo.url)}
+        />
+        <span className="ampliar-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="M16 16l4.5 4.5M11 8.5v5M8.5 11h5" />
+          </svg>
+        </span>
+      </button>
+    );
+  } else if (!activo && principal.tipo === "instagram") {
+    contenidoPrincipal = <PublicacionIncrustada url={principal.url} />;
+  } else {
+    // Sin fotos ni videos, o la foto elegida no cargó: imagen de reemplazo, sin visor.
+    contenidoPrincipal = <img id="foto-principal" alt="" src={IMAGEN_DE_REEMPLAZO} />;
+  }
+
+  return (
+    <div className="pagina activa">
+      {/* El banner usa siempre la imagen institucional de eventos: las fotos de un evento no siempre sirven
+          de fondo (tamaño, encuadre, colores) y ya se ven completas en la galería. */}
+      <section className="banner velo-suave" style={{ "--foto": `url(${IMGS.B_EVENTOS})` }}>
+        <div className="contenedor">
+          <p className="migas">
+            <Link to="/eventos">Galería de eventos</Link>
           </p>
-          <Link className="boton boton-verde" to="/eventos">
-            Volver a eventos
-          </Link>
+          <h1>{titulo}</h1>
+          <span className="raya" aria-hidden="true" />
+          <p>{bajada}</p>
+        </div>
+      </section>
+      <section className="seccion">
+        <div className="contenedor detalle">
+          <div className="galeria">
+            <div className={"principal" + (!activo && principal.tipo === "instagram" ? " con-publicacion" : "")}>
+              {contenidoPrincipal}
+            </div>
+            {galeria.length > 1 && (
+              <div className="miniaturas">
+                {galeria.map((item, i) => {
+                  const nombre =
+                    item.tipo === "foto"
+                      ? `Ver la foto ${numeroDeFoto(item.url)} de ${totalDeFotos}`
+                      : "Ver el video";
+                  const miniatura = item.tipo === "foto" ? item.url : item.miniatura || IMAGEN_DE_REEMPLAZO;
+                  return (
+                    <button
+                      key={item.url}
+                      type="button"
+                      aria-pressed={activo?.url === item.url}
+                      aria-label={nombre}
+                      onClick={() => setIndice(i)}
+                    >
+                      <img
+                        src={fallidas.has(item.url) ? IMAGEN_DE_REEMPLAZO : miniatura}
+                        alt=""
+                        onError={(e) => {
+                          if (item.tipo === "foto") marcarFallida(item.url);
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = IMAGEN_DE_REEMPLAZO;
+                        }}
+                      />
+                      {item.tipo === "video" && <span className="marca-video">Video</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {visor && (
+              <VisorFotos
+                fotos={visor.fotos}
+                inicio={visor.desde}
+                titulo={titulo}
+                alFallar={marcarFallida}
+                alCerrar={(ultima) => {
+                  setVisor(null);
+                  // La galería queda en la última foto que se vio en el visor.
+                  const enGaleria = galeria.findIndex((item) => item.url === visor.fotos[ultima].url);
+                  if (enGaleria >= 0) setIndice(enGaleria);
+                }}
+              />
+            )}
+          </div>
+          <div className="info-evento">
+            <div className="meta">
+              {fecha && <span className="etiqueta et-naranja">{fecha}</span>}
+              {etiqueta && <span className="etiqueta et-gris">{etiqueta}</span>}
+            </div>
+            {/* El título se repite junto a las fotos para leerlo con ellas. El encabezado es el h1 del banner:
+                esta copia es solo visual, así los lectores de pantalla no lo escuchan dos veces. */}
+            <p className="titulo-evento" aria-hidden="true">
+              {titulo}
+            </p>
+            {parrafos.map((parrafo, i) => (
+              <p key={i}>{parrafo}</p>
+            ))}
+            {deInstagram && (
+              <div className="caja-ig">
+                <strong>
+                  <IconoInstagram />
+                  Publicación de Instagram
+                </strong>
+                <p>
+                  {evento.origen === "instagram"
+                    ? "Esta publicación llegó al sitio desde Instagram."
+                    : "Publicación vinculada con Instagram."}
+                </p>
+                {hashtags.length > 0 && <p className="hashtags">{hashtags.join(" ")}</p>}
+                {enlace && (
+                  <a className="enlace" href={enlace} target="_blank" rel="noopener noreferrer">
+                    Ver la publicación en Instagram
+                    <span className="solo-lectores"> (se abre en otra pestaña)</span>
+                  </a>
+                )}
+              </div>
+            )}
+            <div className="acciones">
+              <Link className="boton boton-linea" to="/eventos">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
+                Volver a eventos
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>

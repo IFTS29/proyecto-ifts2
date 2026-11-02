@@ -1,26 +1,17 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { IMGS } from "../imagenes";
-import { api } from "../api";
+import { eventosPorAnio } from "../eventos.js";
+import useEventos from "../useEventos.js";
+import TarjetaEvento from "../components/TarjetaEvento.jsx";
 
+const cantidad = (n) => `${n} ${n === 1 ? "evento" : "eventos"}`;
+
+// Galería de eventos: un bloque por año, con el más reciente abierto y los anteriores plegados.
+// Plegar un año es solo una forma de mostrarlo: el archivado de eventos es otra cosa (#35).
 export default function Eventos() {
   const [vista, setVista] = useState("grilla");
-  const [eventos, setEventos] = useState([]);
-
-  useEffect(() => {
-    let cancelado = false;
-    api("/events")
-      .then((data) => {
-        const lista = data?.eventos || (Array.isArray(data) ? data : []);
-        if (!cancelado && lista.length > 0) {
-          setEventos(lista);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelado = true;
-    };
-  }, []);
+  const { eventos, estado, reintentar } = useEventos();
+  const grupos = eventosPorAnio(eventos);
 
   return (
     <div className="pagina activa">
@@ -38,192 +29,98 @@ export default function Eventos() {
         <div className="contenedor">
           <div className="eventos-cab">
             <div className="cabecera">
-              <h2>Eventos 2026</h2>
+              <h2>Eventos del instituto</h2>
               <span className="raya" aria-hidden="true" />
-              <p>
-                Explorá las jornadas, muestras y encuentros gastronómicos que se realizaron este año
-                en el instituto.
-              </p>
+              <p>Jornadas, muestras y encuentros gastronómicos, del más reciente al más antiguo.</p>
             </div>
-            <div
-              role="group"
-              aria-label="Cómo ver los eventos"
-              className={"vista" + (vista === "lista" ? " es-lista" : "")}
-            >
-              <button
-                type="button"
-                aria-pressed={vista === "grilla"}
-                onClick={() => setVista("grilla")}
+            {grupos.length > 0 && (
+              <div
+                role="group"
+                aria-label="Cómo ver los eventos"
+                className={"vista" + (vista === "lista" ? " es-lista" : "")}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                </svg>
-                <span>Cuadrícula</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={vista === "lista"}
-                onClick={() => setVista("lista")}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="4" width="6" height="6" rx="1.5" />
-                  <rect x="3" y="14" width="6" height="6" rx="1.5" />
-                  <path d="M13 6h8M13 9h5M13 16h8M13 19h5" />
-                </svg>
-                <span>Lista</span>
-              </button>
-            </div>
-          </div>
-          <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
-            {eventos.length > 0 ? (
-              eventos.map((post) => {
-                const rawText = (post.caption || "").replace(/#[\p{L}\p{N}_]+/gu, "").trim();
-                let titulo = post.titulo || post.parsed?.title || "";
-                let resumen = post.resumen || post.parsed?.summary || "";
-
-                if (!titulo || titulo.length > 70) {
-                  const emojiMatch = rawText.match(/\s*(\p{Extended_Pictographic})\s*/u);
-                  if (emojiMatch && emojiMatch.index > 5) {
-                    titulo = rawText.slice(0, emojiMatch.index).trim();
-                    resumen = rawText.slice(emojiMatch.index + emojiMatch[0].length).trim();
-                  }
-                }
-                if (!titulo) titulo = rawText || "Evento institucional";
-                if (resumen && resumen.length > 110) {
-                  resumen = resumen.slice(0, 110).trim().replace(/[\s,;.]+$/, "") + "...";
-                }
-
-                const fecha = post.fechaEvento ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : (post.fechaFormateada || "Reciente");
-                const cantidad = post.cantidadMedios || 1;
-                const esFotoValida =
-                  post.fotoPrincipal &&
-                  !post.fotoPrincipal.includes("placeholder") &&
-                  !post.fotoPrincipal.includes("instagram.com");
-
-                const imagen = esFotoValida
-                  ? post.fotoPrincipal
-                  : post.videoThumbnail || post.localThumbnail || post.localImage || "/media/instagram/placeholder.svg";
-
-                const esVideoOInstagram =
-                  post.isVideo ||
-                  post.tipoMedio === "VIDEO" ||
-                  Boolean(post.videoUrl);
-
-                return (
-                  <li key={post.id}>
-                    <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
-                      <span className="cant">
-                        {esVideoOInstagram ? (
-                          post.videoUrl?.includes("instagram.com") ? "🎬 Instagram" : "🎬 Video"
-                        ) : (
-                          <>
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <rect x="3" y="5" width="18" height="14" rx="2" />
-                              <circle cx="9" cy="10" r="2" />
-                              <path d="M21 16l-5-5-8 8" />
-                            </svg>
-                            {cantidad} {cantidad === 1 ? "foto" : "fotos"}
-                          </>
-                        )}
-                      </span>
-                      <img
-                        src={imagen}
-                        alt={`Foto del evento ${titulo}`}
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/media/instagram/placeholder.svg";
-                        }}
-                      />
-                      <div className="texto">
-                        <time>{fecha}</time>
-                        <h3>{titulo}</h3>
-                        <p>{resumen}</p>
-                        <span className="ver">
-                          {post.isVideo ? "Ver el video" : "Ver las fotos"}
-                        </span>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })
-            ) : (
-              <li
-                style={{
-                  gridColumn: "1 / -1",
-                  textAlign: "center",
-                  padding: "3rem 1rem",
-                  listStyle: "none",
-                }}
-              >
-                <p style={{ color: "var(--suave)", fontSize: "1.125rem" }}>
-                  No hay eventos institucionales publicados por el momento.
-                </p>
-              </li>
+                <button type="button" aria-pressed={vista === "grilla"} onClick={() => setVista("grilla")}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                  </svg>
+                  <span>Cuadrícula</span>
+                </button>
+                <button type="button" aria-pressed={vista === "lista"} onClick={() => setVista("lista")}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="4" width="6" height="6" rx="1.5" />
+                    <rect x="3" y="14" width="6" height="6" rx="1.5" />
+                    <path d="M13 6h8M13 9h5M13 16h8M13 19h5" />
+                  </svg>
+                  <span>Lista</span>
+                </button>
+              </div>
             )}
-          </ul>
-          <details className="archivo">
-            <summary>
-              Años anteriores{" "}
-              <span className="flecha">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </span>
-            </summary>
-            <div className="lista">
-              <Link to="/evento">
-                <strong>Noche de los Museos</strong>
-                <span>Noviembre 2025</span>
-              </Link>
-              <Link to="/evento">
-                <strong>Colación de egresados</strong>
-                <span>Diciembre 2024</span>
-              </Link>
-              <Link to="/evento">
-                <strong>Jornada de Gastronomía</strong>
-                <span>Octubre 2024</span>
-              </Link>
-              <Link to="/evento">
-                <strong>Mateada Patria</strong>
-                <span>Mayo 2024</span>
-              </Link>
+          </div>
+
+          {estado === "cargando" && (
+            <p className="estado-vacio" role="status">
+              Cargando eventos…
+            </p>
+          )}
+          {estado === "error" && (
+            <div className="estado-vacio" role="alert">
+              <p>No se pudieron cargar los eventos.</p>
+              <button type="button" className="boton boton-linea boton-chico" onClick={reintentar}>
+                Reintentar
+              </button>
             </div>
-          </details>
+          )}
+          {estado === "listo" && grupos.length === 0 && (
+            <p className="estado-vacio">Todavía no hay eventos publicados.</p>
+          )}
+
+          {estado === "listo" &&
+            grupos.map((grupo, i) => (
+              <details className="anio-eventos" key={grupo.clave} open={i === 0}>
+                <summary>
+                  <span className="anio">{grupo.titulo}</span>
+                  <span className="cuenta">{cantidad(grupo.eventos.length)}</span>
+                  <svg
+                    className="flecha"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </summary>
+                <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
+                  {grupo.eventos.map((evento) => (
+                    <li key={evento.id}>
+                      <TarjetaEvento evento={evento} />
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
         </div>
       </section>
     </div>
