@@ -160,10 +160,11 @@ export const INSTANCIAS = BASE.map((x) => {
 });
 
 export const ANIOS = [1, 2, 3];
-// Orden dentro de cada año: 1.º cuatrimestre, anuales, 2.º cuatrimestre.
+// Orden dentro de cada año: primero las anuales, que se cursan desde el comienzo del año,
+// y después los dos cuatrimestres seguidos, sin nada en el medio.
 export const PERIODOS = [
-  { valor: 1, nombre: "1.º cuatrimestre" },
   { valor: "anual", nombre: "Anuales" },
+  { valor: 1, nombre: "1.º cuatrimestre" },
   { valor: 2, nombre: "2.º cuatrimestre" },
 ];
 export const nombreAnio = (anio) => `${anio}.º año`;
@@ -253,7 +254,7 @@ export const ALCANCES_DEL_TITULO =
 export const FUENTE_ALCANCES = "Anexo de la Resolución N.º 1202/MEGC/2007, pág. 7";
 
 // Grupos que muestra la tabla según la vista ("anio" o "area") y el filtro ("todos", un año o un área).
-// Por año, cada año se divide en 1.º cuatrimestre, anuales y 2.º cuatrimestre (las anuales, una sola vez).
+// Por año, cada año se divide en anuales, 1.º cuatrimestre y 2.º cuatrimestre (las anuales, una sola vez).
 export function gruposDelPlan(vista, filtro) {
   if (vista === "anio") {
     return ANIOS.filter((a) => filtro === "todos" || a === filtro).map((a) => ({

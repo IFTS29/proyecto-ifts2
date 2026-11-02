@@ -162,10 +162,11 @@ test("por año: 11, 11 y 15 instancias; las anuales una sola vez; los totales si
   assert.deepEqual(seminarios.map(ubicacionInstancia), ["3.º año, cuatrimestre por confirmar", "3.º año, cuatrimestre por confirmar"]);
 });
 
-test("grupos de la tabla: por año con cuatrimestres (anuales en el medio), por área sin subtítulos", () => {
+test("grupos de la tabla: por año con las anuales primero y los cuatrimestres seguidos, por área sin subtítulos", () => {
   const todos = gruposDelPlan("anio", "todos");
   assert.deepEqual(todos.map((g) => g.titulo), ["1.º año", "2.º año", "3.º año"]);
-  assert.deepEqual(todos[0].secciones.map((s) => s.titulo), ["1.º cuatrimestre", "Anuales", "2.º cuatrimestre"]);
+  assert.deepEqual(todos[0].secciones.map((s) => s.titulo), ["Anuales", "1.º cuatrimestre", "2.º cuatrimestre"]);
+  assert.deepEqual(todos[1].secciones.map((s) => s.titulo), ["Anuales", "1.º cuatrimestre", "2.º cuatrimestre"]);
   assert.deepEqual(todos[2].secciones.map((s) => s.titulo), ["1.º cuatrimestre", "2.º cuatrimestre"]);
   const filas = todos.flatMap((g) => g.secciones.flatMap((s) => s.filas));
   assert.equal(filas.length, 37, "cada instancia aparece una sola vez");
