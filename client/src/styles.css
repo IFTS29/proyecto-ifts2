@@ -3112,16 +3112,15 @@ a.dato {
   font-size: 18px;
 }
 
-.paso-fecha {
-  display: block;
-  margin-top: 16px;
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 700;
-  color: var(--naranja-texto);
-  background: var(--naranja-suave);
-  padding: 8px 12px;
-  border-radius: 10px;
+/* Fecha de la etapa: texto común debajo del nombre (antes era un recuadro naranja que parecía un aviso). */
+.cronograma .paso-fecha {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--texto);
+}
+
+.cronograma .paso-fecha + p {
+  margin-top: 8px;
 }
 
 .cronograma h3 {
@@ -4533,4 +4532,16 @@ body[data-rol="bedelia"] [data-solo-admin] {
 .subtitulo-formulario {
   margin: 24px 0 12px;
   font-size: 18px;
+}
+
+/* Ingreso: la convocatoria anterior, de referencia, debajo de la próxima. */
+.convocatoria-anterior {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--borde);
+}
+
+.convocatoria-anterior h2 {
+  margin-bottom: 16px;
+  font-size: 28px;
 }
