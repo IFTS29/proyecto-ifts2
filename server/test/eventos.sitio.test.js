@@ -229,6 +229,12 @@ test("el detalle siempre consulta al servidor y el enlace a Instagram se anuncia
   assert.match(detalle, /Contenido de Instagram: al tocar la publicación se puede abrir Instagram\./);
 });
 
+test("el título del detalle es un solo encabezado (h1) y se repite junto a las fotos solo de forma visual", () => {
+  const detalle = leer("pages/Evento.jsx");
+  assert.doesNotMatch(detalle, /<h2>\{titulo\}/);
+  assert.match(detalle, /<p className="titulo-evento" aria-hidden="true">\s*\{titulo\}\s*<\/p>/);
+});
+
 test("el banner del detalle usa siempre la imagen institucional, nunca una foto del evento", () => {
   const detalle = leer("pages/Evento.jsx");
   const banners = detalle.match(/"--foto": `url\(\$\{[^}]+\}\)`/g) || [];

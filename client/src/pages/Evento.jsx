@@ -282,6 +282,11 @@ export default function Evento() {
               {fecha && <span className="etiqueta et-naranja">{fecha}</span>}
               {etiqueta && <span className="etiqueta et-gris">{etiqueta}</span>}
             </div>
+            {/* El título se repite junto a las fotos para leerlo con ellas. El encabezado es el h1 del banner:
+                esta copia es solo visual, así los lectores de pantalla no lo escuchan dos veces. */}
+            <p className="titulo-evento" aria-hidden="true">
+              {titulo}
+            </p>
             {parrafos.map((parrafo, i) => (
               <p key={i}>{parrafo}</p>
             ))}

@@ -1321,6 +1321,16 @@ p {
   object-fit: cover;
 }
 
+/* Título repetido junto a las fotos (copia visual del h1 del banner). */
+.info-evento .titulo-evento {
+  margin: 0.75rem 0 0;
+  font-family: var(--titulos);
+  font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--texto);
+}
+
 .info-evento .meta {
   display: flex;
   flex-wrap: wrap;
