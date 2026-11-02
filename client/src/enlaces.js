@@ -16,9 +16,12 @@ export const ENLACES = {
   progresar: "https://www.argentina.gob.ar/educacion/progresar",
   instagram: "https://www.instagram.com/ifts_2_ok/",
   facebook: "https://www.facebook.com/iftsn2/",
-  preinscripcion: "https://guarani-autogestionagencia.bue.edu.ar/preinscripcion/SSAALV/acceso",
-  ofertaEducativa:
-    "https://www.buenosaires.gob.ar/educacion/estudiantes/sistema-educativo/terciario/formacion-tecnica-superior",
+  // Preinscripción a Técnica Superior que usan los IFTS en 2026 (la ruta anterior era /preinscripcion/SSAALV/acceso).
+  // Confirmación del IFTS 2 pendiente.
+  preinscripcion: "https://guarani-autogestionagencia.bue.edu.ar/preinscripcion/DGAHPEF/",
+  // Página oficial de Formación Técnica Superior: carreras y fechas de la convocatoria vigente (consultada el
+  // 2/11/2026). Reemplaza a la página anterior de la oferta educativa, que seguía con fechas de 2025.
+  ingresoOficial: "https://buenosaires.gob.ar/superior/formacion-tecnica-superior",
 };
 
 // Atributos de todo enlace externo: abre en otra pestaña sin darle acceso a esta página.

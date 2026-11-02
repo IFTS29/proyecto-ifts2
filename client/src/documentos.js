@@ -26,6 +26,15 @@ export const DOCUMENTOS = {
     kb: 65,
     paginas: 2,
   },
+  guiaPreingreso: {
+    titulo: "Guía de preingreso 2025",
+    descripcion:
+      "Material correspondiente al ingreso 2025. Los requisitos y procedimientos pueden haber cambiado. " +
+      "Para consultar información actualizada, visitar el sitio oficial.",
+    archivo: "/docs/guia-de-preingreso-2025.pdf",
+    kb: 599,
+    paginas: 6,
+  },
   materiasPorAnio: {
     titulo: "Materias por año y cuatrimestre",
     descripcion: "Distribución de las instancias curriculares en los tres años de la carrera (IFTS N.º 2).",

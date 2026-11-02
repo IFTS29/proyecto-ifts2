@@ -4472,3 +4472,65 @@ body[data-rol="bedelia"] [data-solo-admin] {
 .grilla-eventos.lista .tarjeta.sin-foto img {
   height: 100%;
 }
+
+/* ----- Ingreso: estado de la preinscripción y cronograma de la convocatoria ----- */
+.texto-vigente {
+  color: var(--suave);
+}
+
+.aviso-convocatoria {
+  margin: -8px 0 24px;
+  color: var(--suave);
+}
+
+/* Con más de cuatro etapas la grilla pasa a otra fila: la línea que une los pasos se corta al final de cada fila. */
+.cronograma li:nth-child(4n)::after {
+  display: none;
+}
+
+.cronograma li.en-curso {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 1px var(--verde);
+}
+
+.marca-en-curso {
+  display: table;
+  margin-top: 10px;
+}
+
+/* Flecha de los enlaces que abren otro sitio, del tamaño del texto. */
+.icono-externo {
+  flex: none;
+  width: 1em;
+  height: 1em;
+}
+
+.aviso-convocatoria .enlace {
+  display: inline;
+  min-height: 0;
+}
+
+.aviso-convocatoria .icono-externo {
+  margin-left: 4px;
+  vertical-align: -0.125em;
+}
+
+/* La guía de preingreso en la columna angosta: las acciones van debajo del título. */
+.material .documento {
+  grid-template-columns: auto 1fr;
+  margin-top: 12px;
+}
+
+.material .acciones-doc {
+  grid-column: 1 / -1;
+}
+
+/* Formulario de Ingreso en el panel. */
+.quitar-convocatoria {
+  margin: 4px 0 8px;
+}
+
+.subtitulo-formulario {
+  margin: 24px 0 12px;
+  font-size: 18px;
+}

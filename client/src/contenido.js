@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
 
-// Contenido institucional (#36) en el sitio y en el panel: perfil del egresado, autoridades y tutoría, y
-// datos de contacto. Sale de GET /api/content.
+// Contenido institucional (#36) en el sitio y en el panel: perfil del egresado, autoridades y tutoría,
+// datos de contacto e ingreso. Sale de GET /api/content.
 
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires";
 
@@ -38,7 +38,7 @@ export function textoActualizado(seccion) {
   return `Actualizado el ${fecha}`;
 }
 
-// Estado compartido entre las páginas que muestran el contenido (Carrera, Contacto, el pie y el panel).
+// Estado compartido entre las páginas que muestran el contenido (Carrera, Contacto, Ingreso, el pie y el panel).
 // - Cada página que lo usa vuelve a consultar al abrirse: nunca se queda con datos de antes de un guardado.
 // - Si dos consultas coinciden (por ejemplo, la página y el pie), se hace una sola.
 // - Un error no se guarda: la próxima vez que se abre una página se vuelve a intentar.

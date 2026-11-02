@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { SECCIONES } from "../services/contenido.js";
 
-// Una sección del contenido institucional (perfil, personas o contacto). Los datos se validan en
+// Una sección del contenido institucional (perfil, personas, contacto o ingreso). Los datos se validan en
 // services/contenido.js antes de guardarlos; acá se guardan tal cual.
 const contenidoSchema = new mongoose.Schema(
   {
