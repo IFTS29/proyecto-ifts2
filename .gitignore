@@ -10,8 +10,8 @@ server/storage/
 AGENTS.md
 .env.example
 
-# Se versiona la guia de preingreso que usa el sitio
-!client/public/docs/guia-de-preingreso.pdf
+# Se versionan los documentos que publica el sitio (guía de preingreso, resolución del plan, correlatividades)
+!client/public/docs/*.pdf
 .agents/
 
 server/storage/
