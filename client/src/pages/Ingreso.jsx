@@ -1,17 +1,50 @@
 import { Link } from "react-router-dom";
 import { IMGS } from "../imagenes";
-import { anio } from "../utils";
 import { ENLACES, EXTERNO } from "../enlaces.js";
+import { DOCUMENTOS } from "../documentos.js";
+import { almacenContenido, useContenidoInstitucional } from "../contenido.js";
+import { cronogramaDe, estadoDePreinscripcion } from "../ingreso.js";
+import Documento from "../components/Documento.jsx";
 
+const ETIQUETA_DE_ESTADO = {
+  "sin-convocatoria": "et-naranja",
+  proxima: "et-naranja",
+  abierta: "et-verde",
+  finalizada: "et-gris",
+};
+
+const Flecha = () => (
+  <svg
+    className="icono-externo"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M7 17L17 7M9 7h8v8" />
+  </svg>
+);
+
+const EnlaceExterno = ({ href, clase, children }) => (
+  <a className={clase} href={href} {...EXTERNO}>
+    {children}
+    <span className="solo-lectores"> (se abre en otra pestaña)</span>
+    <Flecha />
+  </a>
+);
+
+// Ingreso: la convocatoria, sus fechas y las preguntas frecuentes salen de la sección «Ingreso» del contenido
+// institucional, que se edita desde el panel. Sin convocatoria cargada, el estado avisa que faltan las fechas.
 export default function Ingreso() {
-  const bajarPdf = () => {
-    const a = document.createElement("a");
-    a.href = "/docs/guia-de-preingreso.pdf";
-    a.download = "Guia-de-preingreso.pdf";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
+  const { estado, contenido } = useContenidoInstitucional();
+  const ingreso = contenido?.ingreso?.datos;
+  const preinscripcion = estadoDePreinscripcion(ingreso);
+  const pasos = cronogramaDe(ingreso);
+  const preguntas = ingreso?.preguntas ?? [];
+  const sinFechasVigentes = ["sin-convocatoria", "finalizada"].includes(preinscripcion.tipo);
 
   return (
     <div className="pagina activa">
@@ -19,297 +52,129 @@ export default function Ingreso() {
         <div className="contenedor">
           <h1>Ingreso</h1>
           <span className="raya" aria-hidden="true" />
-          <p>Cómo inscribirte en la Tecnicatura Superior en Emprendimientos Gastronómicos.</p>
+          <p>Cómo inscribirse en la Tecnicatura Superior en Emprendimientos Gastronómicos.</p>
         </div>
       </section>
       <section className="seccion">
         <div className="contenedor">
           <div className="cabecera">
             <h2>
-              Ingreso <span>{anio(0)}</span>
+              {ingreso?.convocatoria ? (
+                <>
+                  Ingreso: <span>{ingreso.convocatoria}</span>
+                </>
+              ) : (
+                "Próximo ingreso"
+              )}
             </h2>
             <span className="raya" aria-hidden="true" />
             <p>
-              Inscripción para el primer cuatrimestre. El preingreso a las carreras de Técnica
-              Superior lo organiza la Agencia de Habilidades para el Futuro del Gobierno de la
-              Ciudad.
+              El preingreso a las carreras de Técnica Superior lo organiza la Agencia de Habilidades para el Futuro
+              del Gobierno de la Ciudad.
             </p>
           </div>
-          <div className="vigente">
-            <span className="etiqueta et-naranja">Fechas a confirmar</span>
-            <span style={{ color: "var(--suave)" }}>
-              Se publican cuando la Agencia de Habilidades para el Futuro las comunica.
-            </span>
-          </div>
-          <ol className="cronograma">
-            <li>
-              <span className="paso-num">1</span>
-              <span className="paso-fecha">
-                Del 6 de noviembre de <span>{anio(-1)}</span> al 5 de marzo de{" "}
-                <span>{anio(0)}</span>
-              </span>
-              <h3>Preinscripción</h3>
-              <p>
-                En SIU Guaraní: cargás tus datos, elegís la carrera, el instituto y el horario, y
-                subís tu DNI y el título secundario.
-              </p>
-            </li>
-            <li>
-              <span className="paso-num">2</span>
-              <span className="paso-fecha">
-                Del 6 de noviembre de <span>{anio(-1)}</span> al 7 de marzo de{" "}
-                <span>{anio(0)}</span>
-              </span>
-              <h3>Curso de preparación</h3>
-              <p>
-                Virtual y autoasistido, en el aula Moodle. No es obligatorio, pero te prepara para
-                los exámenes.
-              </p>
-            </li>
-            <li>
-              <span className="paso-num">3</span>
-              <span className="paso-fecha">
-                Del 3 de febrero al 7 de marzo de <span>{anio(0)}</span>
-              </span>
-              <h3>Exámenes obligatorios</h3>
-              <p>ECOPE e IPEMAT, en Moodle. Tenés un solo intento y dos horas para cada examen.</p>
-            </li>
-            <li>
-              <span className="paso-num">4</span>
-              <span className="paso-fecha">
-                Desde el 12 de marzo de <span>{anio(0)}</span>
-              </span>
-              <h3>Confirmación de vacante</h3>
-              <p>
-                Las vacantes se asignan por orden de mérito, según la suma de los puntajes de ambos
-                exámenes.
-              </p>
-            </li>
-          </ol>
-          <div className="acciones">
-            <a
-              className="boton boton-naranja"
-              href={ENLACES.preinscripcion}
-              {...EXTERNO}
-            >
-              Ir a la preinscripción
-              <span className="solo-lectores"> (se abre en otra pestaña)</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17L17 7M9 7h8v8" />
-              </svg>
-            </a>
-            <a
-              className="boton boton-linea"
-              href={ENLACES.ofertaEducativa}
-              {...EXTERNO}
-            >
-              Ver la oferta educativa
-              <span className="solo-lectores"> (se abre en otra pestaña)</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17L17 7M9 7h8v8" />
-              </svg>
-            </a>
-          </div>
-          <details className="archivo">
-            <summary>
-              Ingresos anteriores{" "}
-              <span className="flecha">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </span>
-            </summary>
-            <div className="lista">
-              <Link to="/ingreso">
-                <strong>
-                  Ingreso <span>{anio(-1)}</span>
-                </strong>
-                <span>Cronograma y material de preingreso</span>
-              </Link>
-              <Link to="/ingreso">
-                <strong>
-                  Ingreso <span>{anio(-2)}</span>
-                </strong>
-                <span>Cronograma y material de preingreso</span>
-              </Link>
+
+          {estado === "cargando" && !contenido && (
+            <p className="estado-vacio" role="status">
+              Cargando la información de ingreso…
+            </p>
+          )}
+          {estado === "error" && (
+            <div className="estado-vacio" role="alert">
+              <p>No se pudo cargar la información de ingreso.</p>
+              <button type="button" className="boton boton-linea boton-chico" onClick={() => almacenContenido.cargar()}>
+                Reintentar
+              </button>
             </div>
-          </details>
+          )}
+
+          {ingreso && (
+            <>
+              <div className="vigente">
+                <span className={`etiqueta ${ETIQUETA_DE_ESTADO[preinscripcion.tipo]}`}>{preinscripcion.etiqueta}</span>
+                {preinscripcion.texto && <span className="texto-vigente">{preinscripcion.texto}</span>}
+              </div>
+              {sinFechasVigentes && (
+                <p className="aviso-convocatoria">
+                  Las fechas de la próxima convocatoria las publica la Agencia de Habilidades para el Futuro.{" "}
+                  <EnlaceExterno href={ENLACES.ingresoOficial} clase="enlace">
+                    Consultar las próximas convocatorias en el sitio oficial
+                  </EnlaceExterno>
+                </p>
+              )}
+
+              {pasos.length > 0 && (
+                <ol className="cronograma">
+                  {pasos.map((paso, i) => (
+                    <li key={`${paso.nombre}-${i}`} className={paso.enCurso ? "en-curso" : undefined}>
+                      <span className="paso-num">{i + 1}</span>
+                      {paso.enCurso && <span className="etiqueta et-verde marca-en-curso">En curso</span>}
+                      <span className="paso-fecha">{paso.fechas}</span>
+                      <h3>{paso.nombre}</h3>
+                      {paso.detalle && <p>{paso.detalle}</p>}
+                    </li>
+                  ))}
+                </ol>
+              )}
+
+              <div className="acciones">
+                {preinscripcion.tipo === "abierta" && (
+                  <EnlaceExterno href={ENLACES.preinscripcion} clase="boton boton-naranja">
+                    Ir a la preinscripción
+                  </EnlaceExterno>
+                )}
+                <EnlaceExterno href={ENLACES.ingresoOficial} clase="boton boton-linea">
+                  Ver carreras y fechas en el sitio oficial
+                </EnlaceExterno>
+              </div>
+            </>
+          )}
         </div>
       </section>
       <section className="seccion seccion-alt">
-        <div className="contenedor dos">
-          <div>
-            <div className="cabecera">
-              <h2>Preguntas frecuentes</h2>
-              <span className="raya" aria-hidden="true" />
+        <div className={"contenedor" + (preguntas.length > 0 ? " dos" : "")}>
+          {preguntas.length > 0 && (
+            <div>
+              <div className="cabecera">
+                <h2>Preguntas frecuentes</h2>
+                <span className="raya" aria-hidden="true" />
+              </div>
+              {preguntas.map((p, i) => (
+                <details className="faq" key={i}>
+                  <summary>
+                    {p.pregunta}
+                    <span className="flecha">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <p>{p.respuesta}</p>
+                </details>
+              ))}
             </div>
-            <details className="faq">
-              <summary>
-                ¿Qué necesito para inscribirme?
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </summary>
-              <p>
-                Tener el secundario completo y cargar en SIU Guaraní tu DNI y el título. Si tenés
-                más de 25 años y no terminaste el secundario, escribí a preingreso.ifts@bue.edu.ar.
-              </p>
-            </details>
-            <details className="faq">
-              <summary>
-                ¿Puedo anotarme en más de una carrera?
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </summary>
-              <p>
-                No. En la preinscripción elegís una sola tecnicatura y el instituto donde querés
-                cursar.
-              </p>
-            </details>
-            <details className="faq">
-              <summary>
-                ¿Cómo entro al curso de preparación?
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </summary>
-              <p>
-                Unos 7 días después de preinscribirte te llega un correo con el usuario y la
-                contraseña del aula virtual.
-              </p>
-            </details>
-            <details className="faq">
-              <summary>
-                ¿Qué se evalúa en los exámenes?
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </summary>
-              <p>
-                Los contenidos de Estrategias de Comprensión y Producción Escrita (ECOPE) e
-                Introducción al Pensamiento Matemático (IPEMAT). Los módulos de Pensamiento
-                Computacional e Introducción a la Técnica Superior no tienen examen.
-              </p>
-            </details>
-            <details className="faq">
-              <summary>
-                ¿Cómo se asignan las vacantes?
-                <span className="flecha">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </summary>
-              <p>
-                Por orden de mérito, según el puntaje total de los dos exámenes. La confirmación se
-                comunica a partir de mediados de marzo.
-              </p>
-            </details>
-          </div>
+          )}
           <aside className="material">
-            <img src="/img/img-47d91167.jpg" alt="Portada de la guía de preingreso" />
+            <img src="/img/img-47d91167.jpg" alt="" />
             <div className="material-cuerpo">
               <span className="etiqueta et-verde">Material de preingreso</span>
-              <h3>Guía de preingreso a Técnica Superior</h3>
-              <p>Presentación de la Agencia de Habilidades para el Futuro. PDF de 6 páginas.</p>
-              <div className="acciones">
-                <button
-                  className="boton boton-verde boton-chico"
-                  type="button"
-                  id="ver-pdf"
-                  onClick={() => window.open("/docs/guia-de-preingreso.pdf", "_blank")}
-                >
-                  Ver la guía
-                </button>
-                <button
-                  className="boton boton-linea boton-chico"
-                  type="button"
-                  id="bajar-pdf"
-                  onClick={bajarPdf}
-                >
-                  Descargar
-                </button>
-              </div>
+              <Documento doc={DOCUMENTOS.guiaPreingreso} />
               <p className="nota-material">
-                Consultas sobre el preingreso: <strong>preingreso.ifts@bue.edu.ar</strong>
-                <br />
-                Consultas sobre el instituto:{" "}
-                <Link className="enlace" to="/contacto" style={{ minHeight: "0" }}>
-                  escribile a Bedelía
-                </Link>
+                {ingreso?.correo && (
+                  <>
+                    Consultas sobre el preingreso: <a href={`mailto:${ingreso.correo}`}>{ingreso.correo}</a>
+                    <br />
+                  </>
+                )}
+                Consultas sobre el instituto: <Link to="/contacto">formulario de contacto de Bedelía</Link>
               </p>
             </div>
           </aside>

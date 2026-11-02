@@ -23,9 +23,8 @@ test("cada enlace externo lleva a la dirección esperada", () => {
     progresar: "https://www.argentina.gob.ar/educacion/progresar",
     instagram: "https://www.instagram.com/ifts_2_ok/",
     facebook: "https://www.facebook.com/iftsn2/",
-    preinscripcion: "https://guarani-autogestionagencia.bue.edu.ar/preinscripcion/SSAALV/acceso",
-    ofertaEducativa:
-      "https://www.buenosaires.gob.ar/educacion/estudiantes/sistema-educativo/terciario/formacion-tecnica-superior",
+    preinscripcion: "https://guarani-autogestionagencia.bue.edu.ar/preinscripcion/DGAHPEF/",
+    ingresoOficial: "https://buenosaires.gob.ar/superior/formacion-tecnica-superior",
   });
 });
 

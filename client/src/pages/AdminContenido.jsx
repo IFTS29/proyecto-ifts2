@@ -5,6 +5,7 @@ import AdminLateral from "../components/AdminLateral.jsx";
 import FormPerfil from "../components/FormPerfil.jsx";
 import FormPersonas from "../components/FormPersonas.jsx";
 import FormContacto from "../components/FormContacto.jsx";
+import FormIngreso from "../components/FormIngreso.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
 import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
 import { DESCARTAR_CAMBIOS } from "../confirmaciones.js";
@@ -20,6 +21,7 @@ const SECCIONES = [
     enElSitio: "/carrera#autoridades",
   },
   { clave: "contacto", titulo: "Datos de contacto", Formulario: FormContacto, enElSitio: "/contacto" },
+  { clave: "ingreso", titulo: "Ingreso", Formulario: FormIngreso, enElSitio: "/ingreso" },
 ];
 
 export default function AdminContenido() {
@@ -71,7 +73,8 @@ export default function AdminContenido() {
         <div className="cab-admin">
           <div>
             <h1>Contenido institucional</h1>
-            <p>Perfil del egresado, autoridades y tutoría, y datos de contacto.</p>
+            <p>Perfil del egresado, autoridades y tutoría, datos de contacto e ingreso.</p>
+            <p>Al guardar, los cambios se publican enseguida en el sitio.</p>
           </div>
         </div>
 

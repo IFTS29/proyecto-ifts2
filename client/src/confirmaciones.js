@@ -9,6 +9,17 @@ export const DESCARTAR_CAMBIOS = {
   cancelar: "Seguir editando",
 };
 
+// Ingreso (Contenido institucional): vacía la convocatoria del formulario; se publica al guardar.
+export const QUITAR_CONVOCATORIA = {
+  titulo: "¿Quitar la convocatoria?",
+  texto:
+    "Se borran del formulario el nombre, la preinscripción y las etapas. Al guardar, el sitio muestra «Fechas a " +
+    "confirmar». Las preguntas frecuentes y el correo de consultas se conservan.",
+  accion: "Quitar convocatoria",
+  cancelar: "Cancelar",
+  peligro: true,
+};
+
 // Maneja una confirmación por vez. "pedir" muestra la pregunta (con alMostrar) y devuelve una promesa que
 // siempre termina: true si se confirma; false si se cancela, se cierra con la X o con Escape.
 // Si ya hay una abierta, la nueva responde false enseguida: nunca hay dos a la vez.

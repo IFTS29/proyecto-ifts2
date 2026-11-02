@@ -6,7 +6,7 @@ import { SECCIONES, seccionPublica, validarSeccion } from "../services/contenido
 export function crearRutasContenido({ config, usuarios, contenido }) {
   const router = Router();
 
-  // Público: las tres secciones. Sin caché, para que un cambio guardado se vea enseguida.
+  // Público: todas las secciones. Sin caché, para que un cambio guardado se vea enseguida.
   router.get("/", async (req, res, next) => {
     try {
       const guardadas = new Map((await contenido.listar()).map((r) => [r.clave, r]));

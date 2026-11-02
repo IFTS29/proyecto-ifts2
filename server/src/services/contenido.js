@@ -1,11 +1,11 @@
 // Contenido institucional que se edita desde el panel (#36): perfil del egresado, autoridades y tutoría,
-// y datos de contacto. Cada sección se guarda entera y se ve en el sitio en cuanto se guarda.
+// datos de contacto e ingreso (convocatoria, etapas, preguntas frecuentes y correo de consultas). Cada sección se guarda entera y se ve en el sitio en cuanto se guarda.
 //
 // Los valores iniciales son los que mostraba el sitio antes de que existiera esta función. No se escriben
 // en la base: solo se devuelven mientras la sección no se guardó nunca. Así, reiniciar el servidor no pisa
 // lo que guardó un administrador.
 
-export const SECCIONES = ["perfil", "personas", "contacto"];
+export const SECCIONES = ["perfil", "personas", "contacto", "ingreso"];
 export const GRUPOS = ["autoridades", "tutoria"];
 
 export const LIMITES = {
@@ -20,6 +20,13 @@ export const LIMITES = {
   modalidad: 100,
   telefono: 30,
   correo: 150,
+  convocatoria: 60,
+  etapas: { max: 6 },
+  nombreEtapa: 60,
+  detalleEtapa: 300,
+  preguntas: { max: 10 },
+  pregunta: 150,
+  respuesta: 600,
 };
 
 // Teléfono y correo empiezan vacíos: no se publican hasta que el IFTS 2 los confirme.
@@ -51,6 +58,46 @@ export const VALORES_INICIALES = {
     horario: "Lunes a viernes, de 18 a 22 h",
     modalidad: "Cursada presencial",
     telefono: "",
+    correo: "",
+  },
+  // Sin convocatoria cargada, el sitio muestra «Fechas a confirmar». Las preguntas frecuentes son las que ya
+  // mostraba el portal, con respuestas generales que no dependen de una convocatoria (las condiciones de cada
+  // año cambian); el instituto las ajusta desde el panel.
+  ingreso: {
+    convocatoria: "",
+    preinscripcion: { desde: "", hasta: "", detalle: "" },
+    etapas: [],
+    preguntas: [
+      {
+        pregunta: "¿Qué se necesita para inscribirse?",
+        respuesta:
+          "Tener el título secundario o una constancia de título en trámite o de finalización de estudios. Hay " +
+          "condiciones especiales, por ejemplo para quienes adeudan materias del secundario o para mayores de 25 " +
+          "años sin el secundario completo: se informan en cada convocatoria.",
+      },
+      {
+        pregunta: "¿Se puede elegir más de una carrera?",
+        respuesta: "No. En cada convocatoria se elige una sola tecnicatura, el instituto y el horario.",
+      },
+      {
+        pregunta: "¿Cómo se accede al curso de preparación?",
+        respuesta:
+          "Al completar la preinscripción, el usuario y la contraseña del aula virtual llegan al correo declarado. " +
+          "El curso es optativo, pero prepara para el examen.",
+      },
+      {
+        pregunta: "¿Qué se evalúa en el examen de ingreso?",
+        respuesta:
+          "Comprensión de textos y matemática general. El examen es obligatorio y se rinde en el aula virtual; la " +
+          "modalidad, la duración y las fechas se informan en cada convocatoria.",
+      },
+      {
+        pregunta: "¿Cómo se asignan las vacantes?",
+        respuesta:
+          "Según las vacantes de cada carrera, con los criterios de prioridad y el orden de mérito que fija la " +
+          "Agencia de Habilidades para el Futuro.",
+      },
+    ],
     correo: "",
   },
 };
@@ -140,7 +187,119 @@ function validarContacto(datos) {
   return { datos: limpio };
 }
 
-const VALIDADORES = { perfil: validarPerfil, personas: validarPersonas, contacto: validarContacto };
+// Fecha de calendario «AAAA-MM-DD» (sin hora: así no cambia de día por la zona horaria).
+function fecha(valor, { nombre, obligatoria = false, prefijo = "" }) {
+  const limpio = typeof valor === "string" ? valor.trim() : "";
+  if (valor !== undefined && valor !== null && typeof valor !== "string") {
+    return { error: `${prefijo}${nombre} no es válida.` };
+  }
+  if (!limpio) return obligatoria ? { error: `${prefijo}completar ${nombre}.` } : { valor: "" };
+  const enUtc = new Date(`${limpio}T12:00:00Z`);
+  const esReal = /^\d{4}-\d{2}-\d{2}$/.test(limpio) && !isNaN(enUtc) && enUtc.toISOString().slice(0, 10) === limpio;
+  const anio = Number(limpio.slice(0, 4));
+  if (!esReal || anio < 2000 || anio > 2100) return { error: `${prefijo}${nombre} no es válida.` };
+  return { valor: limpio };
+}
+
+// Desde (obligatoria) y hasta (opcional, no anterior a desde). Las fechas en este formato se comparan como texto.
+function rango(datos, prefijo, { hastaObligatoria = false } = {}) {
+  const desde = fecha(datos.desde, { nombre: "la fecha de inicio", obligatoria: true, prefijo });
+  if (desde.error) return desde;
+  const hasta = fecha(datos.hasta, { nombre: "la fecha de cierre", obligatoria: hastaObligatoria, prefijo });
+  if (hasta.error) return hasta;
+  if (hasta.valor && hasta.valor < desde.valor) {
+    return { error: `${prefijo}la fecha de cierre no puede ser anterior a la de inicio.` };
+  }
+  return { desde: desde.valor, hasta: hasta.valor };
+}
+
+const estaVacia = (fila, campos) => campos.every((campo) => !String(fila?.[campo] ?? "").trim());
+
+function validarIngreso(datos) {
+  const conv = texto(datos.convocatoria, { nombre: "el nombre de la convocatoria", max: LIMITES.convocatoria });
+  if (conv.error) return conv;
+  const convocatoria = conv.valor;
+
+  const pre = esObjeto(datos.preinscripcion) ? datos.preinscripcion : {};
+  if (datos.preinscripcion !== undefined && !esObjeto(datos.preinscripcion)) {
+    return { error: "Los datos de la preinscripción no son válidos." };
+  }
+  const etapasRecibidas = datos.etapas ?? [];
+  const preguntasRecibidas = datos.preguntas ?? [];
+  if (!Array.isArray(etapasRecibidas)) return { error: "La lista de etapas no es válida." };
+  if (!Array.isArray(preguntasRecibidas)) return { error: "La lista de preguntas frecuentes no es válida." };
+
+  // Las filas que quedaron completamente vacías se descartan, como los párrafos vacíos del perfil.
+  const etapasCargadas = etapasRecibidas.filter((e) => !estaVacia(e, ["nombre", "desde", "hasta", "detalle"]));
+  const hayFechas = !estaVacia(pre, ["desde", "hasta", "detalle"]) || etapasCargadas.length > 0;
+
+  let preinscripcion = { desde: "", hasta: "", detalle: "" };
+  const etapas = [];
+  if (!convocatoria && hayFechas) return { error: "Completar el nombre de la convocatoria." };
+  if (convocatoria) {
+    const prefijo = "Preinscripción: ";
+    const r = rango(pre, prefijo, { hastaObligatoria: true });
+    if (r.error) return r;
+    const detalle = texto(pre.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo });
+    if (detalle.error) return detalle;
+    preinscripcion = { desde: r.desde, hasta: r.hasta, detalle: detalle.valor };
+
+    if (etapasCargadas.length > LIMITES.etapas.max) {
+      return { error: `Se pueden cargar hasta ${LIMITES.etapas.max} etapas, además de la preinscripción.` };
+    }
+    for (const [i, etapa] of etapasCargadas.entries()) {
+      const prefijoEtapa = `Etapa ${i + 1}: `;
+      if (!esObjeto(etapa)) return { error: `${prefijoEtapa}los datos no son válidos.` };
+      const nombre = texto(etapa.nombre, {
+        nombre: "el nombre",
+        max: LIMITES.nombreEtapa,
+        obligatorio: true,
+        prefijo: prefijoEtapa,
+      });
+      if (nombre.error) return nombre;
+      const re = rango(etapa, prefijoEtapa);
+      if (re.error) return re;
+      const det = texto(etapa.detalle, { nombre: "la aclaración", max: LIMITES.detalleEtapa, prefijo: prefijoEtapa });
+      if (det.error) return det;
+      etapas.push({ nombre: nombre.valor, desde: re.desde, hasta: re.hasta, detalle: det.valor });
+    }
+  }
+
+  const preguntasCargadas = preguntasRecibidas.filter((p) => !estaVacia(p, ["pregunta", "respuesta"]));
+  if (preguntasCargadas.length > LIMITES.preguntas.max) {
+    return { error: `Se pueden cargar hasta ${LIMITES.preguntas.max} preguntas frecuentes.` };
+  }
+  const preguntas = [];
+  for (const [i, fila] of preguntasCargadas.entries()) {
+    const prefijo = `Pregunta ${i + 1}: `;
+    if (!esObjeto(fila)) return { error: `${prefijo}los datos no son válidos.` };
+    const pregunta = texto(fila.pregunta, { nombre: "la pregunta", max: LIMITES.pregunta, obligatorio: true, prefijo });
+    if (pregunta.error) return pregunta;
+    const respuesta = texto(fila.respuesta, {
+      nombre: "la respuesta",
+      max: LIMITES.respuesta,
+      obligatorio: true,
+      prefijo,
+    });
+    if (respuesta.error) return respuesta;
+    preguntas.push({ pregunta: pregunta.valor, respuesta: respuesta.valor });
+  }
+
+  const correo = texto(datos.correo, { nombre: "el correo de consultas", max: LIMITES.correo });
+  if (correo.error) return correo;
+  if (correo.valor && !REGEX_CORREO.test(correo.valor)) {
+    return { error: "El correo de consultas no tiene un formato válido." };
+  }
+
+  return { datos: { convocatoria, preinscripcion, etapas, preguntas, correo: correo.valor.toLowerCase() } };
+}
+
+const VALIDADORES = {
+  perfil: validarPerfil,
+  personas: validarPersonas,
+  contacto: validarContacto,
+  ingreso: validarIngreso,
+};
 
 // Devuelve { datos } con los valores limpios, o { error } con un mensaje para mostrar en el panel.
 export function validarSeccion(clave, datos) {
