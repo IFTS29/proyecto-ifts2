@@ -4529,9 +4529,202 @@ body[data-rol="bedelia"] [data-solo-admin] {
   margin: 4px 0 8px;
 }
 
+/* Panel de Ingreso: un bloque por tema (convocatoria, preinscripción, etapas, video, correo), separados con
+   aire y una línea fina, para que se vea dónde termina uno y empieza el otro. */
+.bloque-formulario {
+  padding: 24px 0;
+  border-top: 1px solid var(--borde);
+}
+
+.bloque-formulario:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+
 .subtitulo-formulario {
   margin: 24px 0 12px;
   font-size: 18px;
+}
+
+.bloque-formulario .subtitulo-formulario {
+  margin-top: 0;
+}
+
+.bloque-formulario > .boton {
+  margin-top: 4px;
+}
+
+.aviso-formato {
+  color: var(--naranja-texto);
+}
+
+/* Filas plegables (etapas y preguntas frecuentes): plegadas muestran número, título y resumen. */
+.filas-plegables {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.fila-plegable {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.fila-plegable.abierta {
+  background: var(--superficie-2);
+}
+
+.fila-plegable.con-error,
+.bloque-formulario.con-error {
+  border-color: var(--rojo);
+}
+
+.bloque-formulario.con-error {
+  padding-left: 16px;
+  padding-right: 16px;
+  border: 1px solid var(--rojo);
+  border-radius: 12px;
+}
+
+.fila-plegable-cab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 8px;
+}
+
+.fila-plegable-boton {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fila-plegable-boton:hover {
+  background: var(--fondo-2);
+}
+
+.fila-num {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--verde-suave);
+  color: var(--verde);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.fila-plegable-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.fila-plegable-texto strong {
+  overflow-wrap: anywhere;
+}
+
+.fila-plegable-texto small {
+  color: var(--suave);
+  font-size: 14px;
+}
+
+.fila-plegable-flecha {
+  display: inline-grid;
+  margin-left: auto;
+  color: var(--suave);
+}
+
+.fila-plegable-flecha svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.15s;
+}
+
+.fila-plegable.abierta .fila-plegable-flecha svg {
+  transform: rotate(180deg);
+}
+
+.fila-plegable-cuerpo {
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--borde);
+}
+
+.fila-plegable-cuerpo > .campo:first-child {
+  margin-top: 12px;
+}
+
+.fila-plegable-cuerpo .ayuda-formulario {
+  margin-bottom: 14px;
+}
+
+.error-fila {
+  margin: 12px 0 0;
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+.lista-vacia {
+  margin: 0 0 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+  color: var(--suave);
+}
+
+@media (max-width: 600px) {
+  .fila-plegable-cab {
+    flex-wrap: wrap;
+  }
+
+  .fila-plegable-cab .acciones-fila {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Ingreso en el sitio: enlace de una etapa y video de la convocatoria. */
+.cronograma .paso-enlace {
+  margin-top: 6px;
+}
+
+.video-ingreso {
+  max-width: 720px;
+  margin-top: 32px;
+}
+
+.video-ingreso h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.video-marco {
+  aspect-ratio: 16 / 9;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.video-marco iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 /* Ingreso: la convocatoria anterior, de referencia, debajo de la próxima. */
