@@ -126,7 +126,9 @@ export default function FormIngreso({ seccion, alGuardar, alCambiarSucio, alCamb
             onChange={(e) => setConvocatoria(e.target.value)}
           />
           <span className="ayuda">
-            Por ejemplo: 1.º cuatrimestre 2027. Si queda vacía, el sitio muestra «Fechas a confirmar».
+            Por ejemplo: 1.º cuatrimestre 2027. Si queda vacía, el sitio muestra «Fechas a confirmar». Cuando pasan
+            todas las fechas cargadas, el sitio la muestra como convocatoria anterior, de referencia, hasta que se
+            cargue una nueva.
           </span>
         </div>
 

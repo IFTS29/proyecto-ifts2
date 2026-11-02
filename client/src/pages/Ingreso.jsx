@@ -3,12 +3,14 @@ import { IMGS } from "../imagenes";
 import { ENLACES, EXTERNO } from "../enlaces.js";
 import { DOCUMENTOS } from "../documentos.js";
 import { almacenContenido, useContenidoInstitucional } from "../contenido.js";
-import { cronogramaDe, estadoDePreinscripcion } from "../ingreso.js";
+import { FECHAS_A_CONFIRMAR, cronogramaDe, esConvocatoriaAnterior, estadoDePreinscripcion } from "../ingreso.js";
 import Documento from "../components/Documento.jsx";
 
+// Solo «Preinscripción abierta» se destaca (en verde). Los demás estados son informativos, en gris: el naranja
+// se leía como un aviso de error.
 const ETIQUETA_DE_ESTADO = {
-  "sin-convocatoria": "et-naranja",
-  proxima: "et-naranja",
+  "sin-convocatoria": "et-gris",
+  proxima: "et-gris",
   abierta: "et-verde",
   finalizada: "et-gris",
 };
@@ -36,15 +38,38 @@ const EnlaceExterno = ({ href, clase, children }) => (
   </a>
 );
 
+// Lista de etapas con sus fechas. Las que están en curso se marcan (en la convocatoria anterior no hay ninguna,
+// porque ya pasaron todas sus fechas).
+function Cronograma({ pasos }) {
+  return (
+    <ol className="cronograma">
+      {pasos.map((paso, i) => (
+        <li key={`${paso.nombre}-${i}`} className={paso.enCurso ? "en-curso" : undefined}>
+          <span className="paso-num">{i + 1}</span>
+          {paso.enCurso && <span className="etiqueta et-verde marca-en-curso">En curso</span>}
+          <h3>{paso.nombre}</h3>
+          <p className="paso-fecha">{paso.fechas}</p>
+          {paso.detalle && <p>{paso.detalle}</p>}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 // Ingreso: la convocatoria, sus fechas y las preguntas frecuentes salen de la sección «Ingreso» del contenido
-// institucional, que se edita desde el panel. Sin convocatoria cargada, el estado avisa que faltan las fechas.
+// institucional, que se edita desde el panel.
+// - Sin convocatoria cargada: «Próxima convocatoria» con las fechas a confirmar.
+// - Convocatoria con alguna fecha por delante: arriba, con el estado de la preinscripción y las etapas en curso.
+// - Convocatoria con todas sus fechas pasadas: arriba, la próxima (a confirmar); debajo, la anterior como
+//   referencia, para que la página tenga información todo el año. Se reemplaza al cargar la nueva.
 export default function Ingreso() {
   const { estado, contenido } = useContenidoInstitucional();
   const ingreso = contenido?.ingreso?.datos;
   const preinscripcion = estadoDePreinscripcion(ingreso);
   const pasos = cronogramaDe(ingreso);
   const preguntas = ingreso?.preguntas ?? [];
-  const sinFechasVigentes = ["sin-convocatoria", "finalizada"].includes(preinscripcion.tipo);
+  const anterior = esConvocatoriaAnterior(ingreso);
+  const actual = Boolean(ingreso?.convocatoria) && !anterior;
 
   return (
     <div className="pagina activa">
@@ -59,12 +84,12 @@ export default function Ingreso() {
         <div className="contenedor">
           <div className="cabecera">
             <h2>
-              {ingreso?.convocatoria ? (
+              {actual ? (
                 <>
                   Ingreso: <span>{ingreso.convocatoria}</span>
                 </>
               ) : (
-                "Próximo ingreso"
+                "Próxima convocatoria"
               )}
             </h2>
             <span className="raya" aria-hidden="true" />
@@ -90,35 +115,36 @@ export default function Ingreso() {
 
           {ingreso && (
             <>
-              <div className="vigente">
-                <span className={`etiqueta ${ETIQUETA_DE_ESTADO[preinscripcion.tipo]}`}>{preinscripcion.etiqueta}</span>
-                {preinscripcion.texto && <span className="texto-vigente">{preinscripcion.texto}</span>}
-              </div>
-              {sinFechasVigentes && (
-                <p className="aviso-convocatoria">
-                  Las fechas de la próxima convocatoria las publica la Agencia de Habilidades para el Futuro.{" "}
-                  <EnlaceExterno href={ENLACES.ingresoOficial} clase="enlace">
-                    Consultar las próximas convocatorias en el sitio oficial
-                  </EnlaceExterno>
-                </p>
-              )}
-
-              {pasos.length > 0 && (
-                <ol className="cronograma">
-                  {pasos.map((paso, i) => (
-                    <li key={`${paso.nombre}-${i}`} className={paso.enCurso ? "en-curso" : undefined}>
-                      <span className="paso-num">{i + 1}</span>
-                      {paso.enCurso && <span className="etiqueta et-verde marca-en-curso">En curso</span>}
-                      <span className="paso-fecha">{paso.fechas}</span>
-                      <h3>{paso.nombre}</h3>
-                      {paso.detalle && <p>{paso.detalle}</p>}
-                    </li>
-                  ))}
-                </ol>
+              {actual ? (
+                <>
+                  <div className="vigente">
+                    <span className={`etiqueta ${ETIQUETA_DE_ESTADO[preinscripcion.tipo]}`}>
+                      {preinscripcion.etiqueta}
+                    </span>
+                    {preinscripcion.texto && <span className="texto-vigente">{preinscripcion.texto}</span>}
+                  </div>
+                  {preinscripcion.tipo === "finalizada" && (
+                    <p className="aviso-convocatoria">
+                      Las fechas de la próxima convocatoria las publica la Agencia de Habilidades para el Futuro.
+                    </p>
+                  )}
+                  <Cronograma pasos={pasos} />
+                </>
+              ) : (
+                <>
+                  <div className="vigente">
+                    <span className={`etiqueta ${ETIQUETA_DE_ESTADO[FECHAS_A_CONFIRMAR.tipo]}`}>
+                      {FECHAS_A_CONFIRMAR.etiqueta}
+                    </span>
+                  </div>
+                  <p className="aviso-convocatoria">
+                    Las fechas de la próxima convocatoria las publica la Agencia de Habilidades para el Futuro.
+                  </p>
+                </>
               )}
 
               <div className="acciones">
-                {preinscripcion.tipo === "abierta" && (
+                {actual && preinscripcion.tipo === "abierta" && (
                   <EnlaceExterno href={ENLACES.preinscripcion} clase="boton boton-naranja">
                     Ir a la preinscripción
                   </EnlaceExterno>
@@ -127,6 +153,23 @@ export default function Ingreso() {
                   Ver carreras y fechas en el sitio oficial
                 </EnlaceExterno>
               </div>
+
+              {anterior && (
+                <div className="convocatoria-anterior">
+                  <h2>
+                    Convocatoria anterior: <span>{ingreso.convocatoria}</span>
+                  </h2>
+                  <div className="vigente">
+                    <span className={`etiqueta ${ETIQUETA_DE_ESTADO.finalizada}`}>{preinscripcion.etiqueta}</span>
+                    <span className="texto-vigente">{preinscripcion.texto}</span>
+                  </div>
+                  <p className="aviso-convocatoria">
+                    Sirve como referencia de las etapas del ingreso. Las fechas y condiciones de la próxima
+                    convocatoria pueden cambiar.
+                  </p>
+                  <Cronograma pasos={pasos} />
+                </div>
+              )}
             </>
           )}
         </div>

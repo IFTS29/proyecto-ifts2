@@ -44,12 +44,15 @@ export function textoDeRango({ desde, hasta }) {
   return `Del ${primero} al ${textoDeDia(hasta)}`;
 }
 
+// Estado cuando todavía no hay fechas de la próxima convocatoria.
+export const FECHAS_A_CONFIRMAR = { tipo: "sin-convocatoria", etiqueta: "Fechas a confirmar" };
+
 // Estado de la preinscripción, que es la etapa con inicio y cierre conocidos. No se calcula un estado de
 // toda la convocatoria: etapas como «Inicio de clases» solo tienen fecha de comienzo.
 export function estadoDePreinscripcion(ingreso, hoy = hoyEnArgentina()) {
   const { desde, hasta } = ingreso?.preinscripcion ?? {};
   if (!ingreso?.convocatoria || !desde || !hasta) {
-    return { tipo: "sin-convocatoria", etiqueta: "Fechas a confirmar" };
+    return FECHAS_A_CONFIRMAR;
   }
   if (hoy < desde) {
     return { tipo: "proxima", etiqueta: "Próxima preinscripción", texto: `La preinscripción abre el ${textoDeDia(desde)}.` };
@@ -67,6 +70,22 @@ export function estadoDePreinscripcion(ingreso, hoy = hoyEnArgentina()) {
 // Una etapa está en curso si hoy está entre su inicio y su cierre. Varias pueden estarlo a la vez
 // (por ejemplo, el curso y el examen). Las que no tienen cierre nunca se marcan: no se inventa un fin.
 export const estaEnCurso = ({ desde, hasta }, hoy = hoyEnArgentina()) => Boolean(hasta) && desde <= hoy && hoy <= hasta;
+
+// Última fecha conocida del cronograma: la más tardía entre todos los inicios y cierres (también las etapas
+// «A partir del…», que no tienen cierre). "" si no hay convocatoria.
+export function ultimaFechaConocida(ingreso) {
+  if (!ingreso?.convocatoria || !ingreso.preinscripcion?.desde) return "";
+  const pasos = [ingreso.preinscripcion, ...(ingreso.etapas ?? [])];
+  const fechas = pasos.flatMap(({ desde, hasta }) => [desde, hasta]).filter(Boolean);
+  return fechas.reduce((ultima, fecha) => (fecha > ultima ? fecha : ultima), "");
+}
+
+// Ya pasaron todas las fechas conocidas: el sitio la muestra debajo, como convocatoria anterior de referencia,
+// hasta que se cargue una nueva. No se afirma que el proceso terminó: solo que pasaron sus fechas.
+export function esConvocatoriaAnterior(ingreso, hoy = hoyEnArgentina()) {
+  const ultima = ultimaFechaConocida(ingreso);
+  return Boolean(ultima) && hoy > ultima;
+}
 
 // Cronograma para mostrar: la preinscripción primero y después las demás etapas, en el orden cargado.
 export function cronogramaDe(ingreso, hoy = hoyEnArgentina()) {

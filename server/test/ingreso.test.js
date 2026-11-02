@@ -7,11 +7,13 @@ import { crearRepoContenidoMemoria } from "../src/repos/contenido.memoria.js";
 import { VALORES_INICIALES, validarSeccion } from "../src/services/contenido.js";
 import {
   cronogramaDe,
+  esConvocatoriaAnterior,
   estaEnCurso,
   estadoDePreinscripcion,
   hoyEnArgentina,
   textoDeDia,
   textoDeRango,
+  ultimaFechaConocida,
 } from "../../client/src/ingreso.js";
 
 // Ingreso editable desde el panel: sección «ingreso» del contenido institucional y su página pública.
@@ -200,4 +202,31 @@ test("quitar la convocatoria: confirmación con lo que se borra y lo que se cons
   // Lo que queda después de quitarla es válido: el servidor acepta guardarlo.
   const sinConvocatoria = { ...CONVOCATORIA_2026, convocatoria: "", preinscripcion: { desde: "", hasta: "", detalle: "" }, etapas: [] };
   assert.equal(errorDe(sinConvocatoria), undefined);
+});
+
+test("convocatoria anterior: cuando pasaron todas sus fechas conocidas, también los inicios sin cierre", () => {
+  // La última fecha conocida es el 10/8 (confirmación de vacantes e inicio de clases), no el cierre del examen.
+  assert.equal(ultimaFechaConocida(CONVOCATORIA_2026), "2026-08-10");
+  const anterior = (hoy) => esConvocatoriaAnterior(CONVOCATORIA_2026, hoy);
+  assert.equal(anterior("2026-07-15"), false, "preinscripción abierta");
+  assert.equal(anterior("2026-08-05"), false, "curso y examen en curso");
+  assert.equal(anterior("2026-08-08"), false, "todavía faltan etapas del 10/8");
+  assert.equal(anterior("2026-08-10"), false, "el 10/8 inclusive");
+  assert.equal(anterior("2026-08-11"), true);
+  assert.equal(anterior("2026-11-02"), true);
+  // Una etapa con cierre posterior a todo lo demás también cuenta.
+  const conCierreTardio = conCambio({ etapas: [{ nombre: "Curso", desde: "2026-06-08", hasta: "2026-09-30", detalle: "" }] });
+  assert.equal(ultimaFechaConocida(conCierreTardio), "2026-09-30");
+  assert.equal(ultimaFechaConocida(VALORES_INICIALES.ingreso), "");
+  assert.equal(esConvocatoriaAnterior(VALORES_INICIALES.ingreso, "2026-11-02"), false);
+  // En la convocatoria anterior ninguna etapa queda en curso.
+  assert.ok(cronogramaDe(CONVOCATORIA_2026, "2026-08-11").every((paso) => !paso.enCurso));
+});
+
+test("la página: la próxima arriba y la anterior debajo, visible y sin botón de preinscripción", () => {
+  const pagina = leer("pages/Ingreso.jsx");
+  assert.match(pagina, /esConvocatoriaAnterior\(ingreso\)/);
+  assert.match(pagina, /Convocatoria anterior: <span>\{ingreso\.convocatoria\}<\/span>/);
+  assert.match(pagina, /\{actual && preinscripcion\.tipo === "abierta" &&/);
+  assert.doesNotMatch(pagina, /<details[^>]*convocatoria-anterior/, "la anterior no va plegada");
 });
