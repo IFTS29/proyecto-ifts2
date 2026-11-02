@@ -1,29 +1,19 @@
-import { useRef, useEffect, useState } from "react";
-import { api } from "../api";
+import { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ENLACES, EXTERNO } from "../enlaces.js";
+import useEventos from "../useEventos.js";
+import TarjetaEvento from "../components/TarjetaEvento.jsx";
 
 const EVENTOS_EN_INICIO = 8; // los más recientes
 
 export default function Inicio() {
   const carRef = useRef(null);
   const pausa = useRef(false);
-  const [eventos, setEventos] = useState([]);
-
-  useEffect(() => {
-    let cancelado = false;
-    // Los mismos eventos que la galería: cargados a mano y llegados de Instagram, solo los visibles.
-    // Así, lo que se edita u oculta desde el panel se ve igual en el inicio.
-    api("/events")
-      .then(({ eventos: lista = [] }) => {
-        // El servidor los devuelve del más reciente al más antiguo.
-        if (!cancelado) setEventos(lista.slice(0, EVENTOS_EN_INICIO));
-      })
-      .catch(() => {});
-    return () => {
-      cancelado = true;
-    };
-  }, []);
+  // Los mismos eventos que la galería: cargados a mano y llegados de Instagram, solo los visibles.
+  // Así, lo que se edita u oculta desde el panel se ve igual en el inicio.
+  // El servidor los devuelve del más reciente al más antiguo.
+  const { eventos: todos, estado, reintentar } = useEventos();
+  const eventos = todos.slice(0, EVENTOS_EN_INICIO);
 
   const mover = (d) => {
     const c = carRef.current;
@@ -615,72 +605,28 @@ export default function Inicio() {
             onFocus={() => (pausa.current = true)}
             onBlur={() => (pausa.current = false)}
           >
-            {eventos.length > 0 ? (
-              eventos.map((post) => {
-                const titulo = post.titulo || "Evento institucional";
-                const resumen = post.resumen || "";
-                const fecha = post.fechaEvento
-                  ? new Date(post.fechaEvento).toLocaleDateString("es-AR", { month: "long", year: "numeric" })
-                  : "Reciente";
-                const esVideo = post.tipoMedio === "VIDEO";
-                const cantidad = post.cantidadMedios || 1;
-                const imagen =
-                  post.fotoPrincipal ||
-                  post.localImage ||
-                  post.localThumbnail ||
-                  "/media/instagram/placeholder.svg";
-
-                return (
-                  <li key={post.id}>
-                    <Link className="tarjeta" to={`/evento?id=${post.id}`} state={{ post }}>
-                      <span className="cant">
-                        {esVideo ? (
-                          "🎬 Video"
-                        ) : (
-                          <>
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <rect x="3" y="5" width="18" height="14" rx="2" />
-                              <circle cx="9" cy="10" r="2" />
-                              <path d="M21 16l-5-5-8 8" />
-                            </svg>
-                            {cantidad} {cantidad === 1 ? "foto" : "fotos"}
-                          </>
-                        )}
-                      </span>
-                      <img
-                        src={imagen}
-                        alt={`Foto del evento ${titulo}`}
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/media/instagram/placeholder.svg";
-                        }}
-                      />
-                      <div className="texto">
-                        <time>{fecha}</time>
-                        <h3>{titulo}</h3>
-                        <p>{resumen}</p>
-                        <span className="ver">
-                          {esVideo ? "Ver el video" : "Ver las fotos"}
-                        </span>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })
-            ) : (
-              <li>
-                <p style={{ color: "var(--suave)" }}>Todavía no hay eventos publicados.</p>
+            {eventos.map((evento) => (
+              <li key={evento.id}>
+                <TarjetaEvento evento={evento} />
               </li>
-            )}
+            ))}
           </ul>
+          {estado === "cargando" && (
+            <p className="estado-vacio" role="status">
+              Cargando eventos…
+            </p>
+          )}
+          {estado === "error" && (
+            <div className="estado-vacio" role="alert">
+              <p>No se pudieron cargar los eventos.</p>
+              <button type="button" className="boton boton-linea boton-chico" onClick={reintentar}>
+                Reintentar
+              </button>
+            </div>
+          )}
+          {estado === "listo" && eventos.length === 0 && (
+            <p className="estado-vacio">Todavía no hay eventos publicados.</p>
+          )}
           <div className="pie-carrusel">
             <p>
               <svg
