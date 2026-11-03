@@ -412,3 +412,30 @@ export function seccionPublica(clave, guardada) {
   }
   return { datos, actualizadoEn: guardada.actualizadoEn, inicial: false };
 }
+
+// ---- Historial de convocatorias de ingreso (#35) ----
+// Al guardar la sección «ingreso», la convocatoria que estaba guardada pasa al historial si tenía nombre y fechas
+// y la nueva es otra (otro cuatrimestre o año, o ninguna, con «Quitar convocatoria»). Corregir la misma
+// convocatoria no la manda al historial.
+const tieneFechas = (ingreso) =>
+  [ingreso?.preinscripcion, ...(ingreso?.etapas ?? [])].some((e) => e?.desde || e?.hasta);
+
+export function pasaAlHistorial(anterior, nueva) {
+  return Boolean(anterior?.convocatoria) && tieneFechas(anterior) && nueva?.convocatoria !== anterior.convocatoria;
+}
+
+// Copia completa de la convocatoria (preinscripción, etapas con fechas, aclaraciones y enlaces, video y correo),
+// sin las preguntas frecuentes, que tienen su propia sección. No depende de cambios posteriores del formulario.
+export function copiaParaElHistorial(ingreso) {
+  const copia = structuredClone(ingreso);
+  delete copia.preguntas;
+  return copia;
+}
+
+// Del más reciente al más antiguo: «2.º cuatrimestre 2026» antes que «1.º cuatrimestre 2026».
+const ordenDeConvocatoria = (texto) => {
+  const [, cuatrimestre, anio] = String(texto).match(/^([12])\.º cuatrimestre (\d{4})$/) ?? [];
+  return anio ? Number(anio) * 10 + Number(cuatrimestre) : 0;
+};
+export const ordenarHistorial = (lista) =>
+  [...lista].sort((a, b) => ordenDeConvocatoria(b.convocatoria) - ordenDeConvocatoria(a.convocatoria));

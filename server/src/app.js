@@ -17,6 +17,7 @@ import { crearRepoPublicacionesMemoria } from "./repos/publicaciones.memoria.js"
 import { crearRutasAcademica } from "./routes/academica.js";
 import { crearRutasMesas } from "./routes/mesas.js";
 import { crearRepoContenidoMemoria } from "./repos/contenido.memoria.js";
+import { crearRepoConvocatoriasMemoria } from "./repos/convocatorias.memoria.js";
 import { crearRutasContenido } from "./routes/contenido.js";
 import path from "node:path";
 import fs from "node:fs";
@@ -68,6 +69,7 @@ export function crearApp({
   llamados = crearRepoAcademicoMemoria(),
   mesas = crearRepoAcademicoMemoria(),
   contenido = crearRepoContenidoMemoria(),
+  convocatoriasAnteriores = crearRepoConvocatoriasMemoria(),
   // Día de hoy en Argentina ("AAAA-MM-DD") para el archivado por fecha. Las pruebas lo reemplazan.
   hoy = () => diaEnArgentina(),
 } = {}) {
@@ -113,7 +115,7 @@ export function crearApp({
     crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),
   );
 
-  app.use("/api/content", crearRutasContenido({ config, usuarios, contenido }));
+  app.use("/api/content", crearRutasContenido({ config, usuarios, contenido, convocatoriasAnteriores }));
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });

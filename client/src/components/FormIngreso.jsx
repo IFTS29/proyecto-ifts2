@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from "react";
 import { useFormularioDeContenido } from "./formularioContenido.js";
 import { useConfirmar } from "./Confirmacion.jsx";
 import FilaPlegable from "./FilaPlegable.jsx";
+import HistorialConvocatorias from "./HistorialConvocatorias.jsx";
 import { filaDelError, useFilas } from "./useFilas.js";
 import { QUITAR_CONVOCATORIA, prepararConvocatoria, quitarEtapa } from "../confirmaciones.js";
 import { ENLACES } from "../enlaces.js";
@@ -348,6 +349,9 @@ export default function FormIngreso({ seccion, alGuardar, alCambiarSucio, alCamb
           </div>
         </section>
       </fieldset>
+
+      {/* Fuera del fieldset: es de consulta y no se guarda con el formulario. */}
+      <HistorialConvocatorias />
 
       <p className={"aviso" + (error ? " visible error" : "")} role="alert">
         {error}

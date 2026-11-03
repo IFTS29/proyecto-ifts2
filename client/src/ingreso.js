@@ -190,3 +190,18 @@ export function pideConfirmarConvocatoriaNueva({ actual, guardada, nueva, datos 
   const desde = actual || guardada;
   return Boolean(desde) && Boolean(nueva) && nueva !== desde && tieneDatosDeConvocatoria(datos);
 }
+
+// ---- Historial de convocatorias (panel, solo de consulta) ----
+
+// Pasos de una convocatoria guardada en el historial, con sus fechas en texto. Sin fechas: «Sin fechas».
+export function pasosDelHistorial(datos = {}) {
+  const pasos = [{ nombre: "Preinscripción", ...(datos.preinscripcion ?? {}) }, ...(datos.etapas ?? [])];
+  return pasos.map((paso) => ({ ...paso, fechas: paso.desde ? textoDeRango(paso) : "Sin fechas" }));
+}
+
+// «Guardada el 3/11/2026», en hora de Argentina.
+export function textoGuardadaEl(iso) {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return "";
+  return `Guardada el ${fecha.toLocaleDateString("es-AR", { timeZone: ZONA_HORARIA })}`;
+}
