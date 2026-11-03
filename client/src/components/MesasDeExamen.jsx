@@ -24,8 +24,8 @@ export default function MesasDeExamen() {
       {!error && !llamados && <p>Cargando las mesas de examen…</p>}
       {llamados && llamados.length === 0 && (
         <p>
-          Todavía no hay mesas de examen publicadas. Para consultas, escribir a Bedelía desde{" "}
-          <Link to="/contacto">Contacto</Link>.
+          Todavía no hay mesas de examen publicadas. Para consultar por las mesas, utilizar el{" "}
+          <Link to="/contacto">formulario de contacto</Link>.
         </p>
       )}
       {llamados?.map((llamado) => (

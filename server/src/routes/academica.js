@@ -13,7 +13,13 @@ import {
   validarHorario,
 } from "../services/academica.js";
 import { pdfHorarios, textoFecha } from "../services/academica.pdf.js";
-import { diaEnArgentina, llamadosEnElSitio, periodosEnElSitio } from "../services/archivo.js";
+import {
+  diaEnArgentina,
+  llamadoFinalizado,
+  llamadosEnElSitio,
+  periodoAnterior,
+  periodosEnElSitio,
+} from "../services/archivo.js";
 import { enviarPdf, paraArchivo } from "./pdf.js";
 
 const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
@@ -67,16 +73,23 @@ export function crearRutasAcademica({
   // y los llamados de mesas de examen publicados (también los que son solo un anuncio, sin mesas).
   router.get("/vigente", async (req, res, next) => {
     try {
-      const publicados = periodosEnElSitio(await publicacionesHorarios.listar(), hoy())
+      const dia = hoy(); // un solo "hoy" para toda la respuesta
+      const publicados = periodosEnElSitio(await publicacionesHorarios.listar(), dia)
         .sort((a, b) => b.cicloLectivo - a.cicloLectivo || b.cuatrimestre - a.cuatrimestre)
         .map((p) => ({
           periodo: codigoPeriodo(p),
           cicloLectivo: p.cicloLectivo,
           cuatrimestre: p.cuatrimestre,
           publicadoEn: p.publicadoEn,
+          anterior: periodoAnterior(p, dia),
           horarios: ordenarHorarios(p.horarios),
         }));
-      res.json({ periodos: publicados, llamados: llamadosEnElSitio(await llamados.listar(), hoy()) });
+      // "anterior" y "finalizado": Alumnos los sigue mostrando, con un aviso de que ya terminaron.
+      const turnos = llamadosEnElSitio(await llamados.listar(), dia).map((l) => ({
+        ...l,
+        finalizado: llamadoFinalizado(l, dia),
+      }));
+      res.json({ periodos: publicados, llamados: turnos });
     } catch (e) {
       next(e);
     }

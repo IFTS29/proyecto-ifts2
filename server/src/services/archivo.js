@@ -67,6 +67,13 @@ export function periodosEnElSitio(publicaciones, hoy) {
 export const periodoArchivado = (publicacion, publicaciones, hoy) =>
   Boolean(publicacion?.publicado) && !periodosEnElSitio(publicaciones, hoy).includes(publicacion);
 
+// Período anterior: su cuatrimestre ya terminó según el calendario. Mismo corte que el panel (periodoActual en
+// client/src/academica.js): desde agosto es el 2.º cuatrimestre. Alumnos lo sigue mostrando, con un aviso.
+export function periodoAnterior(periodo, hoy) {
+  const [anio, mes] = hoy.split("-").map(Number);
+  return ordenPeriodo(periodo) < anio * 10 + (mes >= 8 ? 2 : 1);
+}
+
 // ---------- Mesas de examen ----------
 // Un llamado publicado pasa al archivo cuando pasaron más de 30 días desde su fecha más tardía conocida: la mesa
 // más tardía, el «hasta» o, si no hay otra, el «desde» del llamado. Sin ninguna fecha no se archiva (no hay con
@@ -79,6 +86,14 @@ export function ultimaFechaDelLlamado(llamado) {
     DIA.test(f ?? ""),
   );
   return fechas.reduce((ultima, f) => (f > ultima ? f : ultima), "");
+}
+
+// Turno finalizado: todas sus mesas tienen fecha y ya pasaron. Si alguna está «A confirmar», todavía no. Un
+// anuncio sin mesas termina cuando pasa su «hasta»; sin «hasta» no se sabe, así que no se marca.
+export function llamadoFinalizado(llamado, hoy) {
+  const mesas = llamado.mesas ?? [];
+  if (mesas.length === 0) return DIA.test(llamado.hasta ?? "") && llamado.hasta < hoy;
+  return mesas.every((m) => DIA.test(m.fecha ?? "") && m.fecha < hoy);
 }
 
 // Id del llamado más reciente entre todos los que se publicaron alguna vez (también los retirados), con el mismo

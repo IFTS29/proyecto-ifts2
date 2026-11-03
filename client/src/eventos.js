@@ -329,7 +329,9 @@ export function datosDeTarjeta(evento = {}) {
 // Agrupa los eventos por año (en hora de Argentina), del más reciente al más antiguo; dentro de cada año,
 // también del más reciente al más antiguo. Los que no tienen una fecha válida van al final, en «Sin fecha»,
 // para que no desaparezcan. Es solo una forma de mostrarlos: no tiene que ver con el archivado (#35).
-export function eventosPorAnio(eventos = []) {
+// Con "anioActual", ese año aparece siempre, aunque todavía no tenga eventos (la galería no salta al año anterior
+// el 1/1 como si fuera el último).
+export function eventosPorAnio(eventos = [], anioActual = null) {
   const grupos = new Map();
   const sinFecha = [];
   for (const evento of eventos) {
@@ -342,6 +344,7 @@ export function eventosPorAnio(eventos = []) {
     if (!grupos.has(anio)) grupos.set(anio, []);
     grupos.get(anio).push(evento);
   }
+  if (anioActual && !grupos.has(anioActual)) grupos.set(anioActual, []);
   const resultado = [...grupos.entries()]
     .sort(([a], [b]) => b - a)
     .map(([anio, lista]) => ({

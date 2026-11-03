@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IMGS } from "../imagenes";
-import { eventosPorAnio } from "../eventos.js";
+import { diaEnArgentina, eventosPorAnio } from "../eventos.js";
 import useEventos from "../useEventos.js";
 import TarjetaEvento from "../components/TarjetaEvento.jsx";
 
@@ -8,10 +8,15 @@ const cantidad = (n) => `${n} ${n === 1 ? "evento" : "eventos"}`;
 
 // Galería de eventos: un bloque por año, con el más reciente abierto y los anteriores plegados.
 // Plegar un año es solo una forma de mostrarlo: el archivado de eventos es otra cosa (#35).
+// El bloque del año en curso (en Argentina) está siempre, abierto, aunque todavía no tenga eventos. Si está vacío,
+// también se abre el año más reciente con eventos, para que la galería no parezca vacía el 1/1.
 export default function Eventos() {
   const [vista, setVista] = useState("grilla");
   const { eventos, estado, reintentar } = useEventos();
-  const grupos = eventosPorAnio(eventos);
+  const anioActual = Number(diaEnArgentina().slice(0, 4));
+  const grupos = eventosPorAnio(eventos, anioActual);
+  const masRecienteConEventos = grupos.find((g) => g.eventos.length > 0)?.clave;
+  const hayEventos = Boolean(masRecienteConEventos);
 
   return (
     <div className="pagina activa">
@@ -33,7 +38,7 @@ export default function Eventos() {
               <span className="raya" aria-hidden="true" />
               <p>Jornadas, muestras y encuentros gastronómicos, del más reciente al más antiguo.</p>
             </div>
-            {grupos.length > 0 && (
+            {hayEventos && (
               <div
                 role="group"
                 aria-label="Cómo ver los eventos"
@@ -89,16 +94,16 @@ export default function Eventos() {
               </button>
             </div>
           )}
-          {estado === "listo" && grupos.length === 0 && (
-            <p className="estado-vacio">Todavía no hay eventos publicados.</p>
-          )}
-
           {estado === "listo" &&
-            grupos.map((grupo, i) => (
-              <details className="anio-eventos" key={grupo.clave} open={i === 0}>
+            grupos.map((grupo) => (
+              <details
+                className="anio-eventos"
+                key={grupo.clave}
+                open={grupo.clave === String(anioActual) || grupo.clave === masRecienteConEventos}
+              >
                 <summary>
                   <span className="anio">{grupo.titulo}</span>
-                  <span className="cuenta">{cantidad(grupo.eventos.length)}</span>
+                  {grupo.eventos.length > 0 && <span className="cuenta">{cantidad(grupo.eventos.length)}</span>}
                   <svg
                     className="flecha"
                     viewBox="0 0 24 24"
@@ -112,13 +117,17 @@ export default function Eventos() {
                     <path d="M6 9l6 6 6-6" />
                   </svg>
                 </summary>
-                <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
-                  {grupo.eventos.map((evento) => (
-                    <li key={evento.id}>
-                      <TarjetaEvento evento={evento} />
-                    </li>
-                  ))}
-                </ul>
+                {grupo.eventos.length === 0 ? (
+                  <p className="estado-vacio">Todavía no hay eventos publicados de {grupo.titulo}.</p>
+                ) : (
+                  <ul className={"grilla-eventos" + (vista === "lista" ? " lista" : "")}>
+                    {grupo.eventos.map((evento) => (
+                      <li key={evento.id}>
+                        <TarjetaEvento evento={evento} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </details>
             ))}
         </div>
