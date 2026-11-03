@@ -404,9 +404,6 @@ export default function AdminMesas() {
           alCerrar={cerrarModal}
           ancha
         >
-          <p className="aviso visible aviso-vista-previa">
-            Vista previa — Versión de trabajo. Así se vería en la página de Alumnos con lo guardado. No es lo publicado.
-          </p>
           {llamado && <LlamadoPublico llamado={llamado} />}
           <div className="acciones">
             <button

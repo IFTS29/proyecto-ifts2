@@ -6,6 +6,9 @@ import { avisoDelLlamado, textoAnio, textoFechaDeMesa, textoFechasDelLlamado, te
 // "accion" (opcional) va debajo, por ejemplo el enlace al PDF.
 // En Alumnos, un turno que ya terminó sigue a la vista con «Turno finalizado» ("finalizado" lo calcula el servidor).
 // La vista previa del panel no lo recibe.
+// En el celular cada mesa se muestra como una ficha (fecha y hora arriba, la materia y el resto debajo), sin
+// desplazar la tabla a los costados (H-95). Los encabezados siguen en la tabla, ocultos solo a la vista, y los roles
+// explícitos conservan la tabla para los lectores de pantalla aunque el CSS cambie cómo se dibuja.
 export default function LlamadoPublico({ llamado, accion }) {
   const fechas = textoFechasDelLlamado(llamado);
   const aviso = avisoDelLlamado(llamado);
@@ -24,26 +27,69 @@ export default function LlamadoPublico({ llamado, accion }) {
       {aviso && <p className="aviso-llamado">{aviso}</p>}
       {llamado.mesas.length > 0 && (
         <div className="tabla-caja">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Hora</th>
-                <th scope="col">Año</th>
-                <th scope="col">Materia</th>
-                {conTribunal && <th scope="col">Mesa examinadora</th>}
-                {conAula && <th scope="col">Aula</th>}
+          <table role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader" scope="col">
+                  Fecha
+                </th>
+                <th role="columnheader" scope="col">
+                  Hora
+                </th>
+                <th role="columnheader" scope="col" className="col-anio">
+                  Año
+                </th>
+                <th role="columnheader" scope="col">
+                  Materia
+                </th>
+                {conTribunal && (
+                  <th role="columnheader" scope="col">
+                    Mesa examinadora
+                  </th>
+                )}
+                {conAula && (
+                  <th role="columnheader" scope="col">
+                    Aula
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {llamado.mesas.map((m) => (
-                <tr key={m.id}>
-                  <td className="sin-corte">{textoFechaDeMesa(m.fecha)}</td>
-                  <td className="sin-corte">{textoHoraDeMesa(m.hora)}</td>
-                  <td>{textoAnio(m.anioCarrera)}</td>
-                  <td>{m.materia}</td>
-                  {conTribunal && <td>{m.tribunal || "A confirmar"}</td>}
-                  {conAula && <td className={m.aula ? undefined : "sin-corte"}>{m.aula || "A confirmar"}</td>}
+                // Sin fecha ni hora, la ficha del celular dice una sola vez «Fecha y hora a confirmar». Es solo
+                // visual: los lectores de pantalla siguen leyendo las celdas Fecha y Hora por separado.
+                <tr role="row" key={m.id} className={!m.fecha && !m.hora ? "sin-fecha-ni-hora" : undefined}>
+                  <td role="cell" className="col-fecha sin-corte">
+                    <span className="dato-celda">{textoFechaDeMesa(m.fecha)}</span>
+                    {!m.fecha && !m.hora && (
+                      <span className="fecha-hora-movil" aria-hidden="true">
+                        Fecha y hora a confirmar
+                      </span>
+                    )}
+                  </td>
+                  <td role="cell" className="col-hora sin-corte">
+                    {textoHoraDeMesa(m.hora)}
+                  </td>
+                  <td role="cell" className="col-anio">
+                    {textoAnio(m.anioCarrera)}
+                  </td>
+                  <td role="cell" className="col-materia">
+                    {m.materia}
+                    {/* Solo a la vista en el celular: los lectores de pantalla ya leen la columna Año. */}
+                    <span className="anio-movil" aria-hidden="true">
+                      {textoAnio(m.anioCarrera)} año
+                    </span>
+                  </td>
+                  {conTribunal && (
+                    <td role="cell" className="col-detalle" data-etiqueta="Mesa examinadora">
+                      {m.tribunal || "A confirmar"}
+                    </td>
+                  )}
+                  {conAula && (
+                    <td role="cell" className={"col-detalle" + (m.aula ? "" : " sin-corte")} data-etiqueta="Aula">
+                      {m.aula || "A confirmar"}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

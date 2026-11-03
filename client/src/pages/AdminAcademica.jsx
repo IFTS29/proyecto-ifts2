@@ -401,9 +401,6 @@ export default function AdminAcademica() {
           alCerrar={cerrarModal}
           ancha
         >
-          <p className="aviso visible aviso-vista-previa">
-            Vista previa — Versión de trabajo. Así se vería la página de Alumnos con lo guardado. No es lo publicado.
-          </p>
           {estado && <HorariosPublicos key={codigoPeriodo(estado)} horarios={estado.horarios} />}
           <div className="acciones">
             <button

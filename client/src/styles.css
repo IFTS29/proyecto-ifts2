@@ -3427,12 +3427,6 @@ body[data-rol="bedelia"] [data-solo-admin] {
   color: var(--naranja-texto);
 }
 
-.aviso-vista-previa {
-  margin-top: 0;
-  background: var(--rojo-suave);
-  color: var(--rojo);
-}
-
 .tarjeta-accion {
   display: flex;
   gap: 16px;
@@ -4086,6 +4080,115 @@ body[data-rol="bedelia"] [data-solo-admin] {
 .llamado-publico .acciones {
   margin-top: 16px;
   align-items: center;
+}
+
+/* Mesas de examen en el celular (H-95): cada mesa es una ficha (fecha y hora arriba; materia, año, mesa
+   examinadora y aula debajo), para no desplazar la tabla a los costados. Reglas propias, separadas de las de los
+   horarios, aunque se parezcan: así un cambio acá no altera cómo se ven los horarios. */
+.llamado-publico .anio-movil,
+.llamado-publico .fecha-hora-movil {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  /* Los encabezados y la celda Año se ocultan solo a la vista: los lectores de pantalla los siguen leyendo. */
+  .llamado-publico thead,
+  .llamado-publico .col-anio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .llamado-publico table,
+  .llamado-publico tbody {
+    display: block;
+  }
+
+  .llamado-publico tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .llamado-publico tr:last-child {
+    border-bottom: 0;
+  }
+
+  .llamado-publico td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .llamado-publico .col-fecha,
+  .llamado-publico .col-hora {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--suave);
+  }
+
+  .llamado-publico .col-materia,
+  .llamado-publico .col-detalle {
+    grid-column: 1 / -1;
+  }
+
+  .llamado-publico .col-materia {
+    font-weight: 600;
+  }
+
+  .llamado-publico .col-detalle {
+    font-size: 14px;
+  }
+
+  /* «A confirmar» puede pasar a otra línea en la ficha. */
+  .llamado-publico .col-detalle.sin-corte {
+    white-space: normal;
+  }
+
+  /* Rótulo visible de la ficha. Para los lectores de pantalla ya está el encabezado de la columna, así que el
+     rótulo se marca como decorativo (texto alternativo vacío); un navegador sin esa sintaxis usa la primera línea. */
+  .llamado-publico .col-detalle::before {
+    content: attr(data-etiqueta) ": ";
+    content: attr(data-etiqueta) ": " / "";
+    color: var(--suave);
+  }
+
+  .llamado-publico .anio-movil {
+    display: block;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--suave);
+  }
+
+  /* Sin fecha ni hora: una sola frase a la vista; las dos celdas siguen para los lectores de pantalla. */
+  .llamado-publico .sin-fecha-ni-hora .dato-celda,
+  .llamado-publico .sin-fecha-ni-hora .col-hora {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .llamado-publico .sin-fecha-ni-hora .fecha-hora-movil {
+    display: inline;
+  }
+
+  /* El botón del PDF ocupa todo el ancho; su texto largo («Descargar mesas de …») queda centrado. */
+  .llamado-publico .acciones .boton {
+    width: 100%;
+    padding: 10px 20px;
+    text-align: center;
+  }
 }
 
 /* Alumnos: turno de mesas o período de horarios que ya terminó, pero sigue a la vista (#35). */
