@@ -13,7 +13,7 @@ import {
   validarHorario,
 } from "../services/academica.js";
 import { pdfHorarios, textoFecha } from "../services/academica.pdf.js";
-import { llamadosPublicados } from "../services/mesas.js";
+import { diaEnArgentina, llamadosEnElSitio, periodosEnElSitio } from "../services/archivo.js";
 import { enviarPdf, paraArchivo } from "./pdf.js";
 
 const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
@@ -24,12 +24,23 @@ const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
 // - la copia publicada ("publicacionesHorarios"), que es lo único que ven los alumnos.
 // Guardar cambia solo los datos de trabajo. Publicar o actualizar reemplaza la copia por lo último guardado.
 // Las mesas de examen están en routes/mesas.js; acá solo se suman los llamados publicados a /vigente.
-export function crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados }) {
+export function crearRutasAcademica({
+  config,
+  usuarios,
+  horarios,
+  publicacionesHorarios,
+  llamados,
+  hoy = () => diaEnArgentina(),
+}) {
   const router = Router();
   // La dirección sale de la configuración del servidor, nunca de la petición (ver config.js).
   const urlContacto = `${config.sitioUrl}/contacto`;
 
   // Datos de trabajo, publicación y cambios pendientes de un período.
+  // Códigos de los períodos que se ven hoy en Alumnos (los demás publicados están archivados).
+  const enElSitio = async () =>
+    new Set(periodosEnElSitio(await publicacionesHorarios.listar(), hoy()).map(codigoPeriodo));
+
   async function estadoDelPeriodo(periodo) {
     const [trabajo, publicacion] = await Promise.all([
       horarios.listar({ cicloLectivo: periodo.cicloLectivo, cuatrimestre: periodo.cuatrimestre }),
@@ -44,6 +55,8 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
       horarios: ordenarHorarios(trabajo),
       publicado,
       publicadoEn: publicacion?.publicadoEn ?? null,
+      // Publicado, pero de un año anterior y no es el último: no se ve en Alumnos (#35).
+      archivado: publicado && !(await enElSitio()).has(codigoPeriodo(periodo)),
       cambios,
     };
   }
@@ -54,8 +67,7 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
   // y los llamados de mesas de examen publicados (también los que son solo un anuncio, sin mesas).
   router.get("/vigente", async (req, res, next) => {
     try {
-      const publicados = (await publicacionesHorarios.listar())
-        .filter((p) => p.publicado)
+      const publicados = periodosEnElSitio(await publicacionesHorarios.listar(), hoy())
         .sort((a, b) => b.cicloLectivo - a.cicloLectivo || b.cuatrimestre - a.cuatrimestre)
         .map((p) => ({
           periodo: codigoPeriodo(p),
@@ -64,7 +76,7 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
           publicadoEn: p.publicadoEn,
           horarios: ordenarHorarios(p.horarios),
         }));
-      res.json({ periodos: publicados, llamados: llamadosPublicados(await llamados.listar()) });
+      res.json({ periodos: publicados, llamados: llamadosEnElSitio(await llamados.listar(), hoy()) });
     } catch (e) {
       next(e);
     }
@@ -80,9 +92,9 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
       if (turno && !TURNOS.includes(turno)) return res.status(400).json({ error: "El turno no es válido." });
 
       const publicacion = await publicacionesHorarios.buscar(periodo);
-      const lista = publicacion?.publicado
-        ? publicacion.horarios.filter((h) => !turno || h.turno === turno)
-        : [];
+      // Un período archivado no tiene PDF público (el panel sigue teniendo el de la vista previa).
+      const visible = publicacion?.publicado && (await enElSitio()).has(codigoPeriodo(periodo));
+      const lista = visible ? publicacion.horarios.filter((h) => !turno || h.turno === turno) : [];
       if (lista.length === 0) {
         const delTurno = turno ? ` del turno ${NOMBRE_TURNO[turno]}` : "";
         return res.status(404).json({ error: `No hay horarios publicados${delTurno} del ${textoPeriodo(periodo)}.` });
@@ -110,6 +122,7 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
     try {
       const [trabajo, publicaciones] = await Promise.all([horarios.listar(), publicacionesHorarios.listar()]);
       const codigos = new Set([...trabajo, ...publicaciones].map(codigoPeriodo));
+      const visibles = new Set(periodosEnElSitio(publicaciones, hoy()).map(codigoPeriodo));
       const periodos = [...codigos]
         .map(leerPeriodo)
         .sort((a, b) => b.cicloLectivo - a.cicloLectivo || b.cuatrimestre - a.cuatrimestre)
@@ -122,6 +135,7 @@ export function crearRutasAcademica({ config, usuarios, horarios, publicacionesH
             ...periodo,
             materias: delPeriodo.length,
             publicado,
+            archivado: publicado && !visibles.has(codigoPeriodo(periodo)),
             hayCambios: publicado && compararConPublicado(delPeriodo, publicacion.horarios).length > 0,
           };
         });

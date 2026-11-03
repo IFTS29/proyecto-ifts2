@@ -21,7 +21,15 @@ export default function ResumenHorarios({
       <h2 id="titulo-resumen">Horarios de cursada · {textoPeriodo(estado)}</h2>
 
       <p className="estado-publicacion">
-        {estado.publicado ? (
+        {estado.publicado && estado.archivado ? (
+          <>
+            <span className="etiqueta et-gris">Archivado</span>
+            <span>
+              Publicado, pero de un año anterior: no se muestra en Alumnos (hay períodos más recientes). Última
+              publicación: {textoFechaHora(estado.publicadoEn)}
+            </span>
+          </>
+        ) : estado.publicado ? (
           <>
             <span className="etiqueta et-verde">Publicado</span>
             <span>Última publicación: {textoFechaHora(estado.publicadoEn)}</span>

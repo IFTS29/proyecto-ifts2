@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { autenticar, requiereRol } from "../middleware/auth.js";
+import { diaEnArgentina, llamadosEnElSitio } from "../services/archivo.js";
 import {
   compararLlamado,
   copiaParaPublicar,
@@ -25,10 +26,14 @@ const NOMBRE_DUPLICADO = "Ya existe un llamado con ese nombre.";
 // Guardar cambia solo los datos de trabajo. Publicar o actualizar reemplaza la copia por lo último guardado.
 // Se monta antes que las rutas de horarios: por eso cada ruta del panel pide la sesión por su cuenta,
 // en lugar de un router.use que también alcanzaría a las rutas públicas de horarios.
-export function crearRutasMesas({ config, usuarios, llamados, mesas }) {
+export function crearRutasMesas({ config, usuarios, llamados, mesas, hoy = () => diaEnArgentina() }) {
   const router = Router();
   const urlContacto = `${config.sitioUrl}/contacto`;
   const panel = [autenticar({ config, usuarios }), requiereRol("admin", "bedelia")];
+
+  // Ids de los llamados que se ven hoy en Alumnos (los demás publicados están archivados).
+  const idsEnElSitio = async () =>
+    new Set(llamadosEnElSitio(await llamados.listar(), hoy()).map((l) => l.id));
 
   // Datos de trabajo, publicación y cambios pendientes de un llamado.
   async function estadoDelLlamado(llamado) {
@@ -44,6 +49,8 @@ export function crearRutasMesas({ config, usuarios, llamados, mesas }) {
       mesas: ordenarMesas(deTrabajo),
       publicado,
       publicadoEn: publicacion ? new Date(publicacion.publicadoEn).toISOString() : null,
+      // Publicado, pero pasó más de 30 días de su última fecha y no es el último: no se ve en Alumnos (#35).
+      archivado: publicado && !(await idsEnElSitio()).has(llamado.id),
       // Si existe la copia, se publicó alguna vez: aunque se haya retirado, ya no se puede eliminar.
       sePublico: Boolean(publicacion),
       // Los cambios solo importan si está publicado: si no, Publicar toma todo lo guardado.
@@ -67,7 +74,10 @@ export function crearRutasMesas({ config, usuarios, llamados, mesas }) {
       if (!req.query.llamado) return res.status(400).json({ error: "Falta indicar el llamado." });
       const llamado = await llamados.buscarPorId(String(req.query.llamado));
       const [publicado] = llamado ? llamadosPublicados([llamado]) : [];
-      if (!publicado) return res.status(404).json({ error: "El llamado no está publicado." });
+      // Un llamado archivado no tiene PDF público (el panel sigue teniendo el de la vista previa).
+      if (!publicado || !(await idsEnElSitio()).has(publicado.id)) {
+        return res.status(404).json({ error: "El llamado no está publicado." });
+      }
 
       const pdf = await pdfMesas({
         llamado: publicado,
@@ -87,6 +97,7 @@ export function crearRutasMesas({ config, usuarios, llamados, mesas }) {
   router.get("/llamados", ...panel, async (req, res, next) => {
     try {
       const [todos, todasLasMesas] = await Promise.all([llamados.listar(), mesas.listar()]);
+      const visibles = new Set(llamadosEnElSitio(todos, hoy()).map((l) => l.id));
       const lista = todos
         .sort((a, b) => (b.desde || "").localeCompare(a.desde || "") || a.nombre.localeCompare(b.nombre, "es"))
         .map((l) => {
@@ -99,6 +110,7 @@ export function crearRutasMesas({ config, usuarios, llamados, mesas }) {
             hasta: l.hasta,
             mesas: delLlamado.length,
             publicado,
+            archivado: publicado && !visibles.has(l.id),
             sePublico: Boolean(l.publicacion),
             hayCambios: publicado && compararLlamado(l, delLlamado, l.publicacion).length > 0,
           };

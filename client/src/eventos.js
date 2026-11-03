@@ -365,3 +365,40 @@ export const parrafosDe = (texto = "") =>
     .split(/\r?\n/)
     .map((parrafo) => parrafo.trim())
     .filter(Boolean);
+
+// ---- Archivo de eventos en el panel (#35) ----
+// El servidor manda "archivado" (calculado por fecha: de hace dos años o más). Cada evento cae en una sola
+// pestaña del panel:
+// - «En el sitio»: visible y vigente, o archivado que la administración eligió mostrar (visibleSiempre).
+// - «Ocultos»: ocultados a mano y todavía vigentes.
+// - «Archivo»: archivados por fecha (también los ocultos) y los que tenían el estado «archivado» de antes.
+export function seccionDelEvento(ev) {
+  if (ev.estado === "archivado") return "archivo";
+  if (ev.archivado && !(ev.estado === "visible" && ev.visibleSiempre)) return "archivo";
+  return ev.estado === "oculto" ? "oculto" : "sitio";
+}
+
+// Se ve en el sitio por decisión de la administración, aunque por su fecha estaría archivado.
+export const visibleFueraDeFecha = (ev) => seccionDelEvento(ev) === "sitio" && Boolean(ev.archivado);
+
+// Año del evento en Argentina, para agrupar el archivo.
+export const anioDelEvento = (ev) => diaEnArgentina(ev.fechaEvento || new Date()).slice(0, 4);
+
+export function confirmacionMostrarArchivado(ev) {
+  const anio = anioDelEvento(ev);
+  const oculto = ev.estado === "oculto";
+  return {
+    titulo: "¿Mostrar este evento en el sitio?",
+    texto:
+      `«${ev.titulo}» es de ${anio} y está en el archivo` +
+      (oculto ? ", y además estaba oculto" : "") +
+      ". Va a volver a verse en el sitio, fuera de su fecha, hasta que se lo vuelva a archivar.",
+    accion: "Mostrar en el sitio",
+  };
+}
+
+export const confirmacionVolverAlArchivo = (ev) => ({
+  titulo: "¿Volver a archivar este evento?",
+  texto: `«${ev.titulo}» deja de verse en el sitio y vuelve al archivo. No se borra nada.`,
+  accion: "Volver al archivo",
+});
