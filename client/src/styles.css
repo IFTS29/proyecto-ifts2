@@ -4138,14 +4138,6 @@ body[data-rol="bedelia"] [data-solo-admin] {
   vertical-align: middle;
 }
 
-.fuente .marca-promocionable {
-  margin: 0 4px 0 0;
-}
-
-.aviso-promocionables {
-  margin: 4px 0 16px;
-}
-
 .detalle-instancia,
 .regimen-movil {
   display: block;

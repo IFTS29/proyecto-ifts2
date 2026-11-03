@@ -185,6 +185,13 @@ test("promocionables: las 14 del listado del instituto (5, 4 y 5 por año)", () 
   assert.ok(!INSTANCIAS.find((x) => x.nombre === "Nutrición").promocionable);
 });
 
+test("promocionables: solo la etiqueta en la tabla, sin aviso sobre el origen del listado (H-94)", () => {
+  const codigo = leer("src/pages/Carrera.jsx") + leer("src/planDeEstudios.js") + leer("src/styles.css");
+  assert.doesNotMatch(codigo, /AVISO_PROMOCIONABLES|aviso-promocionables|listado institucional sin fecha/);
+  assert.doesNotMatch(codigo, /Consultar su vigencia en Bedelía/);
+  assert.match(leer("src/components/TablaPlan.jsx"), /x\.promocionable && <span className="marca-promocionable">Promocionable<\/span>/);
+});
+
 test("La carrera toma el plan de los datos: sin filas ni contadores escritos a mano", () => {
   const codigo = leer("src/pages/Carrera.jsx");
   const tabla = leer("src/components/TablaPlan.jsx");
