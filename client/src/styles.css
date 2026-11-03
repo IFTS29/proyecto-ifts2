@@ -4088,6 +4088,20 @@ body[data-rol="bedelia"] [data-solo-admin] {
   align-items: center;
 }
 
+/* Alumnos: turno de mesas o período de horarios que ya terminó, pero sigue a la vista (#35). */
+.estado-terminado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.aviso-referencia {
+  margin: -8px 0 24px;
+  color: var(--suave);
+}
+
 .llamado-publico .actualizado {
   color: var(--suave);
   font-size: 14px;
@@ -4486,6 +4500,11 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
 .anio-eventos .grilla-eventos {
   padding-bottom: 32px;
+}
+
+/* Año en curso todavía sin eventos. */
+.anio-eventos .estado-vacio {
+  margin-bottom: 32px;
 }
 
 .estado-vacio .boton {

@@ -4,6 +4,8 @@ import { avisoDelLlamado, textoAnio, textoFechaDeMesa, textoFechasDelLlamado, te
 // Un llamado sin mesas (un anuncio) no muestra la tabla. Lo que falta se muestra "A confirmar".
 // Lo usan la página de Alumnos (lo publicado) y la vista previa del panel (los datos de trabajo).
 // "accion" (opcional) va debajo, por ejemplo el enlace al PDF.
+// En Alumnos, un turno que ya terminó sigue a la vista con «Turno finalizado» ("finalizado" lo calcula el servidor).
+// La vista previa del panel no lo recibe.
 export default function LlamadoPublico({ llamado, accion }) {
   const fechas = textoFechasDelLlamado(llamado);
   const aviso = avisoDelLlamado(llamado);
@@ -13,6 +15,11 @@ export default function LlamadoPublico({ llamado, accion }) {
   return (
     <article className="llamado-publico">
       <h3>{llamado.nombre}</h3>
+      {llamado.finalizado && (
+        <div className="estado-terminado">
+          <span className="etiqueta et-gris">Turno finalizado</span>
+        </div>
+      )}
       {fechas && <p className="fechas-llamado">{fechas}</p>}
       {aviso && <p className="aviso-llamado">{aviso}</p>}
       {llamado.mesas.length > 0 && (
