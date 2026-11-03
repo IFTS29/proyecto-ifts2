@@ -42,6 +42,26 @@ export const DOCUMENTOS = {
     kb: 17,
     paginas: 1,
   },
+  // Alumnos. Son materiales distintos: la presentación explica las prácticas profesionalizantes de las
+  // tecnicaturas; la ley regula las pasantías educativas, que no son lo mismo que esas prácticas.
+  practicasProfesionalizantes: {
+    titulo: "Prácticas profesionalizantes 2026",
+    descripcion:
+      "Presentación de la Dirección de Educación Técnica Superior: qué son las prácticas profesionalizantes, " +
+      "sus formatos y cuándo se realizan.",
+    archivo: "/docs/practicas-profesionalizantes-2026.pdf",
+    kb: 1154,
+    paginas: 8,
+  },
+  leyPasantias: {
+    titulo: "Ley 26.427 de Pasantías Educativas",
+    descripcion:
+      "Normativa nacional de referencia sobre las pasantías educativas en empresas y organismos (2008). " +
+      "No es la normativa de las prácticas profesionalizantes de la carrera.",
+    archivo: "/docs/ley-26427-pasantias-educativas.pdf",
+    kb: 312,
+    paginas: 8,
+  },
 };
 
 // «PDF, 340 KB, 66 páginas»

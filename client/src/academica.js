@@ -110,3 +110,39 @@ export const paraBuscar = (texto) =>
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase();
+// ---- Horarios publicados (página de Alumnos y vista previa del panel) ----
+
+export const ANIOS_DE_CARRERA = [1, 2, 3];
+export const TODOS_LOS_ANIOS = "todos";
+
+// Botones del filtro: los tres años y, al final, la vista conjunta (como la hoja «Unificado» del instituto).
+export const OPCIONES_DE_ANIO = [
+  ...ANIOS_DE_CARRERA.map((a) => ({ valor: a, texto: `${a}.º año` })),
+  { valor: TODOS_LOS_ANIOS, texto: "Todos los años" },
+];
+
+// Al entrar se muestra el primer año con materias: cada estudiante busca el suyo.
+export const anioInicial = (horarios) => ANIOS_DE_CARRERA.find((a) => horarios.some((h) => h.anioCarrera === a)) ?? 1;
+
+// Una fila por día de cursada, ordenadas por día, hora y, si coinciden, año. Dos materias de años distintos
+// en la misma franja aparecen las dos (una fila cada una).
+export function filasDeHorarios(horarios, { anio, turno = "" }) {
+  return horarios
+    .filter((h) => !turno || h.turno === turno)
+    .filter((h) => anio === TODOS_LOS_ANIOS || h.anioCarrera === anio)
+    .flatMap((h) => h.dias.map((franja) => ({ ...franja, h })))
+    .sort(
+      (a, b) =>
+        ordenDia(a.dia) - ordenDia(b.dia) || a.desde.localeCompare(b.desde) || a.h.anioCarrera - b.h.anioCarrera,
+    );
+}
+
+// Turnos del desplegable: solo los que tienen materias en el año elegido (con «Todos los años», los de los tres).
+// Así no se ofrece un turno que deja la tabla vacía.
+export const turnosDisponibles = (horarios, anio) =>
+  TURNOS.filter((t) =>
+    horarios.some((h) => h.turno === t.valor && (anio === TODOS_LOS_ANIOS || h.anioCarrera === anio)),
+  );
+
+export const textoSinMaterias = (anio) =>
+  anio === TODOS_LOS_ANIOS ? "No hay materias en este período." : `No hay materias de ${anio}.º año en este período.`;
