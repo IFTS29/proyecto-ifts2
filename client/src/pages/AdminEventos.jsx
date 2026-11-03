@@ -5,7 +5,16 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminLateral from "../components/AdminLateral.jsx";
 import { useConfirmar } from "../components/Confirmacion.jsx";
-import { mensajeDeSincronizacion, puedeSincronizar, textosDelBloqueDeInstagram } from "../eventos.js";
+import {
+  anioDelEvento,
+  confirmacionMostrarArchivado,
+  confirmacionVolverAlArchivo,
+  mensajeDeSincronizacion,
+  puedeSincronizar,
+  seccionDelEvento,
+  textosDelBloqueDeInstagram,
+  visibleFueraDeFecha,
+} from "../eventos.js";
 
 // Colores del aviso de la sincronización: verde si salió todo bien, ámbar si quedó alguna publicación
 // pendiente y rojo si no se pudo sincronizar.
@@ -15,11 +24,12 @@ const COLORES_DEL_AVISO = {
   error: { background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" },
 };
 
+// Cada evento está en una sola pestaña (seccionDelEvento). «Archivo»: los de hace dos años o más (#35).
 const PESTANAS = [
   { id: "todos", label: "Todos" },
-  { id: "visible", label: "Visibles" },
+  { id: "sitio", label: "En el sitio" },
   { id: "oculto", label: "Ocultos" },
-  { id: "archivado", label: "Archivados" },
+  { id: "archivo", label: "Archivo" },
 ];
 
 function formatearFecha(fechaIso) {
@@ -45,8 +55,17 @@ function textoCantidadFotos(ev) {
   return `${cantidad} ${cantidad === 1 ? "foto" : "fotos"}`;
 }
 
-function renderEtiquetaEstado(estado) {
-  switch (estado) {
+function renderEtiquetaEstado(ev) {
+  if (seccionDelEvento(ev) === "archivo") {
+    return (
+      <span className="etiquetas">
+        <span className="etiqueta et-gris">Archivado</span>
+        {ev.estado === "oculto" && <span className="etiqueta et-gris">Oculto</span>}
+      </span>
+    );
+  }
+  if (visibleFueraDeFecha(ev)) return <span className="etiqueta et-verde">Visible fuera de fecha</span>;
+  switch (ev.estado) {
     case "visible":
       return <span className="etiqueta et-verde">Visible</span>;
     case "oculto":
@@ -54,7 +73,7 @@ function renderEtiquetaEstado(estado) {
     case "archivado":
       return <span className="etiqueta et-gris">Archivado</span>;
     default:
-      return <span className="etiqueta et-gris">{estado}</span>;
+      return <span className="etiqueta et-gris">{ev.estado}</span>;
   }
 }
 
@@ -67,13 +86,7 @@ export default function AdminEventos() {
   const [cambiandoId, setCambiandoId] = useState(null);
 
   const [pestanaActiva, setPestanaActiva] = useState("todos");
-  const [eventos, setEventos] = useState([]);
-  const [conteos, setConteos] = useState({
-    todos: 0,
-    visible: 0,
-    oculto: 0,
-    archivado: 0,
-  });
+  const [todosLosEventos, setTodosLosEventos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [sincronizando, setSincronizando] = useState(false);
@@ -103,21 +116,25 @@ export default function AdminEventos() {
     setCargando(true);
     setError("");
     try {
-      const ruta =
-        pestanaActiva === "todos"
-          ? "/events/admin"
-          : `/events/admin?estado=${pestanaActiva}`;
-      const data = await api(ruta);
-      setEventos(data.eventos || []);
-      if (data.conteos) {
-        setConteos(data.conteos);
-      }
+      // Se traen todos y se reparten en las pestañas acá: el archivado se calcula por fecha en el servidor.
+      const data = await api("/events/admin");
+      setTodosLosEventos(data.eventos || []);
     } catch (err) {
       setError(err.message || "Error al cargar los eventos.");
     } finally {
       setCargando(false);
     }
-  }, [pestanaActiva]);
+  }, []);
+
+  const conteos = { todos: todosLosEventos.length, sitio: 0, oculto: 0, archivo: 0 };
+  for (const ev of todosLosEventos) conteos[seccionDelEvento(ev)]++;
+  const eventos =
+    pestanaActiva === "todos" ? todosLosEventos : todosLosEventos.filter((ev) => seccionDelEvento(ev) === pestanaActiva);
+  // En «Archivo», un subtítulo por año (los eventos ya vienen del más reciente al más antiguo).
+  const anioDeFila = (ev, i) =>
+    pestanaActiva === "archivo" && (i === 0 || anioDelEvento(eventos[i - 1]) !== anioDelEvento(ev))
+      ? anioDelEvento(ev)
+      : null;
 
   useEffect(() => {
     cargarEventos();
@@ -143,6 +160,27 @@ export default function AdminEventos() {
     try {
       await api(`/events/${ev.id}/estado`, { metodo: "PATCH", cuerpo: { estado: ocultar ? "oculto" : "visible" } });
       setAviso(ocultar ? `«${ev.titulo}» ya no se ve en el sitio.` : `«${ev.titulo}» se ve otra vez en el sitio.`);
+      await cargarEventos();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCambiandoId(null);
+    }
+  };
+
+  // Un evento archivado vuelve al sitio (o vuelve al archivo) con confirmación. Si estaba oculto, mostrarlo en el
+  // sitio también lo deja visible: es una decisión explícita, que la confirmación avisa, y el servidor guarda los
+  // dos cambios juntos.
+  const cambiarArchivo = async (ev, mostrar) => {
+    if (!(await confirmar(mostrar ? confirmacionMostrarArchivado(ev) : confirmacionVolverAlArchivo(ev)))) return;
+    setCambiandoId(ev.id);
+    setError("");
+    try {
+      await api(`/events/${ev.id}/visible-siempre`, {
+        metodo: "PATCH",
+        cuerpo: { visibleSiempre: mostrar, mostrar: mostrar && ev.estado === "oculto" },
+      });
+      setAviso(mostrar ? `«${ev.titulo}» se ve otra vez en el sitio.` : `«${ev.titulo}» volvió al archivo.`);
       await cargarEventos();
     } catch (err) {
       setError(err.message);
@@ -338,11 +376,20 @@ export default function AdminEventos() {
               ) : eventos.length === 0 ? (
                 <tr>
                   <td colSpan="5" style={{ textAlign: "center", padding: "2rem", color: "var(--suave)" }}>
-                    No hay eventos en esta sección.
+                    {pestanaActiva === "archivo"
+                      ? "No hay eventos en el archivo. Pasan acá solos los de hace dos años o más."
+                      : "No hay eventos en esta sección."}
                   </td>
                 </tr>
               ) : (
-                eventos.map((ev) => (
+                eventos.flatMap((ev, i) => [
+                  anioDeFila(ev, i) && (
+                    <tr key={`anio-${anioDeFila(ev, i)}`} className="fila-anio-archivo">
+                      <th colSpan="5" scope="rowgroup">
+                        {anioDeFila(ev, i)}
+                      </th>
+                    </tr>
+                  ),
                   <tr key={ev.id}>
                     <td>
                       <img
@@ -366,7 +413,7 @@ export default function AdminEventos() {
                         {ev.origen === "instagram" ? "Instagram" : "Manual"}
                       </span>
                     </td>
-                    <td>{renderEtiquetaEstado(ev.estado)}</td>
+                    <td>{renderEtiquetaEstado(ev)}</td>
                     <td>
                       <div className="acciones-fila">
                         <Link
@@ -379,7 +426,7 @@ export default function AdminEventos() {
                             <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
                           </svg>
                         </Link>
-                        {ev.estado !== "archivado" && (
+                        {seccionDelEvento(ev) !== "archivo" && ev.estado !== "archivado" && !visibleFueraDeFecha(ev) && (
                           // Con texto y no solo el ojo: el botón dice qué hace, sin confundirse con el estado.
                           <button
                             className="boton-icono con-texto"
@@ -401,7 +448,29 @@ export default function AdminEventos() {
                             <span aria-hidden="true">{ev.estado === "visible" ? "Ocultar" : "Mostrar"}</span>
                           </button>
                         )}
-                        {ev.estado === "visible" && (
+                        {seccionDelEvento(ev) === "archivo" && ev.estado !== "archivado" && (
+                          <button
+                            className="boton-icono con-texto"
+                            type="button"
+                            aria-label={`Mostrar ${ev.titulo} en el sitio`}
+                            disabled={cambiandoId === ev.id}
+                            onClick={() => cambiarArchivo(ev, true)}
+                          >
+                            <span aria-hidden="true">Mostrar en el sitio</span>
+                          </button>
+                        )}
+                        {visibleFueraDeFecha(ev) && (
+                          <button
+                            className="boton-icono con-texto"
+                            type="button"
+                            aria-label={`Volver a archivar ${ev.titulo}`}
+                            disabled={cambiandoId === ev.id}
+                            onClick={() => cambiarArchivo(ev, false)}
+                          >
+                            <span aria-hidden="true">Volver al archivo</span>
+                          </button>
+                        )}
+                        {seccionDelEvento(ev) === "sitio" && (
                           <a
                             className="boton-icono"
                             href={`/evento?id=${ev.id}`}
@@ -417,8 +486,8 @@ export default function AdminEventos() {
                         )}
                       </div>
                     </td>
-                  </tr>
-                ))
+                  </tr>,
+                ])
               )}
             </tbody>
           </table>

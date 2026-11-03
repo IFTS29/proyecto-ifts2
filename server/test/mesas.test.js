@@ -300,7 +300,8 @@ test("eliminar un llamado que nunca se publicó borra también sus mesas", async
 });
 
 test("sitio público: solo los llamados publicados, el más reciente primero; los horarios siguen igual", async () => {
-  const { llamar, publico } = await panel();
+  // Fecha fija: con la fecha real, julio ya estaría archivado (#35) y la prueba es sobre el orden.
+  const { llamar, publico } = await panel(ADMIN, { hoy: () => "2026-07-25" });
   const julio = await crearLlamado(llamar, { nombre: "Julio 2026", desde: "2026-07-20" });
   const febrero = await crearLlamado(llamar, LLAMADO);
   await crearLlamado(llamar, { nombre: "Sin publicar" });

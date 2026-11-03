@@ -236,7 +236,13 @@ export default function AdminAcademica() {
               {opciones.map((p) => (
                 <option key={p.periodo} value={p.periodo}>
                   {textoPeriodo(p)}
-                  {p.nuevo ? " (sin datos)" : p.publicado ? " · Publicado" : " · No publicado"}
+                  {p.nuevo
+                    ? " (sin datos)"
+                    : p.archivado
+                      ? " · Archivado"
+                      : p.publicado
+                        ? " · Publicado"
+                        : " · No publicado"}
                 </option>
               ))}
               <option value={OTRO}>Otro período…</option>

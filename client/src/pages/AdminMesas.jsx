@@ -255,7 +255,7 @@ export default function AdminMesas() {
                 {llamados.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.nombre}
-                    {l.publicado ? " · Publicado" : " · No publicado"}
+                    {l.archivado ? " · Archivado" : l.publicado ? " · Publicado" : " · No publicado"}
                   </option>
                 ))}
                 <option value={NUEVO}>Nuevo llamado…</option>

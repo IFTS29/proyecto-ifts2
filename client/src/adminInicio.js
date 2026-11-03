@@ -59,7 +59,9 @@ export function actividadReciente({ eventos = [], periodos = [], llamados = [], 
 // publicados); "eventos" no se consulta para Bedelía.
 // Un error se muestra como "No disponible", distinto de 0 o de una lista vacía.
 export function datosDelInicio({ esAdmin, eventos, vigente }) {
-  const visibles = eventos?.ok ? eventos.datos?.conteos?.visible : undefined;
+  // Los que ve un visitante: visibles y no archivados por fecha (#35). Si el servidor no lo informa, los visibles.
+  const conteos = eventos?.ok ? eventos.datos?.conteos : undefined;
+  const visibles = conteos?.enElSitio ?? conteos?.visible;
   const eventosVisibles = eventos === null ? "…" : typeof visibles === "number" ? visibles : "No disponible";
 
   const deVigente = (armarTexto, lista) =>

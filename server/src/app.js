@@ -9,6 +9,7 @@ import { crearRutasAuth } from "./routes/auth.js";
 import { crearRutasUsuarios } from "./routes/usuarios.js";
 import { crearRutasContacto } from "./routes/contacto.js";
 import { crearRutasEventos } from "./routes/eventos.js";
+import { diaEnArgentina } from "./services/archivo.js";
 import { crearServicioCorreo } from "./services/correo.smtp.js";
 import { crearLimitadorContacto } from "./services/limitador.contacto.js";
 import { crearRepoAcademicoMemoria } from "./repos/academica.memoria.js";
@@ -67,6 +68,8 @@ export function crearApp({
   llamados = crearRepoAcademicoMemoria(),
   mesas = crearRepoAcademicoMemoria(),
   contenido = crearRepoContenidoMemoria(),
+  // Día de hoy en Argentina ("AAAA-MM-DD") para el archivado por fecha. Las pruebas lo reemplazan.
+  hoy = () => diaEnArgentina(),
 } = {}) {
   const app = express();
 
@@ -101,10 +104,10 @@ export function crearApp({
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
-  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos }));
+  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos, hoy }));
   // Las mesas van primero: sus rutas del panel piden la sesión una por una (ver routes/mesas.js).
-  app.use("/api/academic", crearRutasMesas({ config, usuarios, llamados, mesas }));
-  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados }));
+  app.use("/api/academic", crearRutasMesas({ config, usuarios, llamados, mesas, hoy }));
+  app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados, hoy }));
   app.use(
     "/api/instagram",
     crearRutasInstagram({ config, usuarios, eventos, repoFeed: repoFeedInstagram, mediaService }),

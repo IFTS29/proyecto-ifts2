@@ -3738,6 +3738,20 @@ body[data-rol="bedelia"] [data-solo-admin] {
   min-width: 220px;
 }
 
+/* Panel de eventos, pestaña «Archivo»: un subtítulo por año y, si hace falta, dos etiquetas juntas. */
+.etiquetas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fila-anio-archivo th {
+  padding: 12px 16px;
+  background: var(--superficie-2);
+  font-size: 15px;
+  text-align: left;
+}
+
 .mesas-de-examen,
 .practicas-alumnos {
   margin-top: 40px;

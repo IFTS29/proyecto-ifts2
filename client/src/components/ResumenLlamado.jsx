@@ -40,7 +40,15 @@ export default function ResumenLlamado({
       </button>
 
       <p className="estado-publicacion">
-        {llamado.publicado ? (
+        {llamado.publicado && llamado.archivado ? (
+          <>
+            <span className="etiqueta et-gris">Archivado</span>
+            <span>
+              Publicado, pero pasaron más de 30 días desde su última fecha: no se muestra en Alumnos. Última
+              publicación: {textoFechaHora(llamado.publicadoEn)}
+            </span>
+          </>
+        ) : llamado.publicado ? (
           <>
             <span className="etiqueta et-verde">Publicado</span>
             <span>Última publicación: {textoFechaHora(llamado.publicadoEn)}</span>
@@ -83,7 +91,8 @@ export default function ResumenLlamado({
         <button className="boton boton-linea" type="button" disabled={ocupado} onClick={alVistaPrevia}>
           Vista previa
         </button>
-        {llamado.publicado && (
+        {/* El PDF público existe solo mientras el llamado se ve en Alumnos; la vista previa sigue disponible. */}
+        {llamado.publicado && !llamado.archivado && (
           <a
             className="boton boton-linea"
             href={`/api/academic/vigente/mesas.pdf?llamado=${encodeURIComponent(llamado.id)}`}

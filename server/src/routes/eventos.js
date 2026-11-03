@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { autenticar, requiereRol } from "../middleware/auth.js";
+import { diaEnArgentina, eventoArchivado, eventoEnElSitio } from "../services/archivo.js";
 import { guardarMedio } from "../services/media/index.js";
 import {
   ErrorDeFotos,
@@ -12,11 +13,12 @@ import {
 import { MAXIMO_DE_FOTOS, armarGaleria, contarFotos, revisarListaDeFotos } from "../services/media/galeriaEvento.js";
 
 const ESTADOS_VALIDOS = ["visible", "oculto", "archivado"];
-// Desde el panel solo se muestra u oculta un evento. El archivado tiene su propia regla (#35).
+// Desde el panel solo se muestra u oculta un evento. El archivado por fecha se calcula (services/archivo.js, #35);
+// el estado "archivado" queda solo por compatibilidad con datos anteriores.
 const ESTADOS_DE_VISIBILIDAD = ["visible", "oculto"];
 
 // El sitio público no recibe el registro de fotos quitadas: puede haber fotos que se sacaron a propósito.
-const paraElSitio = ({ mediosQuitados, ...evento }) => evento;
+const paraElSitio = ({ mediosQuitados, visibleSiempre, ...evento }) => evento;
 
 // Revisa los textos y la fecha de un evento; los usan el alta y la edición.
 // Devuelve { valores } con los datos limpios o { error } con el mensaje para el panel.
@@ -61,8 +63,10 @@ async function extraerFotoInstagram(url) {
 
 // "fotos" guarda las fotos nuevas de los eventos (Cloudinary, o el disco en desarrollo local).
 // Si es null, no hay dónde guardarlas y el alta con fotos nuevas responde 503.
-export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
+export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy = () => diaEnArgentina() }) {
   const router = Router();
+  // El panel recibe si cada evento está archivado por fecha (#35): se calcula, no se guarda.
+  const conArchivo = (evento, dia = hoy()) => ({ ...evento, archivado: eventoArchivado(evento, dia) });
   const soloAdmin = [autenticar({ config, usuarios }), requiereRol("admin")];
 
   // ==============================================================
@@ -85,9 +89,12 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
 
       const conteos = eventos.contarPorEstado ? await eventos.contarPorEstado() : null;
 
+      const dia = hoy();
+      // "enElSitio": los que hoy ve un visitante (visibles y no archivados por fecha). Lo usa el inicio del panel.
+      const enElSitio = (await eventos.listar({})).filter((e) => eventoEnElSitio(e, dia)).length;
       res.json({
-        eventos: lista,
-        conteos,
+        eventos: lista.map((e) => conArchivo(e, dia)),
+        conteos: conteos ? { ...conteos, enElSitio } : { enElSitio },
       });
     } catch (e) {
       next(e);
@@ -99,7 +106,7 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
     try {
       const evento = await eventos.buscarPorId(req.params.id);
       if (!evento) return res.status(404).json({ error: "El evento no existe." });
-      res.json({ evento });
+      res.json({ evento: conArchivo(evento) });
     } catch (e) {
       next(e);
     }
@@ -306,6 +313,31 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
     }
   });
 
+  // PATCH /api/events/:id/visible-siempre: un evento archivado por fecha vuelve a mostrarse en el sitio
+  // (visibleSiempre: true) o vuelve al archivo (false). Solo administradores; el panel pide confirmación.
+  // Un oculto no aparece por esta vía, salvo que el pedido diga expresamente { mostrar: true }: entonces se guardan
+  // el estado visible y visibleSiempre en una sola actualización (sin quedar a medias si algo falla).
+  router.patch("/:id/visible-siempre", ...soloAdmin, async (req, res, next) => {
+    try {
+      const { visibleSiempre, mostrar = false } = req.body || {};
+      if (typeof visibleSiempre !== "boolean" || typeof mostrar !== "boolean") {
+        return res.status(400).json({ error: "Falta indicar si el evento se muestra fuera de fecha." });
+      }
+      if (mostrar && !visibleSiempre) {
+        return res.status(400).json({ error: "Para volver al archivo no se cambia el estado del evento." });
+      }
+      const actual = await eventos.buscarPorId(req.params.id);
+      if (!actual) return res.status(404).json({ error: "El evento no existe." });
+      if (actual.estado === "archivado") {
+        return res.status(409).json({ error: "El evento está archivado con el estado anterior: no se puede cambiar desde acá." });
+      }
+      const cambios = mostrar ? { visibleSiempre, estado: "visible" } : { visibleSiempre };
+      res.json({ evento: conArchivo(await eventos.actualizar(actual.id, cambios)) });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // ==============================================================
   // Rutas públicas (Galería del sitio web: Eventos.jsx)
   // ==============================================================
@@ -318,17 +350,19 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null }) {
         origen: req.query.origen,
       });
 
-      res.json({ eventos: lista.map(paraElSitio) });
+      // Lo archivado por fecha no se ve en el sitio (salvo que la administración lo haya elegido mostrar).
+      const dia = hoy();
+      res.json({ eventos: lista.filter((e) => eventoEnElSitio(e, dia)).map(paraElSitio) });
     } catch (e) {
       next(e);
     }
   });
 
-  // GET /api/events/:id: Público. Detalle de evento solo si su estado es 'visible'.
+  // GET /api/events/:id: Público. Detalle solo si está visible y no archivado por fecha (también con un enlace guardado).
   router.get("/:id", async (req, res, next) => {
     try {
       const evento = await eventos.buscarPorId(req.params.id);
-      if (!evento || evento.estado !== "visible") {
+      if (!evento || !eventoEnElSitio(evento, hoy())) {
         return res.status(404).json({ error: "Evento no encontrado." });
       }
       res.json({ evento: paraElSitio(evento) });

@@ -76,6 +76,12 @@ const eventoSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
+    // Archivado por fecha (#35): un evento de hace dos años o más sale del sitio, salvo que la administración
+    // elija mostrarlo igual. No cambia el estado: un evento oculto sigue oculto.
+    visibleSiempre: {
+      type: Boolean,
+      default: false,
+    },
     fechaPublicacionOriginal: {
       type: Date,
       default: null,
