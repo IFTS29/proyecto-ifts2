@@ -1,5 +1,7 @@
 prototipo-html/
-docs/
+# Solo la carpeta docs/ de la raíz (documentación del equipo). Sin la barra inicial, la regla excluía cualquier
+# carpeta llamada docs, también client/public/docs, y el sitio publicado no tenía los PDF (H-93).
+/docs/
 server/test/
 .git/
 README.md

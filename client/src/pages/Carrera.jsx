@@ -12,7 +12,6 @@ import {
   FUENTE_ANIOS,
   FUENTE_CORRELATIVIDADES,
   FUENTE_PLAN,
-  AVISO_PROMOCIONABLES,
   nombreAnio,
   textoCantidad,
   totalCarrera,
@@ -290,9 +289,6 @@ export default function Carrera() {
               </button>
             ))}
           </div>
-          <p className="fuente aviso-promocionables">
-            <span className="marca-promocionable">Promocionable</span> Materias promocionables: {AVISO_PROMOCIONABLES}
-          </p>
           <TablaPlan vista={vista} filtro={filtro} />
           <p className="fuente">
             Fuente: {FUENTE_PLAN}

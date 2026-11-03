@@ -132,8 +132,8 @@ const UBICACION = {
   "practicas|Práctica profesional 3: Diseño de emprendimientos gastronómicos": [3, 2],
 };
 
-// Materias promocionables según el listado del sitio anterior del instituto (sin fecha):
-// se muestran con una aclaración, porque falta que el IFTS 2 confirme que sigue vigente.
+// Materias promocionables según el listado del sitio anterior del instituto (sin fecha). Su vigencia no está
+// confirmada: queda pendiente validarla con el IFTS 2.
 const PROMOCIONABLES = [
   "analisis|Introducción a la Gastronomía",
   "analisis|Principios de Economía",
@@ -150,7 +150,6 @@ const PROMOCIONABLES = [
   "gestion|Compras y gestión de stock",
   "produccion|Bebidas",
 ];
-export const AVISO_PROMOCIONABLES = "información tomada de un listado institucional sin fecha. Consultar su vigencia en Bedelía.";
 
 const clave = (x) => `${x.area}|${x.nombre}`;
 
