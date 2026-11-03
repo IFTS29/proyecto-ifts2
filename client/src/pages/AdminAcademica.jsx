@@ -398,7 +398,7 @@ export default function AdminAcademica() {
           <p className="aviso visible aviso-vista-previa">
             Vista previa — Versión de trabajo. Así se vería la página de Alumnos con lo guardado. No es lo publicado.
           </p>
-          {estado && <HorariosPublicos horarios={estado.horarios} />}
+          {estado && <HorariosPublicos key={codigoPeriodo(estado)} horarios={estado.horarios} />}
           <div className="acciones">
             <button
               className="boton boton-linea"

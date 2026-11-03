@@ -1,7 +1,9 @@
 import { IMGS } from "../imagenes";
 import HorariosDeCursada from "../components/HorariosDeCursada.jsx";
 import MesasDeExamen from "../components/MesasDeExamen.jsx";
+import Documento from "../components/Documento.jsx";
 import { ENLACES, EXTERNO } from "../enlaces.js";
+import { DOCUMENTOS } from "../documentos.js";
 
 // Enlaces útiles, en este orden. El acceso de gestión académica va al final: es para docentes y Secretaría.
 const PLATAFORMAS = [
@@ -42,6 +44,14 @@ export default function Alumnos() {
         <div className="contenedor">
           <HorariosDeCursada />
           <MesasDeExamen />
+          {/* Información académica primero; los enlaces útiles, al final, como recursos complementarios. */}
+          <section className="practicas-alumnos" id="practicas" aria-labelledby="titulo-practicas">
+            <h2 id="titulo-practicas">Prácticas profesionalizantes y pasantías</h2>
+            <div className="documentos">
+              <Documento doc={DOCUMENTOS.practicasProfesionalizantes} />
+              <Documento doc={DOCUMENTOS.leyPasantias} />
+            </div>
+          </section>
         </div>
       </section>
       <section className="seccion seccion-alt">

@@ -55,11 +55,11 @@ test(".vercelignore: ninguna regla excluye archivos que publica el sitio (client
   }
 });
 
-test("documentos: los cinco PDF están en client/public/docs, que es lo que Vite copia al build", () => {
+test("documentos: los PDF están en client/public/docs, que es lo que Vite copia al build", () => {
   const enDocs = readdirSync(new URL("client/public/docs/", raiz));
   for (const doc of Object.values(DOCUMENTOS)) {
     assert.match(doc.archivo, /^\/docs\/[\w.-]+\.pdf$/);
     assert.ok(enDocs.includes(doc.archivo.replace("/docs/", "")), doc.archivo);
   }
-  assert.equal(Object.keys(DOCUMENTOS).length, 5);
+  assert.equal(Object.keys(DOCUMENTOS).length, 7);
 });
