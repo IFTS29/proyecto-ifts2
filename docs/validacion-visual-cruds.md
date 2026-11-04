@@ -296,25 +296,15 @@ Sesión iniciada con un usuario de rol Bedelía, creado desde Usuarios. Muestra 
 
 ![Permisos del rol Bedelía, paso 1](capturas-cruds/bedelia-01.png)
 
-**Paso 2.** Acceso denegado: al escribir la dirección de Usuarios a mano, el panel lleva de nuevo al inicio.
+Si Bedelía escribe a mano la dirección de Usuarios, Eventos o Contenido institucional, el panel la lleva de nuevo al inicio. Como el resultado es siempre la misma pantalla del paso 1, no se repite la captura para cada dirección.
+
+**Paso 2.** Acceso permitido: Información académica (horarios de cursada) está disponible para Bedelía.
 
 ![Permisos del rol Bedelía, paso 2](capturas-cruds/bedelia-02.png)
 
-**Paso 3.** Acceso denegado: lo mismo ocurre con Eventos.
+**Paso 3.** Acceso permitido: Mesas de examen también.
 
 ![Permisos del rol Bedelía, paso 3](capturas-cruds/bedelia-03.png)
-
-**Paso 4.** Acceso denegado: lo mismo ocurre con Contenido institucional.
-
-![Permisos del rol Bedelía, paso 4](capturas-cruds/bedelia-04.png)
-
-**Paso 5.** Acceso permitido: Información académica (horarios de cursada) está disponible para Bedelía.
-
-![Permisos del rol Bedelía, paso 5](capturas-cruds/bedelia-05.png)
-
-**Paso 6.** Acceso permitido: Mesas de examen también.
-
-![Permisos del rol Bedelía, paso 6](capturas-cruds/bedelia-06.png)
 
 
 ## Observaciones
