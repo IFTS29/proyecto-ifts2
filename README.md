@@ -12,8 +12,8 @@
 
 <br>
 
-> **Nota:** el proyecto está en desarrollo (Etapa 3). Este README se va actualizando a medida que avanza el
-> trabajo. Las secciones marcadas con _"[a completar]"_ todavía no tienen contenido definitivo.
+> **Nota:** el proyecto está en la etapa final (Etapa 3), con entrega prevista para el 08/11/2026. Este README se
+> actualiza a medida que avanza el trabajo. El estado de cada funcionalidad está en la sección «Estado del Desarrollo».
 
 <br>
 
@@ -61,7 +61,7 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 - Mostrar solo la información académica vigente (horarios y mesas), archivando lo vencido sin borrarlo.
 - Reunir los accesos a SIU Guaraní, Moodle y Mi Argentina.
 - Recibir consultas mediante un formulario que llegue por correo a Bedelía.
-- Evaluar la incorporación de publicaciones de Instagram (condicionada al acceso a la API).
+- Incorporar publicaciones de Instagram cuando el instituto entregue el acceso a la API, con carga manual de respaldo.
 
 <br>
 
@@ -71,23 +71,26 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 
 | Funcionalidad | Issue | Estado |
 | :------------ | :---: | :----: |
-| Estructura base del proyecto (React + Express) | #28 | 🟡 |
-| Sitio público en React | #32 | 🟡 Pantallas listas, contenido todavía fijo |
+| Estructura base del proyecto (React + Express) | #28 | ✅ |
+| Modelos de datos y creación del primer administrador | #29 | ✅ |
+| Sitio público en React | #32 | ✅ |
 | Inicio de sesión seguro | #30 | ✅ |
-| Perfiles Administrador y Bedelía | #31 | 🟡 |
+| Perfiles Administrador y Bedelía | #31 | ✅ Auditoría de permisos en revisión (#109) |
 | Gestión de usuarios del panel | #38 | ✅ |
-| Formulario de contacto con envío de correo | #37 | ✅ Código terminado · falta configurar el correo en Vercel |
-| Modelos de datos y carga inicial | #29 | 🟡 Solo existe el modelo de usuarios |
-| Información académica: horarios, aulas y mesas | #33 | ⏳ |
-| Eventos institucionales con galería | #34 | ⏳ |
-| Archivado de contenidos sin borrado | #35 | ⏳ |
-| Contenido institucional editable | #36 | ⏳ |
-| Integración con Instagram o carga manual | #39, #55 | ✅ Feed automático y carruseles integrados |
+| Formulario de contacto con envío de correo | #37 | ✅ Falta la prueba de envío real con el correo institucional |
+| Información académica: horarios, aulas y mesas de examen | #33 | ✅ |
+| Eventos institucionales con galería | #34 | 🟡 Se pueden cargar, editar, ocultar y mostrar. Falta la baja (#81) |
+| Archivado de contenidos sin borrado | #35 | ✅ |
+| Contenido institucional editable | #36 | ✅ |
+| Integración con Instagram o carga manual | #39, #55 | ✅ La sincronización necesita las credenciales de la cuenta. Sin ellas, los eventos se cargan a mano |
+| Pruebas automáticas y evidencias | #40, #41 | 🔬 En revisión |
+| Manual técnico y manual de usuario | #42, #43 | 🔬 En revisión |
+| Despliegue final y entrega | #44 | ⏳ |
 
-✅ hecho · 🟡 parcial · ⏳ pendiente · 🔬 en evaluación
+✅ hecho · 🟡 parcial · ⏳ pendiente · 🔬 en revisión (Pull Request abierto)
 
-> Estado actualizado al 22/10/2026. Los avances posteriores se registran en los issues y Pull Requests del
-> repositorio.
+> Estado actualizado al 04/11/2026. Los avances posteriores se registran en los issues y Pull Requests del
+> repositorio. El detalle de lo que falta para cerrar el MVP está en [docs/roadmap-mvp.md](./docs/roadmap-mvp.md).
 
 <br>
 
@@ -102,26 +105,27 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
                    ▼
                 server/  (Node.js + Express)  ──►  MongoDB Atlas
                    │
-                   └──►  Servicios externos: correo (Nodemailer), imágenes y Instagram [a implementar]
+                   └──►  Servicios externos: Cloudinary (fotos), Instagram Graph API y correo SMTP
 ```
 
 | Capa | Tecnologías |
 | :--- | :---------- |
 | Frontend | React 18, Vite 5, React Router 6 |
-| Backend | Node.js, Express 4, JWT, bcryptjs, helmet, express-rate-limit |
+| Backend | Node.js, Express 4, JWT, bcryptjs, helmet, express-rate-limit, pdfkit (PDF de horarios y mesas) |
 | Base de datos | MongoDB Atlas con Mongoose |
-| Correo | Nodemailer con SMTP de Gmail: configuración sencilla y gratuita para el MVP |
+| Fotos de eventos | Cloudinary |
+| Correo | Nodemailer con SMTP (por defecto, Gmail) |
 | Despliegue | Vercel |
 | Pruebas | node:test y supertest |
 
-- **En local**, el backend corre en el puerto 4000 y el cliente de React en `http://localhost:5173` (con proxy automático a la API).
+- **En local**, un solo servidor atiende la API y el cliente en `http://localhost:3000`.
 - **En Vercel**, la API corre como función serverless (`api/index.js`) y el cliente compilado se sirve como
   sitio estático.
 - **Sin base de datos ni correo configurados**, el proyecto funciona igual en local: los datos se guardan en
-  memoria y el formulario de contacto usa un envío simulado.
+  memoria (se pierden al reiniciar) y el formulario de contacto usa un envío simulado.
 
-El detalle de la arquitectura, la API, la base de datos y las decisiones técnicas va a estar en el
-**Manual Técnico** _[en elaboración]_.
+El detalle de la arquitectura, la base de datos, las variables de entorno y las decisiones técnicas está en el
+[Manual Técnico](./docs/manual-tecnico.md).
 
 <br>
 
@@ -135,7 +139,7 @@ proyecto-ifts2/
 ├── client/                   # Frontend (React + Vite)
 │   └── src/
 │       ├── pages/            # una pantalla por archivo (sitio público y panel)
-│       ├── components/       # encabezado, pie, menú del panel, rutas protegidas
+│       ├── components/       # formularios, tablas, menú del panel, rutas protegidas
 │       ├── context/          # sesión y rol del usuario
 │       └── api.js            # llamadas a la API
 │
@@ -146,9 +150,9 @@ proyecto-ifts2/
 ├── api/index.js              # entrada de la API en Vercel
 ├── server.js                 # entrada para desarrollo local
 ├── prototipo-html/           # prototipo original (referencia)
-├── docs/                     # registro de cambios
+├── docs/                     # manuales, plan de testing, registro de cambios y roadmap
 ├── .env.example              # variables de entorno de ejemplo
-└── package.json              # dependencias y scripts
+└── package.json              # dependencias y scripts de todo el proyecto
 ```
 
 <br>
@@ -159,8 +163,7 @@ proyecto-ifts2/
 
 ### Requisitos previos
 
-- **Node.js 22 o superior** (recomendado). Nodemailer requiere Node 20 como mínimo, pero el comando de
-  pruebas actual necesita una versión más reciente en Windows.
+- **Node.js 22 o superior**.
 - **Git**.
 
 ### Pasos
@@ -168,36 +171,54 @@ proyecto-ifts2/
 ```powershell
 git clone https://github.com/IFTS29/proyecto-ifts2.git
 cd proyecto-ifts2
-# Instalar las dependencias con las versiones exactas fijadas en package-lock.json:
-npm ci --prefix server
-npm ci --prefix client
+npm install
 Copy-Item .env.example .env
 ```
 
 - En Linux o Mac, en lugar de `Copy-Item`: `cp .env.example .env`.
 - Si PowerShell no deja ejecutar npm: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
-- **¿Por qué `--prefix server` y `--prefix client`?** Tanto el backend (`server/`) como el frontend (`client/`) poseen sus propios archivos `package-lock.json` independientes. El modificador `--prefix` permite a `npm ci` leer e instalar en la subcarpeta correspondiente sin necesidad de cambiar de directorio con `cd`, asegurando que se instalen exactamente las versiones fijadas por el equipo.
+- Todas las dependencias están en el `package.json` de la raíz: se instalan con un solo `npm install`.
+
+Para poder entrar al panel, completá en el `.env` los datos del primer administrador:
+
+```text
+SEED_ADMIN_NOMBRE=Administrador
+SEED_ADMIN_MAIL=admin@ejemplo.local
+SEED_ADMIN_PASSWORD=UnaClave2026
+```
+
+El administrador se crea al arrancar, solo si todavía no hay usuarios. Conviene elegir una contraseña de al
+menos 8 caracteres, con una mayúscula y un número, que es la regla que pide el panel para los demás usuarios.
+
+```powershell
+npm run dev
+```
+
+Abrí `http://localhost:3000`. El panel está en `/login`.
 
 ### Scripts
 
 | Comando | Descripción |
 | :------ | :---------- |
-| `npm run dev --prefix server` | Inicia el servidor backend en `http://localhost:4000` |
-| `npm run dev --prefix client` | Inicia el cliente React en `http://localhost:5173` |
+| `npm run dev` | Inicia la API y el cliente en `http://localhost:3000` |
 | `npm test` | Pruebas automáticas del servidor |
 | `npm run build` | Compila el cliente en `client/dist` |
+| `npm start` | Sirve el cliente compilado junto con la API, en modo producción (exige MongoDB) |
 
 ### Variables de entorno
 
-Las variables están explicadas en `.env.example`. Sin completar nada, el proyecto funciona en local con datos
-en memoria y envío de correo simulado.
+Están en `.env.example` y se explican una por una, con lo que pasa si faltan, en el
+[Manual Técnico](./docs/manual-tecnico.md). Sin completar nada más que las del administrador, el proyecto
+funciona en local con datos en memoria y envío de correo simulado. Para guardar datos hay que cargar
+`MONGODB_URI`.
 
-> **Importante:** el `.env` nunca se sube al repositorio. Las claves (base de datos, JWT, correo) se cargan
-> solo en el `.env` local y en las variables de entorno de Vercel.
+> **Importante:** el `.env` nunca se sube al repositorio. Las claves (base de datos, JWT, correo, Cloudinary,
+> Instagram) se cargan solo en el `.env` local y en las variables de entorno de Vercel.
 
 ### Credenciales de prueba
 
-Se comparten con la cátedra por un canal privado, no en este repositorio _[a completar antes de la entrega]_.
+Las credenciales del sitio desplegado se entregan a la cátedra por un canal privado. No se publican en este
+repositorio.
 
 <br>
 
@@ -209,11 +230,12 @@ Se comparten con la cátedra por un canal privado, no en este repositorio _[a co
 npm test
 ```
 
-Actualmente hay **94 pruebas automáticas del servidor**, todas aprobadas. Cubren login y bloqueo por
-intentos, permisos por rol, gestión de usuarios y formulario de contacto. No necesitan base de datos ni
-conexión a Internet.
+Las pruebas automáticas del servidor se ejecutan con `node:test` y supertest, sobre datos en memoria: no
+necesitan base de datos ni conexión a Internet. Cubren el inicio de sesión y el bloqueo por intentos, los
+permisos por rol, los usuarios, los eventos y sus fotos, las mesas de examen y los horarios, el archivado por
+fecha, el contenido institucional, la sincronización con Instagram y el formulario de contacto.
 
-Las pruebas unitarias e integración documentadas para la entrega van en el issue #40 _[a completar]_.
+El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md).
 
 <br>
 
@@ -235,11 +257,14 @@ Las pruebas unitarias e integración documentadas para la entrega van en el issu
 
 ## 📄 Documentación
 
-| Documento | Estado |
-| :-------- | :----- |
-| Manual Técnico | En elaboración (#42) |
-| Manual de Usuario | Pendiente (#43) |
-| Registro de cambios | [docs/registro-de-cambios.md](./docs/registro-de-cambios.md) |
+| Documento | Descripción |
+| :-------- | :---------- |
+| [Manual Técnico](./docs/manual-tecnico.md) | Arquitectura, base de datos, instalación, variables de entorno y decisiones de diseño |
+| [Manual de Usuario](./docs/manual-de-usuario.md) | Cómo usar el panel de administración, para Administrador y Bedelía |
+| [Matriz de permisos](./docs/matriz-de-permisos.md) | Qué puede hacer cada rol en la API y en el panel |
+| [Plan de testing](./docs/plan-de-testing.md) | Casos de prueba y su relación con los requerimientos |
+| [Registro de cambios](./docs/registro-de-cambios.md) | Qué se cambió en cada etapa y por qué |
+| [Roadmap del MVP](./docs/roadmap-mvp.md) | Estado y lo que falta para cerrar el MVP |
 
 <br>
 
@@ -250,9 +275,9 @@ Las pruebas unitarias e integración documentadas para la entrega van en el issu
 | Integrante | Rol | GitHub |
 | :--------- | :-- | :----- |
 | **Miguel Ángel Flores Meehan** | Product Owner · Analista de Negocio | [@mikefink22](https://github.com/mikefink22) |
-| **Valeria Thomas** | Scrum Master · Gestión del Proyecto | _[completar]_ |
+| **Valeria Thomas** | Scrum Master · Gestión del Proyecto | — |
 | **Raquel Rodriguez Herlein** | Frontend · Diseño UX/UI | [@raquerh](https://github.com/raquerh) |
-| **Mario David Gonzalez Benitez** | Backend · Base de Datos | _[completar]_ |
+| **Mario David Gonzalez Benitez** | Backend · Base de Datos | — |
 | **Mariana Aiello** | QA · Documentación Técnica | [@Aiello-M](https://github.com/Aiello-M) |
 
 <br>
