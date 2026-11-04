@@ -275,9 +275,9 @@ El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md)
 | Integrante | Rol | GitHub |
 | :--------- | :-- | :----- |
 | **Miguel Ángel Flores Meehan** | Product Owner · Analista de Negocio | [@mikefink22](https://github.com/mikefink22) |
-| **Valeria Thomas** | Scrum Master · Gestión del Proyecto | — |
+| **Valeria Thomas** | Scrum Master · Gestión del Proyecto | [@Irinath](https://github.com/Irinath) |
 | **Raquel Rodriguez Herlein** | Frontend · Diseño UX/UI | [@raquerh](https://github.com/raquerh) |
-| **Mario David Gonzalez Benitez** | Backend · Base de Datos | — |
+| **Mario David Gonzalez Benitez** | Backend · Base de Datos | [@elavincho](https://github.com/elavincho) |
 | **Mariana Aiello** | QA · Documentación Técnica | [@Aiello-M](https://github.com/Aiello-M) |
 
 <br>
