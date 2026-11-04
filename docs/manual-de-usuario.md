@@ -153,7 +153,7 @@ Cada fila también permite ver el evento en el sitio.
 
 ## Contenido institucional
 
-Solo el rol Administrador accede a esta sección. Tiene cinco partes. A diferencia de horarios y mesas, **acá no hay paso de publicar**: al guardar, los cambios se publican enseguida en el sitio. En cada parte, **Ver cómo queda en el sitio** abre la página pública correspondiente.
+Solo el rol Administrador accede a esta sección. Tiene cinco partes, que se eligen en el submenú que se abre debajo de «Contenido institucional» en el menú lateral. Si todavía no elegiste ninguna, la pantalla pide que elijas una. A diferencia de horarios y mesas, **acá no hay paso de publicar**: al guardar, los cambios se publican enseguida en el sitio. En cada parte, **Ver cómo queda en el sitio** abre la página pública correspondiente.
 
 ### Perfil del egresado
 
