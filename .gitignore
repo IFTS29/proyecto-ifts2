@@ -8,11 +8,7 @@ dist
 .vercel
 server/storage/
 AGENTS.md
-.env.example
+.agents/
 
 # Se versionan los documentos que publica el sitio (guía de preingreso, resolución del plan, correlatividades)
 !client/public/docs/*.pdf
-.agents/
-
-server/storage/
-AGENTS.md

@@ -142,3 +142,53 @@ Acá se anota, en orden cronológico, qué se cambió en el proyecto y por qué.
 - 8 pruebas de integración agregadas en `server/test/eventos.test.js` cubriendo permisos por rol (Bedelía vs. Admin), validaciones y ciclo de vida.
 - Total del servidor: **102 de 102 pruebas en verde**.
 - Backlog actualizado para Sprint 3: Issue #69 (Pipeline de normalización/compresión de imágenes) e Issue #70 (Refinamiento de estilos de tarjetas).
+
+## 2026-10-25: Información académica, horarios de cursada con PDF y ajustes de sincronización (Issue #33 - US-04, PR #77)
+
+**Motivo.** Cumplir con la historia de usuario US-04 (RF09, RF10) para permitir que Bedelía cargue, edite, publique y descargue en PDF los horarios de cursada por ciclo lectivo y cuatrimestre, manteniendo separados los borradores de trabajo de la versión pública oficial, y estabilizar la persistencia y almacenamiento en Vercel Serverless.
+
+**Qué se hizo en `server/`**
+- Repositorios y modelos para horarios (`models/MateriaHorario.js`, `repos/academica.mongo.js`, `repos/academica.memoria.js`) y publicaciones oficiales (`models/PublicacionAcademica.js`, `repos/publicaciones.mongo.js`, `repos/publicaciones.memoria.js`).
+- Rutas REST `/api/academic` públicas (`GET /horarios`, descarga `GET /horarios/pdf`) y de administración (`/periodos`, `/guardar`, `/publicar`, `/reutilizar`) protegidas con autenticación y permisos de rol.
+- Generación de PDF institucional con PDFKit (`services/pdfHorarios.js`) e inclusión de tipografías en `vercel.json` para entornos serverless.
+- Persistencia del estado y cursor de sincronización de Instagram en MongoDB (`models/InstagramSync.js`) y manejo de almacenamiento temporal en `/tmp` para prevenir errores de solo lectura (`EROFS`) en Vercel.
+
+**Qué se hizo en `client/`**
+- Pantalla de administración `AdminAcademica.jsx` con componentes modulares (`FormHorario.jsx`, `FormReutilizar.jsx`, `TablaHorarios.jsx`, `ResumenHorarios.jsx`) con detección de cambios no publicados.
+- Página pública `Alumnos.jsx` (`HorariosPublicos.jsx`, `HorariosDeCursada.jsx`) consumiendo los horarios publicados vigentes y ofreciendo descarga de la grilla en PDF por turno.
+- Integración en `client/src/academica.js` y `client/src/api.js`.
+
+**Cómo se comprobó**
+- Pruebas automáticas agregadas en `server/test/academica.test.js`, `arranque.test.js` y `config.test.js`.
+- Verificación de empaquetado y compatibilidad de fuentes en Vercel (133 pruebas pasando).
+
+## 2026-10-26 al 2026-10-27: Cloudinary, edición de eventos, visor modal y confirmaciones propias (PRs #79, #80, #82, #83, #85, #87)
+
+**Motivo.** Completar el ciclo de vida de Eventos (Issue #81 / #69), optimizar imágenes para no saturar memoria en Vercel y eliminar ventanas nativas del navegador (Issue #84).
+
+**Qué se hizo**
+- **Cloudinary (`PR #80`):** Reducción de imágenes en cliente (máx. 1600 px) y subida a Cloudinary (`ifts2/eventos`), guardando solo URL e ID en la base de datos.
+- **Edición y visibilidad de eventos (`PR #82` y `#83`):** Endpoints `PUT /api/events/:id` y `PATCH /api/events/:id/estado`. Pantalla `AdminEventoEditar.jsx` con edición de textos, fecha, fotos y elección de portada (`FotosEvento.jsx`).
+- **Confirmaciones propias (`PR #85`):** Componente modal reutilizable que reemplaza los `window.confirm` genéricos con foco accesible y botón de cancelación predeterminado.
+- **Visor ampliado de fotos (`PR #87`):** Componente `VisorFotos.jsx` para visualización completa de afiches y navegación entre fotografías sin recorte visual.
+
+## 2026-10-31: Sincronización robusta de Instagram, datos reales del inicio y Mesas de Examen (PRs #88, #89, #90, #92, #93)
+
+**Motivo.** Evitar duplicaciones en sincronización, reflejar métricas reales en el inicio del panel y completar la gestión integral de exámenes (Issue #33 / #63).
+
+**Qué se hizo**
+- **Sincronización (`PR #88`, `#89`, `#90`):** Deduplicación estricta en Cloudinary (`ifts2/instagram`), respuesta 503 controlada ante falta de credenciales y widget de estado fidedigno en el panel.
+- **Inicio administrativo real (`PR #92`):** Métricas reales de eventos y horarios publicados; supresión de datos simulados y restricción estricta de vistas para Bedelía.
+- **Mesas de examen (`PR #93`):** Carga, edición, publicación y retiro de llamados de examen; generación de PDF individual por llamado y vista pública en `Alumnos.jsx` (260 pruebas pasando).
+
+## 2026-11-01 al 2026-11-03: Contenido institucional, Plan de Estudios, Ingreso y Archivado (PRs #95 al #108)
+
+**Motivo.** Entregar las secciones fijas institucionales editables, el plan de estudios con validez oficial, la gestión de convocatorias de ingreso y la política de retención histórica (Issues #32, #35, #36).
+
+**Qué se hizo**
+- **Enlaces útiles (`PR #95`):** Centralización de accesos institucionales (SIU Guaraní, Moodle, Mi Argentina, Becas) en `enlaces.js`.
+- **Contenido institucional (`PR #96`):** Edición de perfil de egresado, autoridades/tutoría y datos de contacto desde el panel con persistencia en BD.
+- **Plan de estudios oficial (`PR #97`, `#98`, `#103`):** 37 materias, correlatividades, horas cátedra oficiales, visualización y descarga de PDFs de la Resolución N.° 1202/MEGC/2007.
+- **Convocatoria de ingreso (`PR #100`, `#101`, `#102`, `#106`):** Panel para editar convocatorias, etapas, fechas y FAQs; visualización de convocatoria anterior como referencia e historial de convocatorias.
+- **Archivado automático y celular (`PR #104`, `#105`, `#107`, `#108`):** Archivado de eventos, horarios y mesas según fecha de Argentina sin borrado físico; adaptación completa de mesas y horarios a formato ficha en pantallas móviles sin desborde horizontal (375 pruebas pasando).
+
