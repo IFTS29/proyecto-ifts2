@@ -67,7 +67,7 @@ proyecto-ifts2/
 │   ├── src/models/      # esquemas de Mongoose
 │   ├── src/middleware/  # autenticación y control de rol
 │   ├── scripts/         # seed-admin.js
-│   └── test/            # 38 archivos de prueba
+│   └── test/            # 39 archivos de prueba
 ├── docs/                # documentación del equipo
 └── prototipo-html/      # prototipo original (referencia, no se publica)
 ```
@@ -337,17 +337,17 @@ El repositorio no incluye credenciales. Para una instalación local nueva se def
 
 ## 8. Pruebas implementadas
 
-Hay **375 pruebas automáticas, todas aprobadas**, en 38 archivos de `server/test/`. Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
+Hay **516 pruebas automáticas, todas aprobadas**, en 39 archivos de `server/test/`. Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
 
 ```bash
 npm test
 ```
 
-La corrida completa tarda unos 23 segundos.
+La corrida completa tarda desde unos 25 segundos hasta un par de minutos, según el equipo.
 
 | Área | Archivos | Qué cubren |
 |---|---|---|
-| Acceso y usuarios | `auth`, `usuarios`, `passwords`, `seed`, `arranque`, `config` | Login, bloqueo por intentos, permisos por rol, reglas de contraseña, alta/edición/baja de usuarios, creación del primer administrador, elección de repositorios según el entorno. |
+| Acceso y usuarios | `auth`, `permisos`, `usuarios`, `passwords`, `seed`, `arranque`, `config` | Login, bloqueo por intentos, permisos por rol, reglas de contraseña, alta/edición/baja de usuarios, creación del primer administrador, elección de repositorios según el entorno. `permisos` recorre 45 rutas de la API como visitante, Bedelía y Administrador; la matriz está en [matriz-de-permisos.md](./matriz-de-permisos.md). |
 | Horarios y archivado | `academica`, `publicacion`, `plan`, `archivo`, `alumnos`, `finalizados` | Alta, edición y baja de materias, reutilización, publicar y retirar, comparación de cambios, reglas de archivado por fecha en los bordes del calendario. |
 | Mesas de examen | `mesas`, `mesas.panel`, `mesas.celular` | Llamados y mesas, publicación, retiro y reglas de eliminación. |
 | Eventos | `eventos`, `eventos.formulario`, `eventos.edicion`, `eventos.fotos`, `eventos.galeria`, `eventos.sitio` | Alta, edición, mostrar y ocultar, galería, límites de fotos, lo que ve el sitio público. |
