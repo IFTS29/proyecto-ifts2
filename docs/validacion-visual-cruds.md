@@ -3,25 +3,21 @@
 **Issue:** #41 [QA-02]
 **Base:** rama `develop`, commit `ea8d2cc`, 4 de noviembre de 2026
 
-Este documento recorre, con capturas paso a paso, las cuatro operaciones (crear, leer, actualizar y eliminar o dar de baja) en Usuarios, Mesas de examen, Eventos e Ingreso. Las imágenes están en `docs/capturas-cruds/`.
+Este documento recorre, con capturas paso a paso, las cuatro operaciones (crear, leer, actualizar y eliminar o dar de baja) en Usuarios, Horarios de cursada, Mesas de examen, Eventos e Ingreso, y deja registrado qué ve el rol Bedelía. Las imágenes están en `docs/capturas-cruds/`.
 
 ## Cómo se hicieron las capturas
 
 - Servidor y cliente levantados con `npm run dev` desde la raíz, sin `MONGODB_URI`, o sea en modo memoria: los datos se pierden al reiniciar.
-- Administrador inicial creado con las variables `SEED_ADMIN_*` (usuario de prueba `admin@prueba.local`).
-- Todos los datos cargados son de prueba (nombres, fechas, aula, fotos). No son datos reales del instituto.
+- Administrador inicial creado con las variables `SEED_ADMIN_*` (usuario de prueba `admin@prueba.local`). El usuario de Bedelía (`bedelia@prueba.local`) se creó desde la pantalla Usuarios.
+- Todos los datos cargados son de prueba (nombres, fechas, aulas, fotos). No son datos reales del instituto.
 - Navegador Chromium con ventana de 1280 × 800 px.
 - Las capturas se sacaron en un entorno sin acceso a Google Fonts, así que la tipografía puede diferir un poco de la que se ve en producción.
 - Cada recorrido se hizo con un script de Playwright que sigue los pasos en orden, por lo que se puede repetir si cambia la interfaz.
 
-## Alcance
-
-Se cubren los cuatro CRUDs que nombra el issue, con una salvedad: de Mesas/Horarios se documentan las **mesas de examen**. Los horarios de cursada (materias por período) no están capturados todavía.
-
 
 ## Usuarios
 
-Pantalla Usuarios del panel (solo Administrador). Rol con el que se hicieron las capturas: Administrador.
+Pantalla Usuarios del panel (solo Administrador). Capturado como Administrador.
 
 **Paso 1.** Leer: pantalla Usuarios con la lista inicial (solo el administrador cargado al arrancar).
 
@@ -58,6 +54,67 @@ Pantalla Usuarios del panel (solo Administrador). Rol con el que se hicieron las
 **Paso 9.** Eliminar: el usuario ya no figura en la tabla.
 
 ![Usuarios, paso 9](capturas-cruds/usuarios-09.png)
+
+
+## Horarios de cursada
+
+Información académica, pestaña Horarios de cursada (Administrador y Bedelía). Capturado como Administrador. Se carga un período con materias, se publica y se ve en el sitio público. «Publicar» y «Retirar» son los equivalentes de alta y baja hacia el sitio; las materias se eliminan con el botón de la tabla.
+
+**Paso 1.** Leer: Horarios de cursada del período 2.° cuatrimestre 2026, sin materias cargadas y sin publicar.
+
+![Horarios de cursada, paso 1](capturas-cruds/horarios-01.png)
+
+**Paso 2.** Leer: tabla de horarios del período, todavía vacía.
+
+![Horarios de cursada, paso 2](capturas-cruds/horarios-02.png)
+
+**Paso 3.** Crear: materia, año, turno, docente, aula y una franja horaria.
+
+![Horarios de cursada, paso 3](capturas-cruds/horarios-03.png)
+
+**Paso 4.** Crear: la materia aparece en la tabla.
+
+![Horarios de cursada, paso 4](capturas-cruds/horarios-04.png)
+
+**Paso 5.** Actualizar: se abre la edición con los datos de la materia.
+
+![Horarios de cursada, paso 5](capturas-cruds/horarios-05.png)
+
+**Paso 6.** Actualizar: la tabla muestra el aula y el horario nuevos (Aula 5, hasta las 21:00).
+
+![Horarios de cursada, paso 6](capturas-cruds/horarios-06.png)
+
+**Paso 7.** Eliminar: el sistema pide confirmación.
+
+![Horarios de cursada, paso 7](capturas-cruds/horarios-07.png)
+
+**Paso 8.** Eliminar: queda una sola materia en la tabla.
+
+![Horarios de cursada, paso 8](capturas-cruds/horarios-08.png)
+
+**Paso 9.** Leer: resumen del período, listo para publicar.
+
+![Horarios de cursada, paso 9](capturas-cruds/horarios-09.png)
+
+**Paso 10.** Publicar: el sistema pide confirmación y avisa qué verán los alumnos.
+
+![Horarios de cursada, paso 10](capturas-cruds/horarios-10.png)
+
+**Paso 11.** Publicar: el período figura como publicado.
+
+![Horarios de cursada, paso 11](capturas-cruds/horarios-11.png)
+
+**Paso 12.** Leer (sitio público): en Alumnos se ve el horario publicado.
+
+![Horarios de cursada, paso 12](capturas-cruds/horarios-12.png)
+
+**Paso 13.** Retirar publicación: el sistema pide confirmación.
+
+![Horarios de cursada, paso 13](capturas-cruds/horarios-13.png)
+
+**Paso 14.** Retirar publicación: los alumnos dejan de ver el período; los datos se conservan.
+
+![Horarios de cursada, paso 14](capturas-cruds/horarios-14.png)
 
 
 ## Mesas de examen
@@ -231,8 +288,37 @@ Contenido institucional, sección Ingreso: convocatoria (solo Administrador), y 
 ![Ingreso: convocatoria, paso 12](capturas-cruds/ingreso-12.png)
 
 
+## Permisos del rol Bedelía
+
+Sesión iniciada con un usuario de rol Bedelía, creado desde Usuarios. Muestra qué parte del panel ve y qué pasa si intenta entrar por dirección a una pantalla que no le corresponde.
+
+**Paso 1.** Inicio del panel con el rol Bedelía: el menú lateral solo ofrece Inicio e Información académica.
+
+![Permisos del rol Bedelía, paso 1](capturas-cruds/bedelia-01.png)
+
+**Paso 2.** Acceso denegado: al escribir la dirección de Usuarios a mano, el panel lleva de nuevo al inicio.
+
+![Permisos del rol Bedelía, paso 2](capturas-cruds/bedelia-02.png)
+
+**Paso 3.** Acceso denegado: lo mismo ocurre con Eventos.
+
+![Permisos del rol Bedelía, paso 3](capturas-cruds/bedelia-03.png)
+
+**Paso 4.** Acceso denegado: lo mismo ocurre con Contenido institucional.
+
+![Permisos del rol Bedelía, paso 4](capturas-cruds/bedelia-04.png)
+
+**Paso 5.** Acceso permitido: Información académica (horarios de cursada) está disponible para Bedelía.
+
+![Permisos del rol Bedelía, paso 5](capturas-cruds/bedelia-05.png)
+
+**Paso 6.** Acceso permitido: Mesas de examen también.
+
+![Permisos del rol Bedelía, paso 6](capturas-cruds/bedelia-06.png)
+
+
 ## Observaciones
 
 - **Validación de Ingreso.** Con una convocatoria cargada, el panel exige la fecha de inicio de todas las etapas, incluidas las que vienen de modelo (Examen de ingreso, Confirmación de vacantes, Inicio de clases). Si falta alguna, no guarda y marca la etapa con el mensaje «completar la fecha de inicio». Está en el paso 4 de Ingreso.
 - **Baja de eventos.** Hoy el panel permite ocultar y mostrar un evento, pero no eliminarlo (issue #81). Los pasos de «Ocultar» documentan lo que existe.
-- **Roles.** Todas las capturas son con el rol Administrador. La diferencia con Bedelía, que no ve Eventos, Contenido ni Usuarios, no está registrada acá; corresponde al issue #109.
+- **Roles.** Con Bedelía, el panel muestra solo Inicio e Información académica, y las direcciones de Usuarios, Eventos y Contenido institucional redirigen al inicio. Esto muestra el comportamiento de la interfaz; la verificación de los permisos en el servidor (códigos 401 y 403 de cada ruta) corresponde al issue #109 y está cubierta por las pruebas automáticas del reporte de pruebas.

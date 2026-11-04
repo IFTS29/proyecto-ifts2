@@ -103,15 +103,37 @@ Son una muestra de las 375 pruebas, elegida para cubrir seguridad, los cuatro CR
 | QA-ARR-02 | `arranque.test.js` | Vercel con la base caída | 503 en JSON y reintento en la próxima petición | Aprobado |
 | QA-SEED-01 | `seed.test.js` | Arranque sin las variables `SEED_ADMIN_*` | No se crea ningún usuario | Aprobado |
 
-## 4. Qué cubre y qué no
+## 4. Matriz de casos del plan de testing (módulo Instagram, eventos y multimedia)
+
+Son los casos CP-IG de la sección 4 de `docs/plan-de-testing.md`. Todos los que tienen prueba están en `server/test/instagram.test.js`, con el identificador en el nombre.
+
+| ID | Caso | Prueba que lo cubre | Resultado |
+| :-- | :-- | :-- | :-: |
+| CP-IG-01 | Publicación estándar con imagen | `parseCaption` separa título y cuerpo, clasifica en eventos y formatea la fecha | Aprobado |
+| CP-IG-02 | Publicación sin texto | Asigna título institucional por defecto sin lanzar excepción | Aprobado |
+| CP-IG-03 | Publicación con solo hashtags | Clasifica en eventos y asigna título por defecto | Aprobado |
+| CP-IG-04 | Texto de más de 2.000 caracteres sin saltos de línea | Se procesa sin bloqueo y se acorta el resumen | Aprobado |
+| CP-IG-05 | Álbum con varias fotos | Se conserva la colección completa de medios (4 en la prueba) | Aprobado |
+| CP-IG-06 | Archivo de Instagram no encontrado | La ruta `/media/instagram/` con un archivo inexistente devuelve la imagen SVG de reemplazo (200) | Aprobado, con salvedad |
+| CP-IG-07 | Video sin miniatura | Se asigna la imagen de reemplazo | Aprobado |
+| CP-IG-08 | Publicación repetida | `deduplicateFeed` no duplica por `id` ni por `permalink` | Aprobado |
+| CP-IG-09 | Publicación descartada | La sincronización la omite | Aprobado |
+| CP-IG-10 | Error de la API de Meta | Respuesta controlada y el feed existente se conserva | Aprobado |
+| CP-IG-11 | Restaurar desde la papelera | Sin prueba: la función es posterior al MVP (issue #65) y el servidor todavía no tiene la ruta de restauración | No aplica |
+
+**Salvedad de CP-IG-06.** El plan describe un álbum de cuatro fotos donde la segunda tiene una dirección rota, y pide que el visor muestre la imagen de reemplazo sin trabar las demás fotos. La prueba automática solo comprueba la parte del servidor (que la ruta devuelva el SVG). Qué hace el navegador con la foto rota, sin salir del tamaño de la tarjeta, no se prueba acá: haría falta una prueba en el navegador.
+
+También cubren este módulo, fuera de la matriz, las pruebas de `instagram.sincronizacion.test.js` (sin credenciales no se consulta Instagram, un archivo que falla deja la publicación pendiente, no se vuelven a descargar archivos de un evento ya importado) y `instagram.sin-conexion.test.js`.
+
+## 5. Qué cubre y qué no
 
 La suite prueba el servidor, las reglas de negocio y algunas funciones puras del cliente (iniciales, fechas, textos del panel). No ejecuta un navegador, así que los carruseles, el modal de fotos y el aspecto de las pantallas no se prueban acá: eso queda para las capturas del issue #41.
 
 Tampoco se probó contra servicios reales. La conexión con MongoDB Atlas, con Cloudinary, con Instagram y el envío real de correo dependen de credenciales que las pruebas no usan a propósito. La validación con Atlas corresponde al issue #94.
 
-Del plan de testing, la fila CP-IG-11 (restaurar una publicación desde la papelera) está marcada como Post-MVP y no tiene prueba.
+Del plan de testing, la fila CP-IG-11 (restaurar una publicación desde la papelera) está marcada como Post-MVP y no tiene prueba; la matriz completa está en la sección 4.
 
-## 5. Observaciones de la corrida
+## 6. Observaciones de la corrida
 
 - **`npm ci` falla en la raíz.** Con el `package-lock.json` de `develop`, `npm ci` termina con error porque el lock no incluye `cloudinary@2.11.0` ni `pdfkit@0.20.2`, que sí están en el `package.json`. Para correr las pruebas se usó `npm install`, que actualiza el lock. Conviene que alguien del equipo lo regenere y lo suba, porque la regla de PRs del plan de testing y el README piden instalar con `npm ci`.
 - **`npm audit` informa 4 vulnerabilidades** (3 moderadas, 1 alta) en dependencias de desarrollo y en `react-router`. Arreglarlas con `npm audit fix --force` implica subir Vite y React Router a versiones nuevas con cambios que rompen compatibilidad, así que se dejó para después de la entrega.
