@@ -21,7 +21,7 @@ Para el aprovisionamiento de la base de datos se seleccionó la modalidad gratui
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_deploy_cluster.png" width="" height="" alt="deploy-bbdd-ifts-2"/>
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_deploy_cluster.png" width="" height="" alt="deploy-bbdd-ifts-2"/>
 
 
 ### 1.2 Vista General del Cluster (`Database Overview`)
@@ -36,7 +36,7 @@ Una vez creado el cluster dentro del proyecto `IFTS2DataBase` (Organización `Ma
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_overview.png" width="" height="" alt="overview-bbdd-ifts-2"/>
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_overview.png" width="" height="" alt="overview-bbdd-ifts-2"/>
 
 ## 2. Estructura de la Base de Datos y Colecciones
 
@@ -72,7 +72,7 @@ Almacena la información de los usuarios del sistema (administradores, bedeles, 
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_usuarios.png" width="" height="" alt="usuarios-bbdd-ifts-2"/>
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_usuarios.png" width="" height="" alt="usuarios-bbdd-ifts-2"/>
 
 ### 3.2 Colección: `eventos`
 Diseñada para almacenar noticias, novedades y publicaciones sincrónicas recopiladas automáticamente desde redes sociales (ej. Instagram) o cargadas manualmente.
@@ -105,7 +105,7 @@ Almacena bloques de información institucionales específicos y configurables di
   * `datos`: `Object` (Objeto embebido con la información detallada según la sección).
 
 ---
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_contenido_institucional.png" width="" height="" alt="ont-institucional-bbdd-ifts-2"/>
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_contenido_institucional.png" width="" height="" alt="ont-institucional-bbdd-ifts-2"/>
 
 ## 4. Resumen Técnico
 
