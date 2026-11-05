@@ -5133,8 +5133,8 @@ body[data-rol="bedelia"] [data-solo-admin] {
 }
 
 /* En el sitio público el cartel no tapa el pie de página */
-body:has(.sesion-flotante) .pie {
-  padding-bottom: 72px;
+body:has(.sesion-flotante) .pie-final {
+  padding-bottom: 76px;
 }
 
 @media (max-width: 600px) {
