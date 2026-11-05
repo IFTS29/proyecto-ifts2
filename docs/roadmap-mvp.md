@@ -18,6 +18,7 @@ El desfasaje principal no es de código sino de **gestión y documentación**: m
 > [!WARNING] **Lección Aprendida / Desvío Metodológico en la Gestión de Issues (Post-Mortem):**
 > Al inicio del Sprint 1, las Tareas Técnicas (TKs) se estructuraron como simples casillas de verificación (`- [ ]`) dentro del cuerpo markdown de cada Historia de Usuario (US) en lugar de crearse como issues/sub-issues independientes en GitHub Projects.
 > Esto generó tres problemas operativos:
+>
 > 1. **Falta de visibilidad:** No se podía mover el progreso técnico de forma granular en el tablero Kanban asignando tareas individuales a cada integrante (Frontend, Backend, QA).
 > 2. **Cierres prematuros y bugs artificiales:** Al mergear un PR parcial y cerrar una US (como ocurrió en `#34`), las tareas restantes (edición y baja) tuvieron que gestionarse abriendo issues nuevas caratuladas erróneamente como bugs (ej. `#81 [BUG-03]`), cuando en realidad eran tareas pendientes de desarrollo.
 > 3. **Desincronización visual:** Funcionalidades 100% terminadas en código (como el archivado de `#35`) figuraban con `0/3` casilleros tildados porque nadie editaba el markdown de la issue padre tras mergear los PRs.
@@ -51,6 +52,12 @@ Se conservan los enlaces directos a las historias y tareas ya cerradas en el rep
 - [#84 `[BUG-04]` Reemplazo de confirmaciones genéricas por ventanas propias](https://github.com/IFTS29/proyecto-ifts2/issues/84)
 - [#86 `[BUG-05]` Fotos completas y visor ampliado en detalle de evento](https://github.com/IFTS29/proyecto-ifts2/issues/86)
 - [#91 `[BUG-06]` Inicio del panel con datos reales](https://github.com/IFTS29/proyecto-ifts2/issues/91)
+- [#40 `[QA-01]` Suite de pruebas con evidencias](https://github.com/IFTS29/proyecto-ifts2/issues/40) (Sprint 3)
+- [#41 `[QA-02]` Validación visual de los 4 CRUDs](https://github.com/IFTS29/proyecto-ifts2/issues/41) (Sprint 3)
+- [#42 `[DOC-01]` Manual Técnico del Sistema](https://github.com/IFTS29/proyecto-ifts2/issues/42) (Sprint 3)
+- [#43 `[DOC-02]` Manual de Usuario](https://github.com/IFTS29/proyecto-ifts2/issues/43) (Sprint 3)
+- [#60 `[DOC-04]` Actualización final del README](https://github.com/IFTS29/proyecto-ifts2/issues/60) (Sprint 3)
+- [#109 `[TK-02.4]` Auditoría y pruebas de integración de roles (Admin y Bedelía)](https://github.com/IFTS29/proyecto-ifts2/issues/109) (Sprint 3)
 
 ---
 
@@ -60,14 +67,8 @@ Este es el trabajo activo para cerrar el MVP ante la cátedra:
 
 | Issue | Título | Qué falta hacer concretamente | Responsable |
 | :---: | :----- | :---------------------------- | :---------: |
-| **[#109](https://github.com/IFTS29/proyecto-ifts2/issues/109)** | **`[TK-02.4]` Auditoría y pruebas de integración de roles (Admin y Bedelía)** | Sub-issue técnica de [#31](https://github.com/IFTS29/proyecto-ifts2/issues/31): Validar y documentar formalmente la matriz de permisos por rol en endpoints (`requiereRol`), rutas protegidas en React (`SoloAdministrador`), render condicional (`AdminLateral`), métricas en `AdminInicio` y gestión de colaboradores en `AdminUsuarios`. | Backend / QA |
 | **[#81](https://github.com/IFTS29/proyecto-ifts2/issues/81)** | `[BUG-03]` Completar baja de eventos | Agregar el botón y modal de eliminación de un evento desde el panel para completar el ciclo CRUD pedido por la cátedra. | Backend / Frontend |
 | **[#94](https://github.com/IFTS29/proyecto-ifts2/issues/94)** | `[QA-04]` Validación de mesas con Atlas | Registrar evidencia de publicación y retiro de un llamado en MongoDB Atlas (o base de staging) con capturas para el informe. | QA / BD |
-| **[#40](https://github.com/IFTS29/proyecto-ifts2/issues/40)** | `[QA-01]` Suite de pruebas con evidencias | Ejecutar `npm test`, extraer el reporte de los 375 tests y completar la tabla de casos de prueba en base a `docs/plan-de-testing.md`. | QA / Mariana |
-| **[#41](https://github.com/IFTS29/proyecto-ifts2/issues/41)** | `[QA-02]` Validación visual de los 4 CRUDs | Tomar capturas paso a paso de las 4 operaciones (Create, Read, Update, Delete) en Usuarios, Mesas/Horarios, Eventos e Ingreso. | QA / Frontend |
-| **[#42](https://github.com/IFTS29/proyecto-ifts2/issues/42)** | `[DOC-01]` Manual Técnico del Sistema | Redactar el documento final: arquitectura de 3 capas, esquemas DER, variables de entorno, comandos de instalación, ADRs de diseño y plan de contingencia. | Documentación / Todo el equipo |
-| **[#43](https://github.com/IFTS29/proyecto-ifts2/issues/43)** | `[DOC-02]` Manual de Usuario | Guía visual ilustrada con capturas para operar el panel institucional (Bedelía y Admin). | Documentación |
-| **[#60](https://github.com/IFTS29/proyecto-ifts2/issues/60)** | `[DOC-04]` Actualización final del README | Sincronizar la tabla de funcionalidades con el estado real y enlazar los manuales técnicos. | Documentación |
 | **[#44](https://github.com/IFTS29/proyecto-ifts2/issues/44)** | `[DOC-03]` Despliegue en producción y entrega | Merge final de `develop` a `main`, verificación de Vercel, credenciales de test en canal privado y empaquetado del ZIP de entrega. | DevOps / PO |
 
 ---
