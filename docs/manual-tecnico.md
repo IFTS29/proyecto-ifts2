@@ -379,7 +379,7 @@ Los casos de prueba y su relación con los requerimientos están en [plan-de-tes
 
 ## 9. Decisiones de diseño
 
-Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo:
+Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo. Para una profundización formal bajo el estándar de la industria, consultar los [Registros de Decisiones de Arquitectura (ADRs)](./adr/README.md) (`ADR-001` a `ADR-007`).
 
 **Publicar es un paso aparte de guardar (horarios y mesas).** Los datos de trabajo (`horarios`, `mesas_examen`) y lo que ven los alumnos (`publicaciones_horarios`, `llamados.publicacion`) son documentos distintos. Publicar o actualizar reemplaza la copia entera en una sola escritura, y así nunca se ve una mezcla de la versión anterior y la nueva. Retirar marca la copia como no publicada y la conserva. La razón de fondo es que Bedelía pueda preparar un período completo sin que se vea a medio cargar.
 
