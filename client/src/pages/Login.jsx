@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, autenticado, cargando } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -23,6 +23,9 @@ export default function Login() {
       setEnviando(false);
     }
   };
+
+  // Si ya hay una sesión iniciada, no tiene sentido pedir el usuario de nuevo.
+  if (!cargando && autenticado) return <Navigate to="/admin" replace />;
 
   return (
     <div className="login activa">
