@@ -1,11 +1,18 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { IMGS } from "../imagenes";
 import { useAuth } from "../context/AuthContext.jsx";
+import { RUTA_CONTENIDO, SECCIONES_CONTENIDO, enlaceSeccion } from "../seccionesContenido.js";
 
 export default function AdminLateral() {
   const { esAdmin, logout } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const enContenido = pathname === RUTA_CONTENIDO;
+  const seccionActual = enContenido ? params.get("seccion") : null;
+  // El submenú de Contenido institucional se abre al entrar a esa pantalla y se puede plegar a mano.
+  const [abierto, setAbierto] = useState(enContenido);
 
   const cls = (...rutas) => "item" + (rutas.includes(pathname) ? " actual" : "");
   const salir = (e) => {
@@ -71,8 +78,16 @@ export default function AdminLateral() {
         <span>Información académica</span>
       </Link>
       {esAdmin && (
-        <Link className={cls("/admin-contenido")} to="/admin-contenido">
-          <svg
+        <>
+          {enContenido ? (
+            <button
+              type="button"
+              className="item actual"
+              aria-expanded={abierto}
+              aria-controls="submenu-contenido"
+              onClick={() => setAbierto((v) => !v)}
+            >
+              <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -84,8 +99,49 @@ export default function AdminLateral() {
             <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
             <path d="M14 3v6h6M8 13h8M8 17h5" />
           </svg>
-          <span>Contenido institucional</span>
-        </Link>
+              <span>Contenido institucional</span>
+              <svg className={"flecha-sub" + (abierto ? " abierta" : "")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          ) : (
+            <Link className="item" to={RUTA_CONTENIDO}>
+              <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+            <path d="M14 3v6h6M8 13h8M8 17h5" />
+          </svg>
+              <span>Contenido institucional</span>
+              <svg className="flecha-sub" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </Link>
+          )}
+          {enContenido && abierto && (
+            <ul className="submenu" id="submenu-contenido">
+              {SECCIONES_CONTENIDO.map((s) => (
+                <li key={s.clave}>
+                  {s.clave === seccionActual ? (
+                    <button type="button" className="subitem actual" aria-current="page">
+                      {s.titulo}
+                    </button>
+                  ) : (
+                    <Link className="subitem" to={enlaceSeccion(s.clave)}>
+                      {s.titulo}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}{" "}
       {esAdmin && (
         <Link className={cls("/admin-usuarios")} to="/admin-usuarios">

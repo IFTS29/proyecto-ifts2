@@ -1869,6 +1869,7 @@ tr:last-child td {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .lateral .marca {
@@ -1876,7 +1877,7 @@ tr:last-child td {
   padding: 0 8px;
 }
 
-.lateral a.item {
+.lateral .item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1888,21 +1889,81 @@ tr:last-child td {
   font-weight: 600;
 }
 
-.lateral a.item:hover {
+.lateral .item:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
 
-.lateral a.item.actual {
+.lateral .item.actual {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
   box-shadow: inset 3px 0 0 var(--naranja);
 }
 
-.lateral a.item svg {
+.lateral .item svg {
   width: 22px;
   height: 22px;
   flex: none;
+}
+
+/* El título del menú que tiene submenú es un botón: se le quita el aspecto de botón. */
+.lateral button.item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lateral .item span {
+  flex: 1;
+}
+
+.lateral .item svg.flecha-sub {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.15s;
+}
+
+.lateral .item svg.flecha-sub.abierta {
+  transform: rotate(180deg);
+}
+
+.lateral .submenu {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 4px 0;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.lateral .subitem {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 9px 14px 9px 48px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lateral .subitem:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lateral .subitem.actual {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 3px 0 0 var(--naranja);
+  font-weight: 700;
+  cursor: default;
 }
 
 .lateral .abajo {
@@ -2096,40 +2157,6 @@ a.dato {
   grid-template-columns: 1.6fr 1fr;
   gap: 24px;
   align-items: start;
-}
-
-.secciones-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.secciones-lista button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-  min-height: 60px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--borde);
-  background: var(--superficie);
-  cursor: pointer;
-}
-
-.secciones-lista button[aria-pressed="true"] {
-  border-color: var(--verde);
-  background: var(--verde-suave);
-}
-
-.secciones-lista small {
-  display: block;
-  color: var(--suave);
-  font-size: 13px;
 }
 
 .ig-lista {
@@ -2410,8 +2437,20 @@ a.dato {
     display: flex;
   }
 
-  .lateral a.item span {
+  .lateral .item span {
     display: none;
+  }
+
+  .lateral button.item {
+    width: auto;
+  }
+
+  .lateral .submenu {
+    flex-basis: 100%;
+  }
+
+  .lateral .subitem {
+    padding-left: 18px;
   }
 
   .atajos,
@@ -3262,14 +3301,20 @@ a.dato {
 }
 
 .form-contenido {
-  grid-template-columns: 1fr 1.6fr;
+  grid-template-columns: 1fr;
+}
+
+.panel-cont .actualizado {
+  margin: -4px 0 16px;
+  color: var(--suave);
+  font-size: 13px;
+}
+
+.vacio-seccion {
+  color: var(--suave);
 }
 
 @media (max-width: 960px) {
-  .form-contenido {
-    grid-template-columns: 1fr;
-  }
-
   .fila {
     grid-template-columns: 1fr;
   }
@@ -4253,11 +4298,6 @@ body[data-rol="bedelia"] [data-solo-admin] {
 }
 
 /* Panel: formularios del contenido institucional */
-.secciones-lista button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 .fila-persona {
   margin: 0 0 16px;
   padding: 16px;
