@@ -13,7 +13,6 @@ Para el aprovisionamiento de la base de datos se seleccionó la modalidad gratui
   * **Almacenamiento:** 512 MB
   * **RAM / vCPU:** Compartido (Shared)
   * **Conexiones Máximas:** 500 conexiones simultáneas
-* **Nombre del Cluster:** `ifts2bbdd`
 * **Proveedor de Nube (Cloud Provider):** Amazon Web Services (AWS)
 * **Región:** `N. Virginia (us-east-1)` (Seleccionada por recomendación de baja latencia y menor huella de carbono).
 * **Ajustes de Seguridad y Datos:**
@@ -21,6 +20,9 @@ Para el aprovisionamiento de la base de datos se seleccionó la modalidad gratui
   * Sin carga de datos de ejemplo predeterminados para mantener un entorno limpio.
 
 ---
+
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_deploy_cluster.png" width="" height="" alt="deploy-bbdd-ifts-2"/>
+
 
 ### 1.2 Vista General del Cluster (`Database Overview`)
 Una vez creado el cluster dentro del proyecto `IFTS2DataBase` (Organización `Mario's Org`), la consola principal muestra el estado operativo y las métricas de rendimiento en tiempo real:
@@ -33,6 +35,8 @@ Una vez creado el cluster dentro del proyecto `IFTS2DataBase` (Organización `Ma
   * **Rendimiento de E/S (Throughput):** Métricas separadas de Lectura (`Read`) y Escritura (`Write`), registrando ráfagas de lectura de hasta $0.5\text{ ops/s}$.
 
 ---
+
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_overview.png" width="" height="" alt="overview-bbdd-ifts-2"/>
 
 ## 2. Estructura de la Base de Datos y Colecciones
 
@@ -68,6 +72,8 @@ Almacena la información de los usuarios del sistema (administradores, bedeles, 
 
 ---
 
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_usuarios.png" width="" height="" alt="usuarios-bbdd-ifts-2"/>
+
 ### 3.2 Colección: `eventos`
 Diseñada para almacenar noticias, novedades y publicaciones sincrónicas recopiladas automáticamente desde redes sociales (ej. Instagram) o cargadas manualmente.
 
@@ -99,6 +105,7 @@ Almacena bloques de información institucionales específicos y configurables di
   * `datos`: `Object` (Objeto embebido con la información detallada según la sección).
 
 ---
+<img src="https://github.com/IFTS29/proyecto-ifts2/blob/img-bbdd/docs/img-bbdd/bbdd_contenido_institucional.png" width="" height="" alt="ont-institucional-bbdd-ifts-2"/>
 
 ## 4. Resumen Técnico
 
