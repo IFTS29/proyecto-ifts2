@@ -27,7 +27,7 @@ export default function AdminLateral() {
         <img src={IMGS.LOGO} alt="Logo del IFTS N.° 2" />
         <span>
           <strong>IFTS N.° 2</strong>
-          <small>Panel de administración</small>
+          <small>{esAdmin ? "Administración" : "Bedelía"}</small>
         </span>
       </Link>
       <Link className={cls("/admin")} to="/admin">

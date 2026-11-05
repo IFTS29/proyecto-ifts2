@@ -21,7 +21,11 @@ export function AuthProvider({ children }) {
     if (!leerToken()) return;
     api("/auth/yo")
       .then(({ usuario: u }) => setUsuario(conDatosDePantalla(u)))
-      .catch(() => guardarToken(null))
+      .catch((err) => {
+        // Solo se descarta el token si el servidor dice que ya no vale (401).
+        // Un corte de red o un error del servidor no deben cerrar la sesión.
+        if (err.estado === 401) guardarToken(null);
+      })
       .finally(() => setCargando(false));
   }, []);
 
