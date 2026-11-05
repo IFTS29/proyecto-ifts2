@@ -28,7 +28,7 @@ Si una persona con rol Bedelía escribe a mano la dirección de una sección que
 2. Escribí tu correo electrónico y tu contraseña.
 3. Tocá **Ingresar**.
 
-Para salir, usá **Cerrar sesión**, abajo en el menú lateral. **Ver el sitio** abre la parte pública.
+Para salir, usá **Cerrar sesión**, abajo en el menú lateral, o el mismo botón de la caja que se abre sobre el sitio público (ver más abajo). **Ver el sitio** abre la parte pública.
 
 ![Pantalla de ingreso](capturas-manual/ingreso-pantalla.png)
 
@@ -37,6 +37,22 @@ Si el correo o la contraseña no coinciden, el panel avisa «Usuario o contrase�
 ![Ingreso con contraseña incorrecta](capturas-manual/ingreso-error.png)
 
 Las cuentas las crea el administrador desde la sección Usuarios. No hay una opción para registrarse solos.
+
+### Mirar el sitio con la sesión iniciada
+
+Mientras tengas la sesión iniciada, el sitio público muestra abajo a la derecha un botón con tus iniciales y el texto «Volver al panel». Sirve para saber con qué usuario estás mirando el sitio y para volver sin escribir la dirección del panel. El botón no aparece si no hay sesión iniciada, ni dentro del panel ni en la pantalla de ingreso.
+
+![Botón «Volver al panel» sobre el sitio público](capturas-manual/sesion-cartel-cerrado.png)
+
+Al tocarlo se abre una caja que dice «Estás viendo el sitio como Administración» (o «Bedelía», según tu usuario) y tiene dos botones: **Volver al panel** y **Cerrar sesión**. La caja se cierra con el botón **Cerrar**, con la tecla Esc, al tocar afuera o al cambiar de página.
+
+![Caja abierta con Volver al panel y Cerrar sesión](capturas-manual/sesion-cartel-abierto.png)
+
+En el celular funciona igual, con el botón un poco más chico.
+
+![El cartel en la vista de celular](capturas-manual/sesion-cartel-celular.png)
+
+Si entrás a `/login` con la sesión ya iniciada, el panel te lleva directo al inicio.
 
 ## Inicio del panel
 
