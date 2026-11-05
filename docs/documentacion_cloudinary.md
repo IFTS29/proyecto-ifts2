@@ -4,7 +4,7 @@
 
 ## 1. Contexto del Proyecto y Rol de Cloudinary
 
-La Web App del **IFTS N° 2** promociona los emprendimientos culinarios, talleres y productos artesanales desarrollados por los estudiantes de la tecnicatura (panadería artesanal, mermeladas, salsas, conservas y eventos gastronómicos).
+La Web App del **IFTS N° 2** promociona los emprendimientos gastronónicos, talleres y productos artesanales desarrollados por los estudiantes de la Tecnicatura (panadería artesanal, mermeladas, salsas, conservas y eventos gastronómicos).
 
 Dado que la aplicación incluye fotografías de alta resolución y videos de demostración en cocina, **Cloudinary** se utiliza como el servicio centralizado de media backend. Esto evita sobrecargar la plataforma de despliegue (**Vercel**) y garantiza un tiempo de carga rápido para los usuarios en computadoras y dispositivos móviles.
 
@@ -15,7 +15,7 @@ Dado que la aplicación incluye fotografías de alta resolución y videos de dem
 Dentro del panel de Cloudinary, los recursos están estructurados para representar el contenido de la web app.
 
 ### Organización por Carpetas
-* Los archivos de los emprendimientos y talleres se almacenan en la carpeta organizada `/events`.
+* Los archivos de los cursos y talleres se almacenan en la carpeta organizada `/events`.
 
 <img src="https://github.com/IFTS29/proyecto-ifts2/blob/cloudinary/docs/img-cloudinary/cloudinary_assets.png" width="" height="" alt="assets"/>
 
