@@ -21,7 +21,7 @@ Para el aprovisionamiento de la base de datos se seleccionó la modalidad gratui
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_deploy_cluster.png" width="" height="" alt="deploy-bbdd-ifts-2"/>
+<img src="img-bbdd/bbdd_deploy_cluster.png" width="" height="" alt="deploy-bbdd-ifts-2"/>
 
 
 ### 1.2 Vista General del Cluster (`Database Overview`)
@@ -36,11 +36,11 @@ Una vez creado el cluster dentro del proyecto `IFTS2DataBase` (Organización `Ma
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_overview.png" width="" height="" alt="overview-bbdd-ifts-2"/>
+<img src="img-bbdd/bbdd_overview.png" width="" height="" alt="overview-bbdd-ifts-2"/>
 
 ## 2. Estructura de la Base de Datos y Colecciones
 
-La base de datos principal se denomina `ifts2` y la base de datos de trabajo actual es `test`. A través del **Data Explorer**, se identifican las siguientes colecciones estructuradas para dar soporte a la plataforma:
+El clúster se llama `ifts2` y la base de datos que usa el sitio se llama `test`. A través del **Data Explorer**, se identifican las siguientes colecciones estructuradas para dar soporte a la plataforma:
 
 ### Colecciones Existentes:
 1. `contenidoinstitucional`
@@ -58,24 +58,24 @@ La base de datos principal se denomina `ifts2` y la base de datos de trabajo act
 ## 3. Análisis Detallado de Colecciones Específicas
 
 ### 3.1 Colección: `usuarios`
-Almacena la información de los usuarios del sistema (administradores, bedeles, etc.), gestionando la autenticación y los roles dentro de la plataforma.
+Almacena la información de los usuarios del sistema (usuarios con rol de Administración o Bedelía), gestionando la autenticación y los roles dentro de la plataforma.
 
 * **Ejemplo de Documento (Esquema Básico):**
   * `_id`: `ObjectId` (Identificador único de MongoDB).
   * `nombre`: `String` (Nombre completo del usuario, ej. *"Matías Peláez"*, *"Mario González"*, *"Miguel"*, *"Rachel"*).
   * `mail`: `String` (Correo electrónico institucional o personal).
   * `rol`: `String` (Nivel de acceso, ej. `"admin"`, `"bedelia"`).
-  * `passwordHash`: `String` (Hash encriptado mediante Bcrypt `$2a$10$...` para seguridad de la contraseña).
+  * `passwordHash`: `String` (Hash de la contraseña con bcrypt, `$2a$10$...`).
   * `createdAt`: `ISODate` (Fecha y hora de creación).
   * `updatedAt`: `ISODate` (Fecha y hora de la última modificación).
   * `__v`: `Number` (Control de versiones de Mongoose).
 
 ---
 
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_usuarios.png" width="" height="" alt="usuarios-bbdd-ifts-2"/>
+<img src="img-bbdd/bbdd_usuarios.png" width="" height="" alt="usuarios-bbdd-ifts-2"/>
 
 ### 3.2 Colección: `eventos`
-Diseñada para almacenar noticias, novedades y publicaciones sincrónicas recopiladas automáticamente desde redes sociales (ej. Instagram) o cargadas manualmente.
+Almacena los eventos del instituto: cargados manualmente desde el panel o importados desde Instagram con el botón «Sincronizar Instagram».
 
 * **Ejemplo de Documento (Esquema Básico):**
   * `_id`: `ObjectId`
@@ -105,7 +105,7 @@ Almacena bloques de información institucionales específicos y configurables di
   * `datos`: `Object` (Objeto embebido con la información detallada según la sección).
 
 ---
-<img src="https://github.com/IFTS29/proyecto-ifts2/blob/bbdd/docs/img-bbdd/bbdd_contenido_institucional.png" width="" height="" alt="ont-institucional-bbdd-ifts-2"/>
+<img src="img-bbdd/bbdd_contenido_institucional.png" width="" height="" alt="ont-institucional-bbdd-ifts-2"/>
 
 ## 4. Resumen Técnico
 
@@ -113,5 +113,5 @@ Almacena bloques de información institucionales específicos y configurables di
 | :--- | :--- |
 | **Entorno de Hosting** | MongoDB Atlas Cloud (AWS us-east-1) |
 | **Arquitectura de Base de Datos** | Documental / NoSQL (JSON/BSON) |
-| **Seguridad de Usuarios** | Encriptación Hash de contraseñas (Bcrypt) + Roles de acceso |
+| **Seguridad de Usuarios** | Hash de contraseñas con bcrypt + Roles de acceso |
 | **Integraciones Externas** | CDN (Cloudinary) para media e integración de syncs con Instagram |
