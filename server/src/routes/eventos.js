@@ -223,7 +223,7 @@ export function crearRutasEventos({
         // Las fotos se subieron, pero el evento no se guardó: se intenta borrar solo las fotos nuevas de este alta.
         console.error(`[eventos] No se pudo guardar el evento: ${err.message}`);
         await borrarFotosSubidas(fotos, subidas);
-        return res.status(500).json({ error: "No se pudo guardar el evento. Probá de nuevo en unos minutos." });
+        return res.status(500).json({ error: "No se pudo guardar el evento. Volver a intentarlo en unos minutos." });
       }
       subidas = []; // ya son fotos del evento guardado: no se borran aunque algo falle después
 
@@ -288,7 +288,7 @@ export function crearRutasEventos({
         // Las fotos nuevas se subieron, pero el evento no se guardó: se intenta borrar solo esas fotos.
         console.error(`[eventos] No se pudo guardar la edición del evento ${actual.id}: ${err.message}`);
         await borrarFotosSubidas(fotos, subidas);
-        return res.status(500).json({ error: "No se pudieron guardar los cambios. Probá de nuevo en unos minutos." });
+        return res.status(500).json({ error: "No se pudieron guardar los cambios. Volver a intentarlo en unos minutos." });
       }
       subidas = []; // ya son fotos del evento guardado
       res.json({ evento: actualizado });

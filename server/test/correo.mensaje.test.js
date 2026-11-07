@@ -50,7 +50,7 @@ test("el asunto y el texto incluyen el motivo y los datos de la consulta", () =>
 test("el texto indica quién responde y que se use Responder a todos", () => {
   const { text } = armarCorreoConsulta(CONSULTA, CASILLAS);
   assert.match(text, /Responde la casilla que figura en "Para"/);
-  assert.match(text, /Usá "Responder a todos"/);
+  assert.match(text, /Conviene usar «Responder a todos»/);
 });
 
 test("un nombre con saltos de línea no agrega líneas al asunto", () => {

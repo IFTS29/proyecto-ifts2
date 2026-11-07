@@ -74,10 +74,10 @@ export function leerPeriodo(codigo) {
 // "1 materia", "20 materias"
 export const textoMaterias = (cantidad) => `${cantidad} ${cantidad === 1 ? "materia" : "materias"}`;
 
-// "1.° cuatrimestre 2027"
-export const textoPeriodo = ({ cicloLectivo, cuatrimestre }) => `${cuatrimestre}.° cuatrimestre ${cicloLectivo}`;
+// "1.º cuatrimestre 2027"
+export const textoPeriodo = ({ cicloLectivo, cuatrimestre }) => `${cuatrimestre}.º cuatrimestre ${cicloLectivo}`;
 
-// El período en curso: desde agosto, el 2.° cuatrimestre.
+// El período en curso: desde agosto, el 2.º cuatrimestre.
 export function periodoActual(hoy = new Date()) {
   return { cicloLectivo: hoy.getFullYear(), cuatrimestre: hoy.getMonth() >= 7 ? 2 : 1 };
 }
@@ -101,6 +101,7 @@ export function textoFechaHora(fechaIso) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hourCycle: "h23", // 24 h: sin «a. m.» ni «p. m.»
   });
 }
 

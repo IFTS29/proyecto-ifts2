@@ -31,9 +31,9 @@ export default function Header() {
     <header className={"encabezado" + (fijo ? " fijo" : "")} id="encabezado">
       <div className="contenedor">
         <Link className="marca" to="/">
-          <img src={IMGS.LOGO} alt="Logo del IFTS N.° 2" />
+          <img src={IMGS.LOGO} alt="Logo del IFTS N.º 2" />
           <span>
-            <strong>IFTS N.° 2</strong>
+            <strong>IFTS N.º 2</strong>
             <small>D.E. 20, Villa Lugano</small>
           </span>
         </Link>

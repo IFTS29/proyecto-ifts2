@@ -22,7 +22,7 @@ test("contraseña incorrecta devuelve 401 y cuenta los intentos", async () => {
   const { app } = await appDePrueba();
   const res = await request(app).post("/api/auth/login").send({ mail: ADMIN.mail, password: "mala" });
   assert.equal(res.status, 401);
-  assert.match(res.body.error, /quedan 4 intentos/);
+  assert.match(res.body.error, /Quedan 4 intentos antes del bloqueo temporal\./);
 });
 
 test("un correo que no existe da el mismo mensaje que una contraseña mala", async () => {
@@ -77,7 +77,7 @@ test("un login correcto borra los fallos anteriores", async () => {
   assert.equal(ok.status, 200);
   const otraVez = await request(app).post("/api/auth/login").send({ mail: ADMIN.mail, password: "mala" });
   assert.equal(otraVez.status, 401);
-  assert.match(otraVez.body.error, /quedan 4 intentos/);
+  assert.match(otraVez.body.error, /Quedan 4 intentos antes del bloqueo temporal\./);
 });
 
 test("GET /api/auth/yo sin token devuelve 401", async () => {

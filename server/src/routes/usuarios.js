@@ -25,7 +25,7 @@ export function crearRutasUsuarios({ config, usuarios }) {
       const rol = req.body?.rol;
       const password = req.body?.password;
 
-      if (!nombre || !mail) return res.status(400).json({ error: "Completá el nombre y el correo." });
+      if (!nombre || !mail) return res.status(400).json({ error: "El nombre y el correo son obligatorios." });
       if (!MAIL.test(mail)) return res.status(400).json({ error: "El correo no tiene un formato válido." });
       if (!ROLES.includes(rol)) return res.status(400).json({ error: "El rol tiene que ser admin o bedelia." });
       const errorPass = validarPassword(password);
@@ -75,7 +75,7 @@ export function crearRutasUsuarios({ config, usuarios }) {
         if (!ROLES.includes(datos.rol)) return res.status(400).json({ error: "El rol tiene que ser admin o bedelia." });
         if (datos.rol !== objetivo.rol) {
           if (id === req.usuario.id) {
-            return res.status(400).json({ error: "No podés cambiar tu propio rol." });
+            return res.status(400).json({ error: "No se puede cambiar el rol del propio usuario." });
           }
           if (objetivo.rol === "admin" && (await usuarios.contarPorRol("admin")) <= 1) {
             return res.status(400).json({ error: "Tiene que quedar al menos un administrador." });
@@ -103,7 +103,7 @@ export function crearRutasUsuarios({ config, usuarios }) {
     try {
       const { id } = req.params;
       if (id === req.usuario.id) {
-        return res.status(400).json({ error: "No podés eliminar tu propio usuario." });
+        return res.status(400).json({ error: "No se puede eliminar el propio usuario." });
       }
       const objetivo = await usuarios.buscarPorId(id);
       if (!objetivo) return res.status(404).json({ error: "El usuario no existe." });

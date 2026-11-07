@@ -110,8 +110,7 @@ export default function AdminUsuarios() {
             </li>
             <li>
               <span>
-                <strong>Bedelía</strong>: solo información académica (horarios, mesas de examen,
-                ingresantes y alumnos en curso).
+                <strong>Bedelía</strong>: solo información académica (horarios y mesas de examen).
               </span>
             </li>
           </ul>
@@ -167,7 +166,7 @@ export default function AdminUsuarios() {
               </div>
             </div>
             <p style={{ color: "var(--suave)", fontSize: "14px" }}>
-              {editando ? "Si dejás la contraseña vacía, se mantiene la actual. " : ""}
+              {editando ? "Si la contraseña queda vacía, se mantiene la actual. " : ""}
               La contraseña debe tener al menos 8 caracteres, con una mayúscula y un número.
             </p>
             <p
@@ -241,8 +240,8 @@ export default function AdminUsuarios() {
           </table>
         </div>
         <p style={{ color: "var(--suave)", fontSize: "14px", marginTop: "12px" }}>
-          Las cuentas (tres con acceso total y dos de Bedelía) las informa el instituto. Quien
-          administra las da de alta desde acá.
+          El instituto informa qué personas deben tener acceso. Las cuentas se crean y administran
+          desde esta sección.
         </p>
       </main>
     </div>

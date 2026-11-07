@@ -22,7 +22,7 @@ export default function FormReutilizar({ destino, periodos, alConfirmar, alCance
   if (opciones.length === 0) {
     return (
       <>
-        <p>No hay otros períodos con horarios cargados. Agregá las materias con "+ Agregar materia".</p>
+        <p>No hay otros períodos con horarios cargados. Las materias se agregan con «+ Agregar materia».</p>
         <div className="acciones">
           <button className="boton boton-linea" type="button" onClick={alCancelar}>
             Cerrar
@@ -58,7 +58,7 @@ export default function FormReutilizar({ destino, periodos, alConfirmar, alCance
       </div>
       <p>
         Se van a agregar al <strong>{textoPeriodo(destino)}</strong> las materias del {textoPeriodo(elegido)} que
-        todavía no estén cargadas. Después podés corregirlas. <strong>No se publica nada.</strong>
+        todavía no estén cargadas. Después se pueden corregir. <strong>No se publica nada.</strong>
       </p>
       <p className={"aviso" + (error ? " visible error" : "")} role="alert">
         {error}

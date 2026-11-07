@@ -90,9 +90,9 @@ export default function ResumenHorarios({
           </button>
         )}
       </div>
-      {materias === 0 && !estado.publicado && <p className="ayuda">Para publicar, cargá al menos una materia.</p>}
+      {materias === 0 && !estado.publicado && <p className="ayuda">Para publicar, hace falta al menos una materia.</p>}
       {materias === 0 && estado.publicado && (
-        <p className="ayuda">No quedan materias guardadas. Para sacar el período del sitio, usá Retirar publicación.</p>
+        <p className="ayuda">No quedan materias guardadas. El período se saca del sitio con «Retirar publicación».</p>
       )}
       {estado.publicado && !hayCambios && materias > 0 && (
         <p className="ayuda">La publicación está al día con lo guardado.</p>

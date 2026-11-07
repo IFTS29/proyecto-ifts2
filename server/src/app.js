@@ -43,7 +43,7 @@ const INLINE_PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
     <circle cx="0" cy="9" r="4" fill="#f59e0b"/>
   </g>
   <text x="400" y="295" fill="#f59e0b" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" letter-spacing="2" text-anchor="middle">GOBIERNO DE LA CIUDAD DE BUENOS AIRES</text>
-  <text x="400" y="335" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="26" font-weight="900" text-anchor="middle">IFTS N.° 2</text>
+  <text x="400" y="335" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="26" font-weight="900" text-anchor="middle">IFTS N.º 2</text>
   <text x="400" y="365" fill="#93c5fd" font-family="-apple-system, sans-serif" font-size="16" font-weight="500" text-anchor="middle">Tecnicatura Superior en Emprendimientos Gastronómicos</text>
   <rect x="270" y="395" width="260" height="30" rx="15" fill="rgba(255, 255, 255, 0.1)"/>
   <text x="400" y="415" fill="#cbd5e1" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">PUBLICACIÓN INSTITUCIONAL</text>

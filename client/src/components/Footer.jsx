@@ -14,10 +14,10 @@ export default function Footer() {
         <div>
           <div className="logo-pie">
             <img src={IMGS.LOGO} alt="" />
-            <strong>IFTS N.° 2</strong>
+            <strong>IFTS N.º 2</strong>
           </div>
           <p>
-            Instituto de Formación Técnica Superior N.° 2, D.E. 20.
+            Instituto de Formación Técnica Superior N.º 2, D.E. 20.
             <br />
             Ministerio de Educación, Gobierno de la Ciudad de Buenos Aires.
           </p>

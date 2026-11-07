@@ -4,7 +4,7 @@ import { AVISO_POR_DEFECTO, textoAnio, textoFechaDeMesa, textoFechasDelLlamado, 
 
 // Arma los PDF de horarios y de mesas de examen que se descargan desde la página de Alumnos (lo publicado)
 // y desde el panel (la vista previa de los datos de trabajo, con una marca bien visible).
-// Usa las fuentes estándar de PDF (Helvetica), que incluyen tildes, ñ y el símbolo °.
+// Usa las fuentes estándar de PDF (Helvetica), que incluyen tildes, ñ y la «o» volada (º).
 
 const COLOR = {
   verde: "#007a40",
@@ -55,7 +55,7 @@ function encabezado(doc, titulo, subtitulo) {
     .fillColor("#ffffff")
     .font("Helvetica-Bold")
     .fontSize(15)
-    .text("Instituto de Formación Técnica Superior N.° 2 · D.E. 20", MARGEN, 22, { width: ancho - MARGEN * 2 })
+    .text("Instituto de Formación Técnica Superior N.º 2 · D.E. 20", MARGEN, 22, { width: ancho - MARGEN * 2 })
     .font("Helvetica")
     .fontSize(11)
     .text("Tecnicatura Superior en Emprendimientos Gastronómicos", MARGEN, 44);
@@ -164,7 +164,7 @@ function generar(dibujar, { titulo }) {
       size: "A4",
       margin: MARGEN,
       bufferPages: true,
-      info: { Title: titulo, Author: "IFTS N.° 2 D.E. 20" },
+      info: { Title: titulo, Author: "IFTS N.º 2 D.E. 20" },
     });
     const partes = [];
     doc.on("data", (parte) => partes.push(parte));
@@ -218,7 +218,7 @@ export function pdfHorarios({ horarios, periodo, urlContacto, fecha = "", vistaP
           .sort((a, b) => ORDEN_DIA.indexOf(a.dia) - ORDEN_DIA.indexOf(b.dia) || a.desde.localeCompare(b.desde))
           .map((f) => columnas.map((c) => c.valor(f)));
         if (filas.length === 0) continue;
-        subtituloSeccion(doc, `${anio}.° año`, filas.length);
+        subtituloSeccion(doc, `${anio}.º año`, filas.length);
         tabla(doc, columnas, filas);
       }
       pies(doc, { fecha, urlContacto, vistaPrevia });

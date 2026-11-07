@@ -41,7 +41,7 @@ export default function SesionFlotante() {
       {abierto && (
         <div className="sesion-caja" id="sesion-caja" role="region" aria-label="Sesión iniciada">
           <p>
-            Estás viendo el sitio como
+            Sesión iniciada como
             <strong>{rol}</strong>
           </p>
           <Link className="sesion-panel" to="/admin">
@@ -62,7 +62,7 @@ export default function SesionFlotante() {
         <span className="sesion-avatar" aria-hidden="true">
           {usuario.iniciales}
         </span>
-        <span className="sesion-texto">{abierto ? "Cerrar" : "Volver al panel"}</span>
+        <span className="sesion-texto">{abierto ? "Cerrar menú" : "Sesión"}</span>
       </button>
     </div>
   );

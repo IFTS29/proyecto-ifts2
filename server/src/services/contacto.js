@@ -38,7 +38,7 @@ export function validarConsulta(datos = {}) {
   };
 
   if (!consulta.nombre || !consulta.mail || !consulta.mensaje) {
-    return { error: "Completá tu nombre, tu correo y el mensaje." };
+    return { error: "El nombre, el correo y el mensaje son obligatorios." };
   }
   if (!REGEX_CORREO.test(consulta.mail)) {
     return { error: "El correo no tiene un formato válido." };
@@ -51,12 +51,12 @@ export function validarConsulta(datos = {}) {
       digitos > 15
     ) {
       return {
-        error: "El teléfono no tiene un formato válido. Podés dejarlo vacío.",
+        error: "El teléfono no tiene un formato válido. Es opcional: se puede dejar vacío.",
       };
     }
   }
   if (!Object.hasOwn(MOTIVOS, consulta.motivo)) {
-    return { error: "Elegí un motivo de consulta de la lista." };
+    return { error: "El motivo tiene que ser uno de la lista." };
   }
   for (const [campo, maximo] of Object.entries(LIMITES)) {
     if (consulta[campo].length > maximo) {

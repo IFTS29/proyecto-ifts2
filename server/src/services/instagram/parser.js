@@ -1,5 +1,5 @@
 /**
- * Parser y clasificador de publicaciones de Instagram para el IFTS N.° 2.
+ * Parser y clasificador de publicaciones de Instagram para el IFTS N.º 2.
  */
 
 export const CONFIG_CATEGORIAS_DEFECTO = {

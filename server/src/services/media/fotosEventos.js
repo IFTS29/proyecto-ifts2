@@ -32,7 +32,7 @@ export function revisarFotoNueva(dataUrl, numero) {
   }
   const peso = Buffer.byteLength(partes[2], "base64");
   if (peso === 0) return `La foto ${numero} está vacía.`;
-  if (peso > PESO_MAXIMO_FOTO) return `La foto ${numero} pesa demasiado. Probá cargarla de nuevo desde el formulario.`;
+  if (peso > PESO_MAXIMO_FOTO) return `La foto ${numero} pesa demasiado. Volver a cargarla desde el formulario.`;
   return null;
 }
 
@@ -138,7 +138,7 @@ export async function subirFotosNuevas(fotos, dataUrls, titulo) {
     } catch (err) {
       console.error(`[eventos] Falló la subida de la foto ${indice + 1}: ${err.message}`);
       await borrarFotosSubidas(fotos, subidas);
-      throw new ErrorDeFotos(`No se pudo subir la foto ${indice + 1}. Probá de nuevo en unos minutos.`, 502);
+      throw new ErrorDeFotos(`No se pudo subir la foto ${indice + 1}. Volver a intentarlo en unos minutos.`, 502);
     }
   }
   return subidas;

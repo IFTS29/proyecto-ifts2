@@ -16,8 +16,8 @@ const evento = (id, titulo, origen, createdAt) => ({ id, titulo, origen, created
 test("horarios publicados: ninguno, uno y dos períodos a la vez", () => {
   assert.deepEqual(textoDeHorariosPublicados([]), ["Sin horarios publicados"]);
   assert.deepEqual(textoDeHorariosPublicados(), ["Sin horarios publicados"]);
-  assert.deepEqual(textoDeHorariosPublicados([SEGUNDO_2026]), ["2.° cuatrimestre 2026"]);
-  assert.deepEqual(textoDeHorariosPublicados([PRIMERO_2027, SEGUNDO_2026]), ["1.° cuatrimestre 2027", "2.° cuatrimestre 2026"]);
+  assert.deepEqual(textoDeHorariosPublicados([SEGUNDO_2026]), ["2.º cuatrimestre 2026"]);
+  assert.deepEqual(textoDeHorariosPublicados([PRIMERO_2027, SEGUNDO_2026]), ["1.º cuatrimestre 2027", "2.º cuatrimestre 2026"]);
 });
 
 test("actividad reciente: textos según el origen, orden por fecha y fecha en Argentina", () => {
@@ -34,7 +34,7 @@ test("actividad reciente: textos según el origen, orden por fecha y fecha en Ar
       // 02:30 UTC del 31/10 es el 30/10 en Argentina.
       "Se incorporó desde Instagram el evento Clase abierta (30/10/2026)",
       "Se cargó el evento Mateada (20/10/2026)",
-      "Se publicaron los horarios del 2.° cuatrimestre 2026 (10/08/2026)",
+      "Se publicaron los horarios del 2.º cuatrimestre 2026 (10/08/2026)",
     ],
   );
   // Nunca dice "publicó" para un evento: puede estar oculto.
@@ -61,7 +61,7 @@ test("inicio del administrador: mientras carga, con datos y con errores", () => 
     vigente: { ok: true, datos: { periodos: [SEGUNDO_2026] } },
   });
   assert.equal(conDatos.eventosVisibles, 4);
-  assert.deepEqual(conDatos.horariosPublicados, ["2.° cuatrimestre 2026"]);
+  assert.deepEqual(conDatos.horariosPublicados, ["2.º cuatrimestre 2026"]);
   assert.equal(conDatos.actividad.estado, "lista");
   assert.equal(conDatos.actividad.items.length, 2);
 
@@ -77,14 +77,14 @@ test("inicio del administrador: mientras carga, con datos y con errores", () => 
   // Un error no se muestra como cero ni como lista vacía.
   const conError = datosDelInicio({ esAdmin: true, eventos: { ok: false }, vigente: { ok: true, datos: { periodos: [SEGUNDO_2026] } } });
   assert.equal(conError.eventosVisibles, "No disponible");
-  assert.deepEqual(conError.horariosPublicados, ["2.° cuatrimestre 2026"]);
+  assert.deepEqual(conError.horariosPublicados, ["2.º cuatrimestre 2026"]);
   assert.equal(conError.actividad.estado, "error");
 });
 
 test("inicio de Bedelía: solo horarios, sin esperar ni usar los eventos", () => {
   const datos = datosDelInicio({ esAdmin: false, eventos: null, vigente: { ok: true, datos: { periodos: [SEGUNDO_2026] } } });
   assert.equal(datos.actividad.estado, "lista");
-  assert.deepEqual(datos.actividad.items.map((i) => i.detalle), ["2.° cuatrimestre 2026"]);
+  assert.deepEqual(datos.actividad.items.map((i) => i.detalle), ["2.º cuatrimestre 2026"]);
   assert.equal(datosDelInicio({ esAdmin: false, eventos: null, vigente: { ok: false } }).horariosPublicados[0], "No disponible");
 });
 
@@ -109,7 +109,7 @@ test("actividad reciente: 'Se publicó el llamado', en orden con eventos y horar
   });
   assert.deepEqual(
     items.map((i) => `${i.accion} ${i.detalle}`),
-    ["Se publicó el llamado Febrero 2027", "Se cargó el evento Mateada", "Se publicaron los horarios del 2.° cuatrimestre 2026"],
+    ["Se publicó el llamado Febrero 2027", "Se cargó el evento Mateada", "Se publicaron los horarios del 2.º cuatrimestre 2026"],
   );
 });
 
