@@ -196,6 +196,10 @@ export const puedeSincronizar = (estado = {}, sincronizando = false) => estado.c
 
 export const IMAGEN_DE_REEMPLAZO = "/media/instagram/placeholder.svg";
 
+// El mismo mensaje que responde el servidor (server/src/services/instagram/enlace.js).
+export const MENSAJE_ENLACE_INVALIDO =
+  "El enlace de Instagram no es válido. Debe ser una publicación o un reel, por ejemplo: https://www.instagram.com/p/…";
+
 // Dirección de una publicación de Instagram, o null si no lo es. Solo acepta https en instagram.com
 // (con o sin www) y una publicación, reel o video (/p/, /reel/, /tv/). Se revisa con URL y no buscando
 // el texto «instagram.com», así un enlace como «javascript:…» o «https://otro.sitio/instagram.com/p/x»

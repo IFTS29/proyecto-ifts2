@@ -123,8 +123,13 @@ test("un error inesperado después de subir las fotos también las borra", async
   t.mock.method(console, "error", () => {});
   const fotos = fotosDePrueba();
   const subirOriginal = fotos.subir;
-  // Simula un problema después de la subida: Cloudinary devuelve un enlace que no es texto.
-  fotos.subir = async (...args) => ({ ...(await subirOriginal(...args)), url: 12345 });
+  // Simula un problema después de la subida: Cloudinary devuelve un enlace que no se puede leer como texto.
+  const enlaceIlegible = {
+    toString() {
+      throw new Error("respuesta inesperada de Cloudinary");
+    },
+  };
+  fotos.subir = async (...args) => ({ ...(await subirOriginal(...args)), url: enlaceIlegible });
   const { app, token, eventos } = await preparar({ fotosEventos: fotos });
 
   const res = await con(request(app).post("/api/events").send(eventoCon([FOTO_1])), token);

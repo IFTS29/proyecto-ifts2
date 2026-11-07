@@ -14,31 +14,6 @@ function asegurarConfiguracion() {
   }
 }
 
-/**
- * Sube una imagen o video a Cloudinary (recibe URL remota, buffer o ruta local)
- * @param {string|{url?: string, buffer?: Buffer, filename: string}} params
- * @param {string} [nombreArchivo]
- * @returns {Promise<string|null>} URL segura https://res.cloudinary.com/...
- */
-export async function guardarMedioCloudinary(params, nombreArchivo) {
-  asegurarConfiguracion();
-  const source = typeof params === "string" ? params : params.url || params.buffer;
-  if (!source) return null;
-
-  try {
-    const res = await cloudinary.uploader.upload(source, {
-      folder: "ifts29/events",
-      resource_type: "auto", // detecta automáticamente imagen o video MP4
-      quality: "auto",       // compresión inteligente para web
-      fetch_format: "auto",  // formato moderno (WebP / AVIF)
-    });
-    return res.secure_url;
-  } catch (err) {
-    console.error("[Cloudinary] Error al subir medio:", err.message);
-    return null;
-  }
-}
-
 // ----- Archivos de la sincronización con Instagram -----
 
 // Cada archivo se sube con un nombre fijo armado con los ids de Instagram, en la carpeta ifts2/instagram.
