@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Evento } from "../models/Evento.js";
+import { patronDeLaPublicacion } from "../services/instagram/enlace.js";
 
 // Repositorio de eventos en MongoDB. Expone la misma interfaz que el repositorio en memoria.
 const aPlano = (doc) => {
@@ -32,6 +33,15 @@ export function crearRepoEventosMongo() {
     async buscarPorInstagramId(instagramId) {
       if (!instagramId) return null;
       const doc = await Evento.findOne({ instagramId: String(instagramId) });
+      return aPlano(doc);
+    },
+
+    // Evento (en cualquier estado) que ya tiene el enlace a esa publicación de Instagram, cargado a mano
+    // (videoUrl) o por la sincronización (permalink). La misma búsqueda que el repositorio en memoria.
+    async buscarPorEnlaceDeInstagram(direccion) {
+      const patron = patronDeLaPublicacion(direccion);
+      if (!patron) return null;
+      const doc = await Evento.findOne({ $or: [{ permalink: patron }, { videoUrl: patron }] });
       return aPlano(doc);
     },
 

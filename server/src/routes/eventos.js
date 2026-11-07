@@ -119,6 +119,13 @@ export function crearRutasEventos({
       const textoDelEnlace = datos.videoUrl == null ? "" : String(datos.videoUrl).trim();
       const enlaceDeInstagram = textoDelEnlace ? direccionDeInstagram(textoDelEnlace) : null;
       if (textoDelEnlace && !enlaceDeInstagram) return res.status(400).json({ error: MENSAJE_ENLACE_INVALIDO });
+      // Una publicación de Instagram genera un solo evento, cargado a mano o por la sincronización.
+      const repetido = enlaceDeInstagram ? await eventos.buscarPorEnlaceDeInstagram(enlaceDeInstagram) : null;
+      if (repetido) {
+        return res.status(409).json({
+          error: `Ya existe un evento con esta publicación de Instagram: «${repetido.titulo}». Se puede editar desde la lista de eventos.`,
+        });
+      }
 
       let fotoPrincipal = String(datos.fotoPrincipal || "").trim() || "/media/instagram/placeholder.svg";
 

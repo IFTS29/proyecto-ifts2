@@ -74,6 +74,14 @@ async function importarArchivos(post, guardarArchivo) {
 
 const TOKEN_DE_EJEMPLO = "tu_token_de_larga_duracion_aqui";
 
+// Una publicación ya tiene evento si se importó antes (instagramId) o si alguien la cargó a mano con su
+// enlace (#39). En los dos casos no se crea otro: el evento existente queda como está.
+async function yaHayUnEvento(eventos, post) {
+  return Boolean(
+    (await eventos.buscarPorInstagramId(post.id)) || (await eventos.buscarPorEnlaceDeInstagram(post.permalink)),
+  );
+}
+
 // Credenciales de Instagram tomadas de la configuración (config.js las lee de las variables de entorno).
 // "configuradas" indica que están el token y el id de la cuenta, no que Instagram las acepte: un token
 // vencido figura como configurado y la sincronización termina con error. La usan la sincronización y
@@ -165,7 +173,7 @@ export async function sincronizarInstagram({
       }
 
       // Si el evento ya existe no se descarga ni se sube nada: la sincronización no modifica eventos guardados.
-      if (eventos && (await eventos.buscarPorInstagramId(post.id))) {
+      if (eventos && (await yaHayUnEvento(eventos, post))) {
         continue;
       }
 
@@ -203,7 +211,8 @@ export async function sincronizarInstagram({
     if (eventos && Array.isArray(mergedPosts)) {
       for (const post of mergedPosts) {
         if (post.categories?.includes("eventos") && !pendientes.has(String(post.id))) {
-          const existe = await eventos.buscarPorInstagramId(post.id);
+          // Se vuelve a revisar acá porque el feed también trae publicaciones de sincronizaciones anteriores.
+          const existe = await yaHayUnEvento(eventos, post);
           const parsed = post.parsed || parseCaption(post.caption);
           if (!existe) {
             await eventos.crear({

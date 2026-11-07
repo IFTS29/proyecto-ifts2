@@ -212,6 +212,54 @@ test("alta con enlace: si el evento no se guarda, la foto obtenida se borra", as
   assert.deepEqual(fotos.borradas, [fotos.subidas[0].publicId]);
 });
 
+// ----- Publicaciones que ya tienen evento -----
+
+test("alta con el enlace de una publicación que ya tiene evento: responde 409 sin descargar ni subir fotos", async () => {
+  const eventos = crearRepoEventosMemoria();
+  // Evento de la sincronización, oculto, con el enlace tal como lo devolvió Instagram.
+  await eventos.crear({
+    origen: "instagram",
+    instagramId: "1790",
+    titulo: "Muestra de fin de año",
+    descripcion: "Platos de los estudiantes.",
+    permalink: "https://instagram.com/p/DPq1abc_2/?igsh=xyz",
+    estado: "oculto",
+  });
+  const { app, token, fotos, buscar } = await preparar({ resultado: FOTO_OBTENIDA, eventos });
+
+  // La misma publicación con otra forma del enlace: con www y como reel.
+  const res = await con(request(app).post("/api/events").send(conEnlace("https://www.instagram.com/reel/DPq1abc_2")), token);
+
+  assert.equal(res.status, 409);
+  assert.equal(
+    res.body.error,
+    "Ya existe un evento con esta publicación de Instagram: «Muestra de fin de año». Se puede editar desde la lista de eventos.",
+  );
+  assert.equal(buscar.pedidos.length, 0);
+  assert.equal(fotos.subidas.length, 0);
+  assert.equal((await eventos.listar()).length, 1);
+});
+
+test("alta con enlace: una publicación cargada a mano no se carga dos veces; otra publicación sí", async () => {
+  const eventos = crearRepoEventosMemoria();
+  // Un enlace viejo mal guardado, con una ruta de más, no es la misma publicación.
+  await eventos.crear({
+    origen: "manual",
+    titulo: "Evento viejo",
+    descripcion: "Cargado antes de validar los enlaces.",
+    videoUrl: "https://www.instagram.com/p/DPq1abc_2/otra-ruta",
+  });
+  const { app, token } = await preparar({ eventos });
+
+  assert.equal((await con(request(app).post("/api/events").send(conEnlace(PUBLICACION)), token)).status, 201);
+  const repetida = await con(request(app).post("/api/events").send(conEnlace(`${PUBLICACION}?igsh=abc`)), token);
+  assert.equal(repetida.status, 409);
+  // Otro código es otra publicación, aunque solo cambien las mayúsculas.
+  const otra = await con(request(app).post("/api/events").send(conEnlace("https://www.instagram.com/p/DPQ1ABC_2/")), token);
+  assert.equal(otra.status, 201);
+  assert.equal((await eventos.listar()).length, 3);
+});
+
 // ----- Tipo de medio -----
 
 test("alta: el tipo de medio sale de las fotos guardadas, no del formulario", async (t) => {
