@@ -212,10 +212,12 @@ export async function sincronizarInstagram({
               permalink: post.permalink,
               titulo: parsed.title,
               resumen: parsed.summary,
+              // Sin texto propio (por ejemplo, solo hashtags), la descripción es el título por defecto:
+              // el texto original queda en captionOriginal.
               descripcion:
                 parsed.bodyParagraphs && parsed.bodyParagraphs.length > 0
                   ? parsed.bodyParagraphs.join("\n\n")
-                  : post.caption || "",
+                  : parsed.title,
               captionOriginal: post.caption,
               fechaEvento: post.timestamp || new Date().toISOString(),
               fechaPublicacionOriginal: post.timestamp || null,

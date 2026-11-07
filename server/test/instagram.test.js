@@ -67,7 +67,10 @@ test("CP-IG-04: Texto extremo sin saltos de línea (>2.000 caracteres) se proces
 
   assert.ok(parsed.summary.length <= 115);
   assert.ok(parsed.summary.endsWith("..."));
-  assert.equal(parsed.title.length > 100, true);
+  // El título se acorta (hasta 100 caracteres, con «…») y la descripción conserva el texto completo.
+  assert.equal(parsed.title.length, 100);
+  assert.ok(parsed.title.endsWith("…"));
+  assert.deepEqual(parsed.bodyParagraphs, ["A".repeat(2500)]);
   assert.ok(parsed.hashtags.includes("#eventosIFTS2"));
 });
 
@@ -295,4 +298,96 @@ test("Ciberseguridad: POST /api/instagram/sync exige sesión y rol admin (401 / 
     .set("Authorization", `Bearer ${tokenAdmin}`);
   assert.equal(resAdmin.status, 503);
   assert.equal(resAdmin.body.success, false);
+});
+
+// ----- Título y descripción de las publicaciones sincronizadas (CP-IG-13 a CP-IG-19) -----
+
+// Todas las palabras del texto, sin hashtags: sirve para comprobar que la descripción no perdió nada.
+const palabras = (texto) => texto.replace(/#[\p{L}\p{N}_]+/gu, "").match(/[\p{L}\p{N}]+/gu) || [];
+
+test("CP-IG-13: Separa el título y la descripción cuando están en renglones consecutivos", () => {
+  const parsed = parseCaption(
+    "Jornada de cocina saludable\nParticiparon estudiantes de segundo año.\nTambién asistieron docentes y familiares. #eventosIFTS2",
+  );
+
+  assert.equal(parsed.title, "Jornada de cocina saludable");
+  // Los saltos de línea de la descripción se conservan: el sitio muestra cada renglón como un párrafo.
+  assert.deepEqual(parsed.bodyParagraphs, [
+    "Participaron estudiantes de segundo año.\nTambién asistieron docentes y familiares.",
+  ]);
+});
+
+test("CP-IG-14: Sin título ni puntuación, acorta el título y conserva el texto completo en la descripción", () => {
+  const texto =
+    "Hoy los alumnos de primer año prepararon panes de masa madre en el taller con la profesora Gómez y quedaron riquísimos";
+  const parsed = parseCaption(`${texto} #eventosIFTS2`);
+
+  assert.equal(parsed.title, "Hoy los alumnos de primer año prepararon panes de masa madre en el taller con la profesora Gómez y…");
+  assert.ok(parsed.title.length <= 100);
+  assert.deepEqual(parsed.bodyParagraphs, [texto]);
+});
+
+test("CP-IG-15: Toma la primera oración como título, sin el punto final ni cortar en una abreviatura", () => {
+  const muestra = parseCaption("Muestra de fin de año. Los alumnos de segundo año presentaron sus platos ante el jurado.");
+  assert.equal(muestra.title, "Muestra de fin de año");
+  assert.deepEqual(muestra.bodyParagraphs, ["Los alumnos de segundo año presentaron sus platos ante el jurado."]);
+
+  const inscripciones = parseCaption("¡Inscripciones abiertas para 2027! 🎓 Tecnicatura Superior en Emprendimientos Gastronómicos.");
+  assert.equal(inscripciones.title, "¡Inscripciones abiertas para 2027!");
+  assert.deepEqual(inscripciones.bodyParagraphs, ["Tecnicatura Superior en Emprendimientos Gastronómicos."]);
+
+  const clase = parseCaption("Clase abierta con la Lic. Gómez. Fue una jornada muy linda.");
+  assert.equal(clase.title, "Clase abierta con la Lic. Gómez");
+
+  // Un punto seguido de minúscula sí termina la oración; los puntos suspensivos seguidos de minúscula, no.
+  const clase2 = parseCaption("Clase de cocina. vení a aprender más con tus amigos este jueves en el instituto.");
+  assert.equal(clase2.title, "Clase de cocina");
+  assert.deepEqual(clase2.bodyParagraphs, ["vení a aprender más con tus amigos este jueves en el instituto."]);
+
+  const verano = parseCaption("Llegó el verano... y la feria vuelve al patio");
+  assert.equal(verano.title, "Llegó el verano... y la feria vuelve al patio");
+  assert.equal(parseCaption("Llegó el verano… y la feria vuelve al patio").title, "Llegó el verano… y la feria vuelve al patio");
+});
+
+test("CP-IG-16: Reconoce los renglones vacíos con caracteres invisibles, separadores o solo emojis", () => {
+  const conInvisible = parseCaption("Feria de emprendedores\n\u2800\nEste sábado de 10 a 14 en el patio. #eventosIFTS2");
+  assert.equal(conInvisible.title, "Feria de emprendedores");
+  assert.deepEqual(conInvisible.bodyParagraphs, ["Este sábado de 10 a 14 en el patio."]);
+
+  const conSeparadores = parseCaption("🎉🎉\nFeria de fin de año\n.\n.\nVení con tu fami\u200Blia.");
+  assert.equal(conSeparadores.title, "Feria de fin de año");
+  assert.deepEqual(conSeparadores.bodyParagraphs, ["Vení con tu familia."]);
+});
+
+test("CP-IG-17: Con un primer renglón muy largo, acorta el título y la descripción conserva todos los renglones", () => {
+  const texto =
+    "Con mucha alegría queremos contarles que este jueves los alumnos de primer año realizaron su primera práctica en la cocina del instituto\nGracias a todos los que participaron.";
+  const parsed = parseCaption(`${texto} #eventosIFTS2`);
+
+  assert.ok(parsed.title.length <= 100);
+  assert.ok(parsed.title.endsWith("…"));
+  assert.deepEqual(parsed.bodyParagraphs, [texto]);
+  assert.deepEqual(palabras(parsed.bodyParagraphs.join(" ")), palabras(texto));
+
+  // Si el corte cae en un emoji, no lo parte por la mitad.
+  const conEmoji = parseCaption(`${"x".repeat(98)}🍽️`).title;
+  assert.ok(conEmoji.length <= 100);
+  assert.equal(conEmoji, `${"x".repeat(98)}…`);
+  assert.doesNotMatch(conEmoji, /[\uD800-\uDFFF]/, "no queda medio emoji");
+});
+
+test("CP-IG-18: Quita del título el punto, los dos puntos y el emoji finales, y conserva «!», «?» y «...»", () => {
+  assert.equal(parseCaption("Jornada gastronómica:\nCocinamos con productos de estación.").title, "Jornada gastronómica");
+  assert.equal(parseCaption("Feria de emprendedores 🍞\nEste sábado de 10 a 14.").title, "Feria de emprendedores");
+  assert.equal(parseCaption("¡Gran feria de emprendedores!\nEste sábado.").title, "¡Gran feria de emprendedores!");
+  assert.equal(parseCaption("¿Querés conocer la carrera? Vení el sábado.").title, "¿Querés conocer la carrera?");
+  assert.equal(parseCaption("Se viene algo nuevo...\nPronto más novedades.").title, "Se viene algo nuevo...");
+});
+
+test("CP-IG-19: Los hashtags no quedan en el título ni en la descripción, y no dejan espacios dobles", () => {
+  const parsed = parseCaption("Feria #eventosIFTS2 de panes artesanales\n\nVení a probar. #gastronomia #ifts2");
+
+  assert.equal(parsed.title, "Feria de panes artesanales");
+  assert.deepEqual(parsed.bodyParagraphs, ["Vení a probar."]);
+  assert.deepEqual(parsed.hashtags, ["#eventosIFTS2", "#gastronomia", "#ifts2"]);
 });
