@@ -50,7 +50,7 @@ proyecto-ifts2/
 ├── server.js            # arranque en desarrollo y producción local (puerto 3000)
 ├── api/index.js         # entrada de la API en Vercel
 ├── vercel.json          # compilación y reescrituras de Vercel
-├── .env.example         # variables de entorno, sin valores
+├── .env.example         # variables de entorno, con valores de ejemplo para desarrollo local
 ├── client/              # frontend (React + Vite)
 │   ├── src/pages/       # una pantalla por archivo (sitio público y panel)
 │   ├── src/components/  # formularios, tablas, menú del panel, modales, rutas protegidas
@@ -94,7 +94,7 @@ erDiagram
         string descripcion
         date fechaEvento
         boolean visibleSiempre
-        string estado "visible, oculto, archivado"
+        string estado "visible, oculto, archivado (legado)"
         string fotoPrincipal
     }
     HORARIO {
@@ -162,7 +162,7 @@ erDiagram
 | Colección | Modelo | Qué guarda |
 |---|---|---|
 | `usuarios` | `Usuario` | Cuentas del panel. `rol` es `admin` o `bedelia`. La contraseña se guarda con hash (bcrypt), nunca en texto. `mail` es único y se guarda en minúsculas. |
-| `eventos` | `Evento` | Eventos de la galería. Pueden ser manuales o venir de Instagram (`origen`). `estado` es `visible`, `oculto` o `archivado`. Incluye la lista de fotos (`medios`) y un registro de las fotos quitadas desde el panel (`mediosQuitados`). `instagramId` es único para los eventos que vienen de Instagram. |
+| `eventos` | `Evento` | Eventos de la galería. Pueden ser manuales o venir de Instagram (`origen`). El panel permite mostrar u ocultar eventos mediante el campo `estado`. El modelo conserva el valor `archivado` por compatibilidad con versiones anteriores; el archivado actual se calcula por fecha (ver apartado 9). Incluye la lista de fotos (`medios`) y un registro de las fotos quitadas desde el panel (`mediosQuitados`). `instagramId` es único para los eventos que vienen de Instagram. |
 | `horarios` | `Horario` | Datos de trabajo: una materia de un período, con docente, aula y una o más franjas (`dias`: día, desde, hasta). `origenId` evita duplicar al reutilizar horarios de otro período. |
 | `publicaciones_horarios` | `PublicacionHorarios` | Lo que ven los alumnos: un documento por período (único por `cicloLectivo` y `cuatrimestre`), con una copia de las materias en el momento de publicar. |
 | `llamados` | `Llamado` | Un llamado de mesas de examen (por ejemplo, «Febrero 2027»). `nombreClave` impide dos llamados con el mismo nombre. El campo `publicacion` guarda la copia publicada, con sus mesas; vale `null` si nunca se publicó. |
@@ -183,9 +183,9 @@ erDiagram
 
 No hay scripts SQL ni procedimientos manuales para la creación de la base: Mongoose define los esquemas y crea las colecciones e índices automáticamente la primera vez que interactúa con ellas.
 
-- **Administrador inicial:** se asegura de forma automática al arrancar (`server/src/arranque.js` y `server/src/services/seed.js`), siempre que la colección `usuarios` esté vacía y se definan las variables `SEED_ADMIN_MAIL` y `SEED_ADMIN_PASSWORD` (provistas por defecto en `.env.example`). Alternativamente, existe el script manual `npm run seed:admin --prefix server` (`server/scripts/seed-admin.js`) para inicializar el administrador por línea de comandos.
+- **Administrador inicial:** se crea de forma automática al arrancar (`server/src/arranque.js` y `server/src/services/seed.js`), siempre que la colección `usuarios` esté vacía y estén definidas las variables `SEED_ADMIN_MAIL` y `SEED_ADMIN_PASSWORD`. También puede crearse con el script `npm run seed:admin --prefix server` (`server/scripts/seed-admin.js`), que exige esas mismas variables.
 - **Contenido institucional:** las secciones editables no requieren precarga en base de datos; mientras no hayan sido modificadas desde el panel, el servidor provee los valores institucionales por defecto definidos en `server/src/services/contenido.js`.
-- **Restauración y respaldo:** para conectar una nueva instancia, basta con configurar la variable `MONGODB_URI` apuntando al clúster correspondiente. La política de copias de seguridad se apoya en los respaldos automáticos y snapshots programados de MongoDB Atlas, mientras que las imágenes y recursos multimedia se preservan de manera persistente en Cloudinary.
+- **Restauración y respaldo:** `MONGODB_URI` define a qué clúster se conecta el servidor; cambiarla permite usar otra instancia, pero no recupera datos. El clúster utilizado no cuenta con copias de seguridad automáticas de MongoDB Atlas. Para respaldar y restaurar los datos se utilizan las herramientas `mongodump` y `mongorestore`, respectivamente (ver apartado 10.1). Las imágenes se guardan en Cloudinary, de forma independiente de la base de datos.
 
 ## 5. Configuración e instalación
 
@@ -229,8 +229,6 @@ npm run dev
 
 El servidor integrado inicia en `http://localhost:3000` ejecutando Express y sirviendo el cliente React mediante Vite en modo middleware. El panel administrativo se encuentra disponible directamente en `http://localhost:3000/login`.
 
-> **Modo desacoplado / modular (opcional):** si se desea trabajar exclusivamente sobre la API o el frontend por separado, es posible ejecutar `npm run dev --prefix server` (inicia la API en `http://localhost:4000` mediante `server/src/index.js`) y en otra terminal `npm run dev --prefix client` (inicia el servidor Vite en `http://localhost:5173`, el cual reenvía las peticiones `/api` al puerto 4000).
-
 **Producción local:**
 Para simular el entorno de producción localmente:
 ```bash
@@ -247,16 +245,15 @@ Se leen de forma centralizada en `server/src/config.js`. El archivo `.env` nunca
 |---|---|---|
 | `PORT` | Puerto de escucha del servidor local integrado. | `3000`. |
 | `MONGODB_URI` | Cadena de conexión a MongoDB Atlas. | Si falta en local: modo memoria temporal. En producción/Vercel: el servidor no arranca. |
-| `JWT_SECRET` | Clave secreta para firmar los JSON Web Tokens de sesión. | `secreto-desarrollo-ifts2-2026` (En producción en Vercel se define una clave criptográfica privada). |
+| `JWT_SECRET` | Clave secreta para firmar las sesiones del panel (JSON Web Tokens). En producción es obligatoria: sin ella, el servidor no arranca. En Vercel se carga un valor aleatorio propio, que no se publica. | `secreto-desarrollo-ifts2-2026` (solo para desarrollo local). |
 | `JWT_DURACION` | Tiempo de expiración del token de sesión. | `8h`. |
 | `BCRYPT_COSTO` | Rondas de sal para el algoritmo bcryptjs. | `10`. |
 | `SEED_ADMIN_NOMBRE` | Nombre del administrador inicial generado automáticamente. | `Administrador`. |
 | `SEED_ADMIN_MAIL` | Correo de acceso del administrador inicial. | `admin@ifts2.edu.ar`. |
 | `SEED_ADMIN_PASSWORD` | Contraseña de acceso del administrador inicial. | `Admin1234!`. |
-| `SITIO_URL` | URL canónica pública para enlaces institucionales en PDFs. | `http://localhost:3000` (en Vercel se autodetecta mediante `VERCEL_URL`). |
-| `CLIENT_URL` | Origen permitido para peticiones y redirecciones del cliente. | `http://localhost:3000`. |
+| `SITIO_URL` | Dirección pública del portal utilizada en los enlaces de los PDF. | En desarrollo local: `http://localhost:3000`. En Vercel, se detecta automáticamente si no se configura. Si se define, debe contener la dirección pública real del portal. |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Credenciales para subida persistente de fotos de eventos. | Si faltan en local: guarda temporalmente en disco. En producción/Vercel: deshabilita carga de fotos nuevas (503). |
-| `INSTAGRAM_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `INSTAGRAM_HASHTAG` | Credenciales para sincronización con Meta Graph API (`#eventosIFTS2`). | Si faltan: la sincronización se deshabilita en el panel y los eventos se gestionan manualmente con flyers y fotos. |
+| `INSTAGRAM_TOKEN`, `INSTAGRAM_ACCOUNT_ID` | Credenciales para sincronizar con la API de Meta (Graph API). Se importan solo las publicaciones con el hashtag `#eventosIFTS2`, que está definido en el código. | Si faltan: el botón «Sincronizar Instagram» se deshabilita en el panel y los eventos se cargan manualmente. |
 | `SMTP_HOST`, `SMTP_PUERTO`, `SMTP_USUARIO`, `SMTP_CLAVE` | Credenciales para el envío de correos del formulario de contacto. | Si faltan en local: envío simulado en consola. En producción: informa error en el formulario si fallan. |
 | `CORREO_BEDELIA`, `CORREO_INSTITUCIONAL` | Casillas destinatarias según el motivo de consulta. | Requeridas para direccionamiento de mensajes del formulario. |
 
@@ -266,7 +263,7 @@ A diferencia de la ejecución local donde `server.js` unifica Express y Vite en 
 
 1. **Frontend estático:** `vercel.json` ejecuta `npm run build`, compilando la aplicación React en assets estáticos bajo `client/dist`, distribuidos globalmente a través de la red Edge de Vercel.
 2. **API Serverless:** cada petición con prefijo `/api/...` se enruta hacia la función serverless en `api/index.js`, la cual instancia la aplicación Express reutilizando conexiones en memoria entre invocaciones cálidas (*warm starts*).
-3. **Generación de PDFs en la nube:** `vercel.json` incorpora `includeFiles: ["node_modules/pdfkit/js/data/**"]` para empaquetar las fuentes tipográficas estándar que requiere `pdfkit` dentro del entorno de ejecución serverless de AWS Lambda/Vercel.
+3. **Generación de PDFs en la nube:** `vercel.json` incorpora `"includeFiles": "node_modules/pdfkit/js/standard-fonts/**"` para empaquetar las fuentes tipográficas estándar que requiere `pdfkit` dentro del entorno de ejecución serverless de AWS Lambda/Vercel.
 4. **Configuración de entorno:** las variables de entorno se definen directamente en el panel de control de Vercel (*Project Settings -> Environment Variables*), garantizando que ningún secreto resida en el repositorio.
 5. **Tolerancia a fallas:** si la base de datos MongoDB Atlas experimenta una indisponibilidad momentánea, la función serverless responde `503 Service Unavailable` («El servicio no está disponible en este momento») sin almacenar un estado fallido permanente, reintentando automáticamente en la petición subsiguiente.
 
@@ -336,7 +333,8 @@ A diferencia de la ejecución local donde `server.js` unifica Express y Vite en 
 | 409 | Duplicado (por ejemplo, un correo ya registrado). |
 | 413 | El pedido supera los 15 MB (fotos o contenido). |
 | 429 | Demasiados intentos de login o de contacto. |
-| 503 | La base no responde en Vercel o producción, no hay dónde guardar las fotos, o el correo no está configurado. |
+| 502 | Error en un servicio externo: correo, Cloudinary o Instagram. |
+| 503 | Base de datos no disponible en producción, almacenamiento de fotos sin configurar o credenciales de Instagram faltantes. |
 | 500 | Error no previsto. Se registra en el servidor y el cliente recibe un mensaje genérico. |
 
 **Validaciones de negocio** (se hacen en el servidor, en los servicios y rutas, y los modelos de Mongoose actúan como segundo control):
@@ -350,7 +348,7 @@ A diferencia de la ejecución local donde `server.js` unifica Express y Vite en 
 **Fallas de conexión.**
 - Sin MongoDB en desarrollo, el servidor pasa a modo memoria y lo avisa por consola. En producción o en Vercel no lo hace: falla, para no guardar datos en un lugar donde se perderían.
 - En Vercel, si la preparación falla, la función responde 503 y no guarda el fallo: reintenta en la petición siguiente.
-- Instagram: la sincronización se realiza a demanda desde el panel administrativo (`POST /api/instagram/sync`). El token de larga duración tiene una vigencia de 60 días y se renueva manualmente actualizando `INSTAGRAM_TOKEN`. Si el servicio no está configurado o el token expira, el panel deshabilita la sincronización y el sitio público muestra un estado institucional vacío prolijo, permitiendo la carga y visualización manual de eventos sin fallas ni dependencias bloqueantes. Si una publicación de un lote no se puede descargar completa, queda pendiente y se reintenta en la sincronización siguiente mientras siga entre las últimas 20.
+- Instagram: la sincronización se realiza manualmente desde el panel administrativo (`POST /api/instagram/sync`). Si faltan las credenciales, el botón «Sincronizar Instagram» queda deshabilitado. Si el token venció, el botón sigue habilitado, pero la sincronización falla y muestra un error. El token dura 60 días y se renueva actualizando `INSTAGRAM_TOKEN`. En ambos casos, los eventos publicados siguen disponibles y se pueden cargar nuevos eventos manualmente. Si una publicación no se importa por completo, se reintenta en la siguiente sincronización mientras permanezca entre las últimas 20.
 
 **En el cliente.** Las eliminaciones y los cambios que afectan al sitio piden confirmación en ventanas propias. Los formularios avisan si se intenta salir con cambios sin guardar. Si no se puede conectar con el servidor, `api.js` muestra «No se pudo conectar con el servidor. Probá de nuevo en unos minutos.».
 
@@ -385,7 +383,7 @@ Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo
 
 **El contenido institucional se publica al guardar.** Es una sección editable por vez, guardada entera. No usa copia aparte.
 
-**Archivado calculado, no guardado.** Nada se borra ni se mueve: el servidor calcula al responder qué está vigente y qué pasó al archivo (`services/archivo.js`). Eventos: se ven los del año actual y el anterior. Horarios: los períodos publicados del año actual y el más reciente de todos los publicados. Mesas: un llamado pasa al archivo 30 días después de su fecha más tardía. Las acciones manuales tienen prioridad: un evento oculto sigue oculto aunque sea «visible siempre». Las fechas se comparan en el calendario de Argentina y no con la zona horaria del servidor, y «hoy» se recibe por parámetro para poder probar los límites. *(Nota de diseño y mejora registrada: en el código actual el archivado de eventos se calcula por antigüedad de fecha a dos años salvo `visibleSiempre`, pero por requerimiento de negocio institucional la regla definitiva acordada es que el archivado sea una acción manual y deliberada del administrador mediante el estado `archivado`, documentado como sub-issue de mejora en #81).*
+**Archivado calculado, no guardado.** Nada se borra ni se mueve: el servidor calcula al responder qué está vigente y qué pasó al archivo (`services/archivo.js`). Eventos: se ven los del año actual y el anterior. Horarios: los períodos publicados del año actual y el más reciente de todos los publicados. Mesas: un llamado pasa al archivo 30 días después de su fecha más tardía. Las acciones manuales tienen prioridad: un evento oculto sigue oculto aunque sea «visible siempre». Las fechas se comparan en el calendario de Argentina y no con la zona horaria del servidor, y «hoy» se recibe por parámetro para poder probar los límites.
 
 **Repositorios intercambiables.** Permiten trabajar y probar sin base de datos en memoria. El costo es mantener dos implementaciones por entidad.
 
@@ -411,7 +409,7 @@ Cada ítem describe el comportamiento operativo del sistema ante incidentes:
 |---|---|---|
 | El sitio desplegado devuelve «El servicio no está disponible en este momento» | MongoDB Atlas no responde o `MONGODB_URI` es incorrecta. | Revisar el estado del clúster y la variable en Vercel. La API reintenta sola en la petición siguiente. |
 | El servidor no arranca con «Falta MONGODB_URI» | Se ejecutó en producción sin la variable. | Definir `MONGODB_URI`. Solo en desarrollo se permite trabajar en modo memoria. |
-| Nadie puede entrar al panel | No hay usuarios y faltan `SEED_ADMIN_MAIL` o `SEED_ADMIN_PASSWORD`; o se perdió la contraseña del único administrador. | Cargar las variables `SEED_ADMIN_*` provistas en `.env.example` y reiniciar con la colección `usuarios` vacía, o crear el usuario con `npm run seed:admin --prefix server`. |
+| Nadie puede entrar al panel | Se perdió la contraseña de un usuario, o no queda ningún administrador con acceso. | Si hay otro administrador con acceso, cambia la contraseña desde **Usuarios → Editar**. Si no queda ninguno, se crea un administrador nuevo con `npm run seed:admin --prefix server`, con `MONGODB_URI` apuntando al clúster y definiendo antes `SEED_ADMIN_MAIL` (un correo que no esté registrado) y `SEED_ADMIN_PASSWORD`. |
 | Un usuario queda bloqueado | 5 intentos fallidos de inicio de sesión. | Esperar 15 minutos. El bloqueo está en memoria: reiniciar el servidor local lo restablece de inmediato. |
 | El formulario de contacto devuelve error | Faltan las variables de correo, hay solo una de las dos credenciales SMTP, o las casillas son iguales. | Revisar `SMTP_*`, `CORREO_BEDELIA` y `CORREO_INSTITUCIONAL` (apartado 5.4). |
 | No se pueden subir fotos de eventos | Faltan las credenciales de Cloudinary en producción. | Cargar `CLOUDINARY_*` en las variables de entorno de Vercel. |
@@ -421,7 +419,7 @@ Cada ítem describe el comportamiento operativo del sistema ante incidentes:
 
 ### 10.1 Plan de contingencia y respaldos
 
-1. **Copias de seguridad de datos:** MongoDB Atlas realiza respaldos continuos y programados de todas las colecciones. Ante cualquier incidente o alteración indebida de datos, el estado se puede restaurar puntualmente desde la consola de Atlas.
-2. **Preservación de activos multimedia:** Las imágenes y fotografías institucionales residen en Cloudinary bajo el directorio `ifts2/`. Su persistencia no depende de los contenedores efímeros de Vercel ni del servidor local.
+1. **Copias de seguridad de datos:** el clúster no tiene copias de seguridad automáticas activadas. Para respaldar los datos se usa `mongodump` con `MONGODB_URI`, y para restaurarlos, `mongorestore`. Conviene hacerlo antes de cambios importantes y antes del traspaso. Este respaldo incluye solo la base de datos: las imágenes quedan guardadas en la cuenta de Cloudinary.
+2. **Preservación de activos multimedia:** las fotografías cargadas desde el panel se almacenan en Cloudinary bajo `ifts2/eventos`, mientras que los archivos incorporados mediante la sincronización de Instagram se guardan en `ifts2/instagram`. Su almacenamiento es independiente de MongoDB Atlas y de los despliegues en Vercel.
 3. **Resiliencia de despliegues:** La infraestructura en Vercel genera despliegues inmutables por cada commit. Ante cualquier eventualidad técnica tras una actualización en `main`, es posible realizar un *Instant Rollback* a la versión previa en segundos desde el panel de control.
 4. **Desacoplamiento de servicios:** El fallo temporal de servicios de terceros (Instagram Graph API, Cloudinary o servidores SMTP) no inhabilita la navegación pública, la consulta de horarios, el acceso a mesas de examen ni la operación de Bedelía.
