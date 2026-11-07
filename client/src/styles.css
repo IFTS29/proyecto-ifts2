@@ -5132,9 +5132,10 @@ body[data-rol="bedelia"] [data-solo-admin] {
   outline-offset: 2px;
 }
 
-/* En el sitio público el cartel no tapa el pie de página */
-body:has(.sesion-flotante) .pie {
-  padding-bottom: 72px;
+/* Con la sesión iniciada, el cartel ocupa el lugar de «Acceso institucional» en la franja final del pie.
+   El enlace se oculta pero conserva su lugar, así la franja mantiene su altura y llega hasta el final. */
+body:has(.sesion-flotante) .pie-final a {
+  visibility: hidden;
 }
 
 @media (max-width: 600px) {

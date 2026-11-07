@@ -51,6 +51,12 @@ export default function Contacto() {
     }
   };
 
+  // El aviso de éxito es del envío anterior: se quita cuando la persona empieza a escribir otra consulta.
+  // Los avisos de error se mantienen, porque indican qué corregir.
+  const ocultarExito = () => {
+    if (aviso?.tipo === "exito") setAviso(null);
+  };
+
   return (
     <div className="pagina activa">
       <section className="banner velo-suave" style={{ "--foto": `url(${IMGS.B_CONTACTO})` }}>
@@ -62,7 +68,7 @@ export default function Contacto() {
       </section>
       <section className="seccion">
         <div className="contenedor dos">
-          <form className="tarjeta-simple" onSubmit={enviar}>
+          <form className="tarjeta-simple" onSubmit={enviar} onInput={ocultarExito}>
             <div className="fila">
               <div className="campo">
                 <label htmlFor="c-nombre">Nombre y apellido</label>
