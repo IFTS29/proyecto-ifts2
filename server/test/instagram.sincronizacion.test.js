@@ -226,3 +226,27 @@ test("mensaje del panel después de sincronizar: éxito, resultado parcial y err
   assert.deepEqual(mensajeDeSincronizacion({ success: false, nuevos: 0 }), error, "success: false nunca se muestra como éxito");
   assert.deepEqual(mensajeDeSincronizacion(null), error);
 });
+
+test("la sincronización guarda el título, la descripción completa sin hashtags y el texto original", async () => {
+  const conTexto = {
+    ...FOTO_SUELTA,
+    id: "1792",
+    caption: "Jornada de cocina saludable\nParticiparon estudiantes de segundo año.\nTambién asistieron docentes. #eventosIFTS2 #gastronomia",
+    permalink: "https://www.instagram.com/p/jornada/",
+  };
+  const soloHashtag = { ...FOTO_SUELTA, id: "1793", caption: "#eventosIFTS2", permalink: "https://www.instagram.com/p/solo/" };
+  const eventos = crearRepoEventosMemoria();
+  await sincronizacion([conTexto, soloHashtag], cloudinaryDePrueba(), eventos)();
+
+  const jornada = await eventos.buscarPorInstagramId("1792");
+  assert.equal(jornada.titulo, "Jornada de cocina saludable");
+  assert.equal(jornada.descripcion, "Participaron estudiantes de segundo año.\nTambién asistieron docentes.");
+  assert.doesNotMatch(jornada.descripcion, /#/);
+  assert.equal(jornada.captionOriginal, conTexto.caption);
+
+  // Sin texto propio, la descripción no queda formada solo por hashtags.
+  const solo = await eventos.buscarPorInstagramId("1793");
+  assert.equal(solo.titulo, "Publicación Institucional");
+  assert.equal(solo.descripcion, "Publicación Institucional");
+  assert.equal(solo.captionOriginal, "#eventosIFTS2");
+});
