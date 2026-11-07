@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { autenticar, requiereRol } from "../middleware/auth.js";
 import { diaEnArgentina, eventoArchivado, eventoEnElSitio } from "../services/archivo.js";
-import { guardarMedio } from "../services/media/index.js";
 import {
   ErrorDeFotos,
   borrarFotosSubidas,
@@ -11,6 +10,7 @@ import {
   subirFotosNuevas,
 } from "../services/media/fotosEventos.js";
 import { MAXIMO_DE_FOTOS, armarGaleria, contarFotos, revisarListaDeFotos } from "../services/media/galeriaEvento.js";
+import { MENSAJE_ENLACE_INVALIDO, direccionDeInstagram } from "../services/instagram/enlace.js";
 
 const ESTADOS_VALIDOS = ["visible", "oculto", "archivado"];
 // Desde el panel solo se muestra u oculta un evento. El archivado por fecha se calcula (services/archivo.js, #35);
@@ -39,31 +39,24 @@ function revisarDatosBasicos(datos, anterior = {}) {
   return { valores: { titulo, descripcion, resumen, fechaEvento } };
 }
 
-async function extraerFotoInstagram(url) {
-  try {
-    if (!url || typeof url !== "string" || !url.includes("instagram.com")) return null;
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-      },
-    });
-    if (!res.ok) return null;
-    const html = await res.text();
-    const match = html.match(/property="og:image"\s+content="([^"]+)"/i);
-    if (!match || !match[1]) return null;
-    const cdnUrl = match[1].replaceAll("&amp;", "&");
-    const idMatch = url.match(/\/(p|reel)\/([^/?#]+)/i);
-    const shortcode = idMatch ? idMatch[2] : String(Date.now());
-    const localUrl = await guardarMedio(cdnUrl, `ig_post_${shortcode}.jpg`);
-    return localUrl || cdnUrl;
-  } catch {
-    return null;
-  }
-}
+// Aviso del alta con enlace cuando no se pudo obtener la foto de la publicación: el evento se guarda igual.
+export const AVISO_SIN_FOTO_DE_INSTAGRAM =
+  "El evento se guardó, pero no se pudo obtener la imagen. Se intentará mostrar la publicación de Instagram.";
+
+const esReemplazo = (url) => !url || String(url).includes("placeholder");
 
 // "fotos" guarda las fotos nuevas de los eventos (Cloudinary, o el disco en desarrollo local).
 // Si es null, no hay dónde guardarlas y el alta con fotos nuevas responde 503.
-export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy = () => diaEnArgentina() }) {
+// "buscarFoto" obtiene la foto de una publicación de Instagram (services/instagram/fotoDePublicacion.js).
+// Si es null, el alta con enlace guarda la publicación incrustada sin intentar obtener la foto.
+export function crearRutasEventos({
+  config,
+  usuarios,
+  eventos,
+  fotos = null,
+  buscarFoto = null,
+  hoy = () => diaEnArgentina(),
+}) {
   const router = Router();
   // El panel recibe si cada evento está archivado por fecha (#35): se calcula, no se guarda.
   const conArchivo = (evento, dia = hoy()) => ({ ...evento, archivado: eventoArchivado(evento, dia) });
@@ -121,10 +114,19 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy
       const { valores, error } = revisarDatosBasicos(datos);
       if (error) return res.status(400).json({ error });
       const { titulo, descripcion, resumen, fechaEvento } = valores;
+
+      // El enlace de Instagram se revisa antes que nada, así un enlace inválido no sube ninguna foto.
+      const textoDelEnlace = datos.videoUrl == null ? "" : String(datos.videoUrl).trim();
+      const enlaceDeInstagram = textoDelEnlace ? direccionDeInstagram(textoDelEnlace) : null;
+      if (textoDelEnlace && !enlaceDeInstagram) return res.status(400).json({ error: MENSAJE_ENLACE_INVALIDO });
+
       let fotoPrincipal = String(datos.fotoPrincipal || "").trim() || "/media/instagram/placeholder.svg";
 
       const estado = ESTADOS_VALIDOS.includes(datos.estado) ? datos.estado : "visible";
-      const medios = Array.isArray(datos.medios) ? datos.medios.map((m) => ({ ...m })) : [];
+      // La publicación de Instagram no es un medio del evento: se vuelve a agregar más abajo, con el enlace revisado.
+      const medios = (Array.isArray(datos.medios) ? datos.medios : [])
+        .filter((m) => !(m?.url && (m.url === textoDelEnlace || direccionDeInstagram(m.url))))
+        .map((m) => ({ ...m }));
 
       // Las fotos que ya existen se guardan tal cual, pero tienen que ser enlaces válidos.
       const enlaces = [...medios.map((m) => m.url), fotoPrincipal].filter((url) => !esFotoNueva(url));
@@ -134,6 +136,16 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy
 
       if (contarFotos(medios) > MAXIMO_DE_FOTOS) {
         return res.status(400).json({ error: `Un evento puede tener hasta ${MAXIMO_DE_FOTOS} fotos.` });
+      }
+
+      // Alta con enlace y sin fotos: se intenta obtener la foto de la publicación. Si se obtiene, sigue el
+      // mismo camino que una foto cargada desde la computadora. Sin almacenamiento de fotos no se intenta.
+      let aviso = null;
+      const sinFotos = esReemplazo(fotoPrincipal) && !medios.some((m) => m.tipo === "IMAGE" && !esReemplazo(m.url));
+      if (enlaceDeInstagram && sinFotos) {
+        const fotoObtenida = fotos && buscarFoto ? await buscarFoto(enlaceDeInstagram) : null;
+        if (fotoObtenida) medios.push({ tipo: "IMAGE", url: fotoObtenida });
+        else aviso = AVISO_SIN_FOTO_DE_INSTAGRAM;
       }
 
       // Fotos nuevas subidas desde la computadora (data:image/...): se revisan todas antes de subir nada.
@@ -163,32 +175,16 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy
       }
 
       // Sin portada indicada, la portada es la primera foto (el formulario no la repite, así no la manda dos veces).
-      if (!String(datos.fotoPrincipal || "").trim()) {
+      if (esReemplazo(fotoPrincipal)) {
         const primeraFoto = medios.find((m) => m.tipo === "IMAGE" && m.url);
         if (primeraFoto) fotoPrincipal = primeraFoto.url;
       }
 
-      const tieneFotoManual = fotoPrincipal && !fotoPrincipal.includes("placeholder");
-      const urlVideo = datos.videoUrl ? String(datos.videoUrl).trim() : null;
-      const tieneFotosSubidas = medios.some((m) => m.tipo === "IMAGE" && m.url && !m.url.includes("placeholder"));
-
-      if (!tieneFotoManual && !tieneFotosSubidas && urlVideo && urlVideo.includes("instagram.com")) {
-        const fotoExtraida = await extraerFotoInstagram(urlVideo);
-        if (fotoExtraida) {
-          fotoPrincipal = fotoExtraida;
-          medios.length = 0;
-          medios.push({
-            tipo: "IMAGE",
-            url: fotoExtraida,
-          });
-        }
-      }
-
       if (medios.length === 0) {
-        if (urlVideo) {
+        if (enlaceDeInstagram) {
           medios.push({
             tipo: "VIDEO",
-            url: urlVideo,
+            url: enlaceDeInstagram,
           });
         } else if (fotoPrincipal) {
           medios.push({
@@ -207,9 +203,12 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy
           descripcion,
           fechaEvento,
           fotoPrincipal,
-          videoUrl: datos.videoUrl ? String(datos.videoUrl).trim() : null,
+          videoUrl: enlaceDeInstagram,
           medios,
           cantidadMedios: medios.length || 1,
+          // El tipo sale de las fotos guardadas, no del formulario. Desde el panel no se cargan videos:
+          // la publicación de Instagram se muestra incrustada y no es un video propio del evento.
+          tipoMedio: contarFotos(medios) > 1 ? "CAROUSEL_ALBUM" : "IMAGE",
           estado,
           categorias: Array.isArray(datos.categorias) && datos.categorias.length ? datos.categorias : ["eventos"],
         });
@@ -221,7 +220,7 @@ export function crearRutasEventos({ config, usuarios, eventos, fotos = null, hoy
       }
       subidas = []; // ya son fotos del evento guardado: no se borran aunque algo falle después
 
-      res.status(201).json({ evento: nuevo });
+      res.status(201).json(aviso ? { evento: nuevo, aviso } : { evento: nuevo });
     } catch (e) {
       // Error inesperado entre la subida y el guardado: también se intenta borrar las fotos nuevas.
       await borrarFotosSubidas(fotos, subidas);

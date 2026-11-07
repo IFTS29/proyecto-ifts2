@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { crearRutasInstagram } from "./routes/instagram.js";
 import { crearRepoFeedInstagram } from "./services/instagram/index.js";
 import { crearServicioFotos } from "./services/media/fotosEventos.js";
+import { crearBuscadorDeFoto } from "./services/instagram/fotoDePublicacion.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +65,8 @@ export function crearApp({
   repoFeedInstagram = crearRepoFeedInstagram(),
   mediaService,
   fotosEventos = crearServicioFotos(config),
+  // Foto de una publicación de Instagram para el alta con enlace. Las pruebas lo reemplazan para no salir a Internet.
+  buscarFotoDeInstagram = crearBuscadorDeFoto(),
   horarios = crearRepoAcademicoMemoria(),
   publicacionesHorarios = crearRepoPublicacionesMemoria(),
   llamados = crearRepoAcademicoMemoria(),
@@ -106,7 +109,7 @@ export function crearApp({
   app.use("/api/auth", crearRutasAuth({ config, usuarios, limitadorLogin }));
   app.use("/api/users", crearRutasUsuarios({ config, usuarios }));
   app.use("/api/contact", crearRutasContacto({ correo, limitadorContacto }));
-  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos, hoy }));
+  app.use("/api/events", crearRutasEventos({ config, usuarios, eventos, fotos: fotosEventos, buscarFoto: buscarFotoDeInstagram, hoy }));
   // Las mesas van primero: sus rutas del panel piden la sesión una por una (ver routes/mesas.js).
   app.use("/api/academic", crearRutasMesas({ config, usuarios, llamados, mesas, hoy }));
   app.use("/api/academic", crearRutasAcademica({ config, usuarios, horarios, publicacionesHorarios, llamados, hoy }));

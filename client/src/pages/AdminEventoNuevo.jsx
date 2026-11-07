@@ -6,7 +6,14 @@ import AdminLateral from "../components/AdminLateral.jsx";
 import CamposEvento from "../components/CamposEvento.jsx";
 import FotosEvento from "../components/FotosEvento.jsx";
 import { useAvisoSinGuardar } from "../avisoSinGuardar.js";
-import { datosBasicosParaEnviar, faltaUnDato, usarComoPortada, valoresDeEvento } from "../eventos.js";
+import {
+  MENSAJE_ENLACE_INVALIDO,
+  datosBasicosParaEnviar,
+  direccionDeInstagram,
+  faltaUnDato,
+  usarComoPortada,
+  valoresDeEvento,
+} from "../eventos.js";
 import { LIMITE_DEL_PEDIDO, MAXIMO_DE_FOTOS, pesoDelPedido, prepararFotos } from "../fotos.js";
 
 export default function AdminEventoNuevo() {
@@ -22,7 +29,6 @@ export default function AdminEventoNuevo() {
   const [enviando, setEnviando] = useState(false);
   const [preparando, setPreparando] = useState(false);
   const [error, setError] = useState("");
-  const [mensajeOk, setMensajeOk] = useState("");
 
   // Achica cada foto antes de agregarla (ver fotos.js). Si alguna no se puede usar, se avisa y se siguen las demás.
   const agregarFotos = async (archivos) => {
@@ -47,7 +53,7 @@ export default function AdminEventoNuevo() {
     fotos.length > 0 ||
     videoUrl.trim() !== "" ||
     !visible;
-  useAvisoSinGuardar(sinGuardar && !enviando && !mensajeOk);
+  useAvisoSinGuardar(sinGuardar && !enviando);
 
   // Mientras se guarda no se puede salir con Cancelar (el aviso de cambios sin guardar lo da useAvisoSinGuardar).
   const cancelar = (e) => {
@@ -57,17 +63,9 @@ export default function AdminEventoNuevo() {
   const quitarFoto = (id) => setFotos((prev) => prev.filter((f) => f.id !== id));
   const elegirPortada = (id) => setFotos((prev) => usarComoPortada(prev, id));
 
-  // Determinar tipo de medio según lo cargado
-  const calcularTipoMedio = () => {
-    if (videoUrl.trim()) return "VIDEO";
-    if (fotos.length > 1) return "CAROUSEL_ALBUM";
-    return "IMAGE";
-  };
-
   const enviar = async (e) => {
     e.preventDefault();
     setError("");
-    setMensajeOk("");
 
     const falta = faltaUnDato(valores);
     if (falta) {
@@ -78,17 +76,19 @@ export default function AdminEventoNuevo() {
       setError("Por favor seleccioná al menos una foto o ingresá un enlace a una publicación de Instagram / video.");
       return;
     }
+    if (videoUrl.trim() && !direccionDeInstagram(videoUrl)) {
+      setError(MENSAJE_ENLACE_INVALIDO);
+      return;
+    }
 
     setEnviando(true);
     try {
-      const tipoMedio = calcularTipoMedio();
       const fotosUrls = fotos.map((f) => f.url);
       // La portada es la primera foto: el servidor la toma de "medios", así no se manda dos veces.
       const fotoPrincipal = fotosUrls.length > 0 ? undefined : "/media/instagram/placeholder.svg";
 
       const payload = {
         ...datosBasicosParaEnviar(valores),
-        tipoMedio,
         videoUrl: videoUrl.trim() || null,
         fotoPrincipal,
         medios: fotosUrls.length > 0
@@ -106,7 +106,6 @@ export default function AdminEventoNuevo() {
               },
             ]
           : [],
-        cantidadMedios: fotosUrls.length || (videoUrl.trim() ? 1 : 0),
         estado: visible ? "visible" : "oculto",
         origen: "manual",
       };
@@ -116,23 +115,19 @@ export default function AdminEventoNuevo() {
         throw new Error("Las fotos juntas pesan demasiado para enviarlas. Quitá alguna o cargalas en otro evento.");
       }
 
-      await api("/events", {
+      const respuesta = await api("/events", {
         metodo: "POST",
         cuerpo: payload,
       });
 
-      setMensajeOk("¡Evento publicado exitosamente!");
-      setTimeout(() => {
-        navigate("/admin-eventos");
-      }, 1200);
+      // El aviso queda en la lista de eventos hasta la próxima acción, como al guardar una edición.
+      // Si no se pudo obtener la foto de Instagram, el aviso lo explica.
+      navigate("/admin-eventos", { state: { aviso: respuesta?.aviso || "El evento se guardó correctamente." } });
     } catch (err) {
       setError(err.message || "No se pudo guardar el evento.");
-    } finally {
       setEnviando(false);
     }
   };
-
-  const tipoMedioActual = calcularTipoMedio();
 
   return (
     <div className="admin activa">
@@ -147,7 +142,7 @@ export default function AdminEventoNuevo() {
         <div className="cab-admin">
           <div>
             <h1>Cargar un evento</h1>
-            <p>Completá los datos del evento para publicarlo en la galería institucional.</p>
+            <p>Completá los datos del evento.</p>
           </div>
         </div>
         <form className="form-admin" onSubmit={enviar} noValidate>
@@ -161,7 +156,10 @@ export default function AdminEventoNuevo() {
                 onChange={(e) => setVideoUrl(e.target.value)}
                 placeholder="https://www.instagram.com/p/... o reel"
               />
-              <span className="ayuda">Pegá el enlace de Instagram (se embebe automáticamente si no subís fotos).</span>
+              <span className="ayuda">
+                Si no se cargan fotos, el sistema intenta obtener la imagen de la publicación. Si no puede, intenta
+                mostrar la publicación de Instagram.
+              </span>
             </div>
 
             <FotosEvento
@@ -172,18 +170,6 @@ export default function AdminEventoNuevo() {
               preparando={preparando}
               deshabilitado={enviando}
             />
-            <div className="campo">
-              <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "var(--suave)" }}>
-                Tipo resultante:{" "}
-                <strong style={{ color: "var(--texto)" }}>
-                  {tipoMedioActual === "VIDEO"
-                    ? "🎬 Video (VIDEO)"
-                    : tipoMedioActual === "CAROUSEL_ALBUM"
-                    ? `📸 Carrusel de fotos (CAROUSEL_ALBUM - ${fotos.length} fotos)`
-                    : "🖼️ Foto única (IMAGE)"}
-                </strong>
-              </div>
-            </div>
           </div>
           <div className="caja">
             <h2>Publicación</h2>
@@ -205,19 +191,13 @@ export default function AdminEventoNuevo() {
               </p>
             )}
 
-            {mensajeOk && (
-              <p className="aviso visible" role="status" style={{ marginBottom: "1rem" }}>
-                {mensajeOk}
-              </p>
-            )}
-
             <button
               className="boton boton-verde"
               type="submit"
               disabled={enviando || preparando}
               style={{ width: "100%" }}
             >
-              {enviando ? "Guardando evento..." : preparando ? "Preparando fotos…" : "Publicar evento"}
+              {enviando ? "Guardando evento..." : preparando ? "Preparando fotos…" : "Guardar evento"}
             </button>
             <Link
               className="boton boton-linea boton-cancelar"
