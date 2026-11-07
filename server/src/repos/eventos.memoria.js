@@ -1,3 +1,4 @@
+import { patronDeLaPublicacion } from "../services/instagram/enlace.js";
 // Repositorio de eventos en memoria: permite ejecutar pruebas unitarias y de integración
 // 100% deterministas y offline sin necesidad de MongoDB en ejecución.
 
@@ -35,6 +36,15 @@ export function crearRepoEventosMemoria(datosIniciales = []) {
     async buscarPorInstagramId(instagramId) {
       if (!instagramId) return null;
       const evento = lista.find((e) => e.instagramId === String(instagramId));
+      return evento ? aPlano(evento) : null;
+    },
+
+    // Evento (en cualquier estado) que ya tiene el enlace a esa publicación de Instagram, cargado a mano
+    // (videoUrl) o por la sincronización (permalink).
+    async buscarPorEnlaceDeInstagram(direccion) {
+      const patron = patronDeLaPublicacion(direccion);
+      if (!patron) return null;
+      const evento = lista.find((e) => patron.test(e.permalink || "") || patron.test(e.videoUrl || ""));
       return evento ? aPlano(evento) : null;
     },
 

@@ -19,3 +19,14 @@ export function direccionDeInstagram(texto) {
   const ruta = url.pathname.match(/^\/(?:[\w.]+\/)?(p|reel|tv)\/([\w-]+)\/?$/);
   return ruta ? `https://www.instagram.com/${ruta[1]}/${ruta[2]}/` : null;
 }
+
+// Reconoce cualquier forma guardada del enlace a la misma publicación: con o sin www, con parámetros
+// (?igsh=…) y como /p/, /reel/ o /tv/. Después del código solo admite la barra final y parámetros, no otra ruta. La usan los repositorios de eventos para encontrar repetidos,
+// porque la sincronización guarda el enlace tal como lo devuelve Instagram. Devuelve null si no es una publicación.
+// Distingue mayúsculas: en Instagram, «ABC» y «abc» son publicaciones distintas.
+export function patronDeLaPublicacion(texto) {
+  const direccion = direccionDeInstagram(texto);
+  if (!direccion) return null;
+  const codigo = direccion.split("/")[4]; // solo letras, números, «_» y «-»
+  return new RegExp(`^https://(www\\.)?instagram\\.com/(?:[\\w.]+/)?(?:p|reel|tv)/${codigo}/?(?:[?#].*)?$`);
+}

@@ -250,3 +250,66 @@ test("la sincronización guarda el título, la descripción completa sin hashtag
   assert.equal(solo.descripcion, "Publicación Institucional");
   assert.equal(solo.captionOriginal, "#eventosIFTS2");
 });
+
+// ----- Publicaciones que ya se cargaron a mano con su enlace -----
+
+const EVENTO_MANUAL = {
+  origen: "manual",
+  titulo: "Clase abierta de panadería",
+  descripcion: "Cargado desde el panel.",
+  videoUrl: "https://www.instagram.com/p/suelta/",
+  estado: "oculto",
+};
+
+test("una publicación ya cargada a mano con su enlace no se vuelve a importar ni se descargan sus archivos", async () => {
+  const nube = cloudinaryDePrueba();
+  const eventos = crearRepoEventosMemoria();
+  await eventos.crear(EVENTO_MANUAL);
+  // Instagram devuelve el enlace sin www y con parámetros.
+  const publicacion = { ...FOTO_SUELTA, permalink: "https://instagram.com/p/suelta/?igsh=abc" };
+
+  const resultado = await sincronizacion([publicacion], nube, eventos)();
+
+  assert.equal(resultado.nuevos, 0);
+  assert.deepEqual(nube.pedidos, [], "no se descarga ni se sube ningún archivo");
+  const lista = await eventos.listar();
+  assert.equal(lista.length, 1);
+  assert.equal(lista[0].origen, "manual");
+  assert.equal(lista[0].estado, "oculto", "el evento oculto sigue oculto");
+});
+
+test("una publicación del feed de una sincronización anterior no se crea si ya hay un evento con su enlace", async () => {
+  const eventos = crearRepoEventosMemoria();
+  await eventos.crear(EVENTO_MANUAL);
+  // La publicación quedó guardada en el feed con sus archivos; Instagram ya no la devuelve.
+  let feed = [
+    {
+      id: "1791",
+      caption: FOTO_SUELTA.caption,
+      permalink: FOTO_SUELTA.permalink,
+      timestamp: FOTO_SUELTA.timestamp,
+      categories: ["eventos"],
+      mediaItems: [{ id: "1791", tipo: "IMAGE", url: "https://res.cloudinary.com/prueba/1791" }],
+    },
+  ];
+  await sincronizarInstagram({
+    config: { instagramToken: "token-de-prueba", instagramAccountId: "123" },
+    repoFeed: {
+      loadFeed: async () => feed,
+      saveFeed: async (posts) => {
+        feed = posts;
+      },
+      loadDeletedPostIds: async () => [],
+      loadSyncStatus: async () => null,
+      saveSyncStatus: async (estado) => estado,
+    },
+    mediaService: cloudinaryDePrueba(),
+    eventos,
+    fetchFn: async (url) => ({ ok: true, json: async () => (url.includes("/media?") ? { data: [] } : { username: "ifts2" }) }),
+  });
+
+  const lista = await eventos.listar();
+  assert.equal(lista.length, 1);
+  assert.equal(lista[0].origen, "manual");
+});
+
