@@ -30,7 +30,7 @@ export async function prepararFoto(archivo) {
   try {
     imagen = await createImageBitmap(archivo);
   } catch {
-    throw new Error(`No se pudo leer la foto «${archivo.name}». Probá con otra o guardala como JPG.`);
+    throw new Error(`No se pudo leer la foto «${archivo.name}». Usar otra o guardarla como JPG.`);
   }
 
   try {

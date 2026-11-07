@@ -9,7 +9,7 @@ export function crearRutasContacto({ correo, limitadorContacto }) {
     // Honeypot: "sitioWeb" es un campo oculto que una persona no ve ni completa.
     // Si viene lleno es un robot: se responde como si estuviera todo bien, pero no se envía nada.
     if (req.body?.sitioWeb) {
-      return res.json({ mensaje: "Tu consulta fue enviada." });
+      return res.json({ mensaje: "Consulta enviada." });
     }
 
     const { error, consulta } = validarConsulta(req.body);
@@ -17,11 +17,11 @@ export function crearRutasContacto({ correo, limitadorContacto }) {
 
     try {
       await correo.enviarConsulta(consulta);
-      res.json({ mensaje: "Tu consulta fue enviada." });
+      res.json({ mensaje: "Consulta enviada." });
     } catch (e) {
       console.error("Error al enviar la consulta:", e.message);
       res.status(502).json({
-        error: "No pudimos enviar tu consulta. Probá de nuevo en unos minutos.",
+        error: "No se pudo enviar la consulta. Volver a intentarlo en unos minutos.",
       });
     }
   });

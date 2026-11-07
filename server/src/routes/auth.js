@@ -18,8 +18,8 @@ export function crearRutasAuth({ config, usuarios, limitadorLogin }) {
         // req.rateLimit lo completa el limitador: cuántos intentos fallidos quedan antes del bloqueo.
         const quedan = req.rateLimit.remaining;
         if (quedan <= 0) return res.status(429).json({ error: MSJ_BLOQUEO });
-        const texto = quedan === 1 ? "queda 1 intento." : `quedan ${quedan} intentos.`;
-        return res.status(401).json({ error: `Usuario o contraseña incorrectos. Te ${texto}` });
+        const texto = quedan === 1 ? "Queda 1 intento" : `Quedan ${quedan} intentos`;
+        return res.status(401).json({ error: `Usuario o contraseña incorrectos. ${texto} antes del bloqueo temporal.` });
       }
 
       limitadorLogin.resetKey(claveDeLogin(req));

@@ -42,7 +42,7 @@ export default function CamposEvento({ valores, alCambiar, deshabilitado = false
           value={valores.descripcion}
           onChange={cambiar("descripcion")}
           rows={4}
-          placeholder="Escribí una descripción detallada de la jornada o muestra..."
+          placeholder="Descripción de la jornada o muestra…"
           required
           disabled={deshabilitado}
         />

@@ -244,7 +244,7 @@ export default function Inicio() {
                   <Link to="/alumnos">
                     <span>
                       <strong>Horarios de cursada</strong>
-                      <span>2.° cuatrimestre 2026</span>
+                      <span>2.º cuatrimestre 2026</span>
                     </span>
                     <span className="flecha">
                       <svg
@@ -657,7 +657,7 @@ export default function Inicio() {
         <div className="contenedor">
           <div>
             <h2 id="t-llam">¿Querés estudiar con nosotros?</h2>
-            <p>Escribinos tu consulta y te responde Bedelía.</p>
+            <p>Escribinos tu consulta y te respondemos por correo.</p>
             <div className="acciones">
               <Link className="boton boton-naranja" to="/ingreso">
                 Cómo inscribirte

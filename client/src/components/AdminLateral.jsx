@@ -24,9 +24,9 @@ export default function AdminLateral() {
   return (
     <aside className="lateral">
       <Link className="marca" to="/admin">
-        <img src={IMGS.LOGO} alt="Logo del IFTS N.° 2" />
+        <img src={IMGS.LOGO} alt="Logo del IFTS N.º 2" />
         <span>
-          <strong>IFTS N.° 2</strong>
+          <strong>IFTS N.º 2</strong>
           <small>{esAdmin ? "Administración" : "Bedelía"}</small>
         </span>
       </Link>

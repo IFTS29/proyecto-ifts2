@@ -20,9 +20,9 @@ export const valoresDeEvento = (evento = {}) => ({
 
 // Revisa que estén los datos obligatorios. Devuelve el mensaje para mostrar o "" si está todo.
 export function faltaUnDato(valores) {
-  if (!valores.titulo.trim()) return "Completá el título del evento.";
-  if (!valores.fecha) return "Elegí la fecha del evento.";
-  if (!valores.descripcion.trim()) return "Completá la descripción del evento.";
+  if (!valores.titulo.trim()) return "El título del evento es obligatorio.";
+  if (!valores.fecha) return "La fecha del evento es obligatoria.";
+  if (!valores.descripcion.trim()) return "La descripción del evento es obligatoria.";
   return "";
 }
 

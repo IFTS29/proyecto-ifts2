@@ -31,7 +31,7 @@ export default function Contacto() {
     if (!telefonoValido(consulta.telefono.trim())) {
       setAviso({
         tipo: "error",
-        texto: "El teléfono no tiene un formato válido. Podés dejarlo vacío.",
+        texto: "El teléfono no tiene un formato válido. Es opcional: se puede dejar vacío.",
       });
       return;
     }
@@ -42,7 +42,7 @@ export default function Contacto() {
       form.reset();
       setAviso({
         tipo: "exito",
-        texto: "Tu consulta fue enviada. Te vamos a responder al correo que ingresaste.",
+        texto: "Consulta enviada. La respuesta llegará al correo indicado.",
       });
     } catch (err) {
       setAviso({ tipo: "error", texto: err.message });
@@ -104,7 +104,7 @@ export default function Contacto() {
                 <label htmlFor="c-motivo">Motivo de la consulta</label>
                 {/* Los value son las claves que acepta el servidor (MOTIVOS en services/contacto.js). */}
                 <select id="c-motivo" name="motivo" required defaultValue="">
-                  <option value="">Elegí un motivo</option>
+                  <option value="">Seleccionar un motivo</option>
                   <option value="inscripcion">Inscripción a la carrera</option>
                   <option value="equivalencias">Equivalencias</option>
                   <option value="horarios">Horarios y mesas de examen</option>
@@ -118,7 +118,7 @@ export default function Contacto() {
               <textarea
                 id="c-msj"
                 name="mensaje"
-                placeholder="Escribí tu consulta"
+                placeholder="Texto de la consulta"
                 required
                 maxLength={3000}
               />

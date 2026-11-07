@@ -7,7 +7,7 @@ import { columnasHorarios } from "../src/services/academica.pdf.js";
 
 const con = (req, token) => req.set("Authorization", `Bearer ${token}`);
 
-// Datos de ejemplo tomados de la planilla del instituto (1.° cuatrimestre 2026).
+// Datos de ejemplo tomados de la planilla del instituto (1.º cuatrimestre 2026).
 const HORARIO = {
   cicloLectivo: 2026,
   cuatrimestre: 1,
@@ -42,7 +42,7 @@ async function loPublicado(publico, periodo = "2026-1") {
 
 test("validarHorario: controles básicos con mensajes claros", () => {
   const casos = [
-    [{ ...HORARIO, materia: " " }, /Completá la materia/],
+    [{ ...HORARIO, materia: " " }, /La materia es obligatoria/],
     [{ ...HORARIO, anioCarrera: 4 }, /año de la carrera/],
     [{ ...HORARIO, cuatrimestre: 3 }, /cuatrimestre/],
     [{ ...HORARIO, turno: "madrugada" }, /turno/],
@@ -321,7 +321,7 @@ test("reutilizar: el mismo período da 400 y un período sin materias da 404", a
   assert.equal((await llamar("post", "/periodos/2027-1/reutilizar", {})).status, 400);
   const vacio = await llamar("post", "/periodos/2027-1/reutilizar", { origen: "2026-1" });
   assert.equal(vacio.status, 404);
-  assert.match(vacio.body.error, /1.° cuatrimestre 2026 no tiene horarios cargados/);
+  assert.match(vacio.body.error, /1.º cuatrimestre 2026 no tiene horarios cargados/);
 });
 
 // ---------- PDF ----------

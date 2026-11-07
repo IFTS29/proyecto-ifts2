@@ -38,7 +38,7 @@ export const LIMITES = {
 export const VALORES_INICIALES = {
   perfil: {
     parrafos: [
-      "Al egresar vas a estar capacitado/a para diseñar y gestionar emprendimientos gastronómicos, y para " +
+      "La persona egresada estará capacitada para diseñar y gestionar emprendimientos gastronómicos, y para " +
         "realizar tareas de planificación de la producción y de elaboración de productos alimenticios aptos " +
         "para el consumo, conforme a las condiciones exigidas de higiene, seguridad y calidad.",
       "El instituto forma emprendedores gastronómicos desde 2007, promoviendo la inserción laboral y los " +

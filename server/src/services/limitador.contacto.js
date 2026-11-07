@@ -2,7 +2,7 @@ import { isIP } from "node:net";
 import rateLimit from "express-rate-limit";
 
 export const MSJ_LIMITE_CONTACTO =
-  "Enviaste varias consultas seguidas. Probá de nuevo en unos minutos.";
+  "Se enviaron varias consultas seguidas. Volver a intentarlo en unos minutos.";
 
 // Normaliza la IP para usarla como clave del límite:
 // - IPv4 (también escrita como IPv6, por ejemplo ::ffff:192.168.1.1 o ::ffff:c0a8:101) → "192.168.1.1".

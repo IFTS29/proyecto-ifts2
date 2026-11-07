@@ -67,9 +67,9 @@ export default function TablaHorarios({ horarios, alEditar, alEliminar }) {
           <label htmlFor="t-anio">Año de la carrera</label>
           <select id="t-anio" value={anio} onChange={(e) => setAnio(e.target.value)}>
             <option value="">Todos</option>
-            <option value="1">1.° año</option>
-            <option value="2">2.° año</option>
-            <option value="3">3.° año</option>
+            <option value="1">1.º año</option>
+            <option value="2">2.º año</option>
+            <option value="3">3.º año</option>
           </select>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function TablaHorarios({ horarios, alEditar, alEliminar }) {
             {visibles.map((h) => (
               <tr key={h.id}>
                 <th scope="row">{h.materia}</th>
-                <td>{h.anioCarrera}.°</td>
+                <td>{h.anioCarrera}.º</td>
                 <td>{nombreTurno(h.turno)}</td>
                 <td>{vacio(h.profesor)}</td>
                 <td>{textoDias(h.dias)}</td>

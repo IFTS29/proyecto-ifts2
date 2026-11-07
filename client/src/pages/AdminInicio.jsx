@@ -45,7 +45,7 @@ export default function AdminInicio() {
         <div className="cab-admin">
           <div>
             <h1 id="saludo-admin">Hola, {usuario.saludo}</h1>
-            <p>¿Qué querés actualizar hoy?</p>
+            <p>Tareas frecuentes</p>
           </div>
         </div>
         <div className="atajos">

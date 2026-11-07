@@ -158,7 +158,7 @@ test("si falla el envío del correo responde 502 con un mensaje claro", async ()
     .post("/api/contact")
     .send(CONSULTA);
   assert.equal(res.status, 502);
-  assert.match(res.body.error, /No pudimos enviar tu consulta/);
+  assert.match(res.body.error, /No se pudo enviar la consulta/);
 });
 
 test("en producción sin servicio de correo configurado no confirma un envío falso", async () => {

@@ -52,14 +52,14 @@ export default function Login() {
       <div className="lado-form">
         <form id="form-login" noValidate onSubmit={enviar}>
           <Link className="marca" to="/">
-            <img src={IMGS.LOGO} alt="Logo del IFTS N.° 2" />
+            <img src={IMGS.LOGO} alt="Logo del IFTS N.º 2" />
             <span>
-              <strong>IFTS N.° 2</strong>
+              <strong>IFTS N.º 2</strong>
               <small>Volver al sitio</small>
             </span>
           </Link>
           <h1>Iniciar sesión</h1>
-          <p className="sub">Ingresá con el usuario que te asignó el instituto.</p>
+          <p className="sub">Ingreso con el usuario asignado por el instituto.</p>
           <div className="campo">
             <label htmlFor="l-mail">Correo electrónico</label>
             <input id="l-mail" type="email" autoComplete="username" />

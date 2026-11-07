@@ -22,7 +22,7 @@ import {
 } from "../services/archivo.js";
 import { enviarPdf, paraArchivo } from "./pdf.js";
 
-const PERIODO_INVALIDO = "Indicá el período, por ejemplo 2027-1.";
+const PERIODO_INVALIDO = "El período no es válido. Ejemplo: 2027-1.";
 
 // Información académica: horarios de cursada.
 // Cada período tiene dos niveles:
@@ -214,9 +214,9 @@ export function crearRutasAcademica({
     try {
       const destino = leerPeriodo(req.params.periodo);
       const origen = leerPeriodo(req.body?.origen);
-      if (!destino || !origen) return res.status(400).json({ error: "Elegí el período del que querés reutilizar." });
+      if (!destino || !origen) return res.status(400).json({ error: "Falta elegir el período del que se reutilizan los horarios." });
       if (codigoPeriodo(origen) === codigoPeriodo(destino)) {
-        return res.status(400).json({ error: "Elegí un período distinto del actual." });
+        return res.status(400).json({ error: "El período tiene que ser distinto del actual." });
       }
 
       const aTraer = await horarios.listar(origen);

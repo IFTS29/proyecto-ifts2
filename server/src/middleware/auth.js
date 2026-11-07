@@ -5,7 +5,7 @@ export function autenticar({ config, usuarios }) {
   return async (req, res, next) => {
     const cabecera = req.headers.authorization || "";
     const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
-    if (!token) return res.status(401).json({ error: "Tenés que iniciar sesión." });
+    if (!token) return res.status(401).json({ error: "Se requiere iniciar sesión." });
     try {
       const { sub } = jwt.verify(token, config.jwtSecret);
       const usuario = await usuarios.buscarPorId(sub);
@@ -14,7 +14,7 @@ export function autenticar({ config, usuarios }) {
       next();
     } catch (e) {
       if (e.name === "JsonWebTokenError" || e.name === "TokenExpiredError") {
-        return res.status(401).json({ error: "La sesión venció. Iniciá sesión de nuevo." });
+        return res.status(401).json({ error: "La sesión venció. Iniciar sesión de nuevo." });
       }
       next(e);
     }
@@ -27,4 +27,4 @@ export const requiereRol =
   (req, res, next) =>
     roles.includes(req.usuario?.rol)
       ? next()
-      : res.status(403).json({ error: "No tenés permiso para hacer esto." });
+      : res.status(403).json({ error: "Este usuario no tiene permiso para realizar esta acción." });

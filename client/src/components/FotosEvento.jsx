@@ -83,13 +83,13 @@ export default function FotosEvento({
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
         </svg>
-        <strong>{lleno ? "Llegaste al máximo de fotos" : "Agregar fotos"}</strong>
+        <strong>{lleno ? "Máximo de fotos alcanzado" : "Agregar fotos"}</strong>
         <span>
           {preparando
             ? "Preparando las fotos…"
             : lleno
-            ? `Un evento puede tener hasta ${MAXIMO_DE_FOTOS} fotos. Quitá alguna para agregar otra.`
-            : "Seleccioná una o varias imágenes JPG, PNG o WebP. Se preparan automáticamente antes de subirlas."}
+            ? `Un evento puede tener hasta ${MAXIMO_DE_FOTOS} fotos. Para agregar otra, hay que quitar alguna.`
+            : "Seleccionar una o varias imágenes JPG, PNG o WebP. Se preparan automáticamente antes de subirlas."}
         </span>
       </label>
     </div>

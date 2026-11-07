@@ -72,7 +72,7 @@ export default function AdminEventoEditar() {
       setFotos((prev) => [...prev, ...listas]);
       if (problemas.length) setError(problemas.join(" "));
     } catch {
-      setError("No se pudieron preparar las fotos. Probá de nuevo.");
+      setError("No se pudieron preparar las fotos. Volver a intentarlo.");
     } finally {
       setPreparando(false);
     }
@@ -96,7 +96,7 @@ export default function AdminEventoEditar() {
     const cuerpo = datosBasicosParaEnviar(valores, inicial);
     if (fotosCambiaron) cuerpo.fotos = fotos.map((foto) => foto.url);
     if (pesoDelPedido(cuerpo) > LIMITE_DEL_PEDIDO) {
-      setError("Las fotos nuevas juntas pesan demasiado para enviarlas. Guardá con menos fotos y agregá las demás después.");
+      setError("Las fotos nuevas juntas pesan demasiado para enviarlas. Guardar con menos fotos y agregar las demás después.");
       return;
     }
 
@@ -129,7 +129,7 @@ export default function AdminEventoEditar() {
               {evento && <span className={`etiqueta ${estado.clase}`}>{estado.texto}</span>}
             </h1>
             <p>
-              Corregí los datos del evento. Para mostrarlo u ocultarlo, usá el botón del ojo en la lista de eventos.
+              Modificar los datos del evento. Para mostrarlo u ocultarlo, se usa el botón del ojo de la lista de eventos.
               {evento?.origen === "instagram" &&
                 " Este evento vino de Instagram: su fecha es la de la publicación; si la actividad fue otro día, corregila. Lo que cambies acá no se pierde al volver a sincronizar."}
             </p>
@@ -164,7 +164,7 @@ export default function AdminEventoEditar() {
                     {esVideo && <p className="fotos-nota">La portada de este evento es la imagen del video.</p>}
                     {quitadas.length > 0 && (
                       <p className="fotos-nota" role="status">
-                        {quitadas.length === 1 ? "Quitaste 1 foto." : `Quitaste ${quitadas.length} fotos.`}{" "}
+                        {quitadas.length === 1 ? "Se quitó 1 foto." : `Se quitaron ${quitadas.length} fotos.`}{" "}
                         <button type="button" className="boton-texto" onClick={devolverQuitadas} disabled={guardando || preparando}>
                           {quitadas.length === 1 ? "Volver a ponerla" : "Volver a ponerlas"}
                         </button>

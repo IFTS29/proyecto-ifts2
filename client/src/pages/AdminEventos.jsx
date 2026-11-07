@@ -348,7 +348,7 @@ export default function AdminEventos() {
             );
           })}
         </div>
-        <p className="ayuda-tabla solo-celular">Deslizá la tabla hacia los costados para ver las acciones →</p>
+        <p className="ayuda-tabla solo-celular">Desplazar la tabla hacia los costados para ver las acciones →</p>
         <div className="tabla-caja">
           <table>
             <thead>

@@ -49,7 +49,7 @@ test("alta con datos inválidos devuelve 400 y el mensaje", async () => {
   const { app } = await appDePrueba();
   const token = await tokenDe(app, ADMIN);
   const casos = [
-    [{ ...nuevo, nombre: "" }, /Completá el nombre/],
+    [{ ...nuevo, nombre: "" }, /El nombre y el correo son obligatorios/],
     [{ ...nuevo, mail: "sin-arroba" }, /formato válido/],
     [{ ...nuevo, rol: "dios" }, /rol/],
     [{ ...nuevo, password: "corta" }, /al menos 8/],
@@ -174,7 +174,7 @@ test("nadie puede cambiarse el rol a sí mismo", async () => {
   const yo = await usuarios.buscarPorMail(ADMIN.mail);
   const res = await con(request(app).put(`/api/users/${yo.id}`).send({ rol: "bedelia" }), token);
   assert.equal(res.status, 400);
-  assert.match(res.body.error, /tu propio rol/);
+  assert.match(res.body.error, /el rol del propio usuario/);
 });
 
 test("editar un usuario que no existe devuelve 404", async () => {

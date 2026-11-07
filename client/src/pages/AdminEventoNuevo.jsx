@@ -39,7 +39,7 @@ export default function AdminEventoNuevo() {
       setFotos((prev) => [...prev, ...listas]);
       if (problemas.length) setError(problemas.join(" "));
     } catch {
-      setError("No se pudieron preparar las fotos. Probá de nuevo.");
+      setError("No se pudieron preparar las fotos. Volver a intentarlo.");
     } finally {
       setPreparando(false);
     }
@@ -73,7 +73,7 @@ export default function AdminEventoNuevo() {
       return;
     }
     if (fotos.length === 0 && !videoUrl.trim()) {
-      setError("Por favor seleccioná al menos una foto o ingresá un enlace a una publicación de Instagram / video.");
+      setError("Falta una foto o el enlace de una publicación de Instagram.");
       return;
     }
     if (videoUrl.trim() && !direccionDeInstagram(videoUrl)) {
@@ -112,7 +112,7 @@ export default function AdminEventoNuevo() {
 
       // En el sitio publicado un pedido no puede pasar de 4,5 MB: se controla antes de enviar.
       if (pesoDelPedido(payload) > LIMITE_DEL_PEDIDO) {
-        throw new Error("Las fotos juntas pesan demasiado para enviarlas. Quitá alguna o cargalas en otro evento.");
+        throw new Error("Las fotos juntas pesan demasiado para enviarlas. Hay que quitar alguna o cargarlas en otro evento.");
       }
 
       const respuesta = await api("/events", {
@@ -142,7 +142,7 @@ export default function AdminEventoNuevo() {
         <div className="cab-admin">
           <div>
             <h1>Cargar un evento</h1>
-            <p>Completá los datos del evento.</p>
+            <p>Completar los datos del evento.</p>
           </div>
         </div>
         <form className="form-admin" onSubmit={enviar} noValidate>

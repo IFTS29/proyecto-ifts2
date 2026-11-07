@@ -97,7 +97,7 @@ export default function AdminAcademica() {
 
   const abrirOtro = (e) => {
     e.preventDefault();
-    if (!/^\d{4}$/.test(String(otro.cicloLectivo))) return avisar("Escribí el ciclo lectivo, por ejemplo 2027.", true);
+    if (!/^\d{4}$/.test(String(otro.cicloLectivo))) return avisar("El ciclo lectivo tiene que tener cuatro cifras, por ejemplo 2027.", true);
     setPeriodo(codigoPeriodo(otro));
     setOtro(null);
   };
@@ -268,8 +268,8 @@ export default function AdminAcademica() {
                   value={otro.cuatrimestre}
                   onChange={(e) => setOtro({ ...otro, cuatrimestre: e.target.value })}
                 >
-                  <option value="1">1.° cuatrimestre</option>
-                  <option value="2">2.° cuatrimestre</option>
+                  <option value="1">1.º cuatrimestre</option>
+                  <option value="2">2.º cuatrimestre</option>
                 </select>
               </div>
               <button className="boton boton-verde boton-chico" type="submit" disabled={ocupado}>
@@ -321,7 +321,7 @@ export default function AdminAcademica() {
                 <p>
                   <strong>Todavía no hay horarios cargados.</strong>
                 </p>
-                <p>Agregá las materias una por una o traelas de otro período con "Reutilizar horarios".</p>
+                <p>Las materias se agregan una por una o se traen de otro período con «Reutilizar horarios».</p>
               </div>
             ) : (
               <TablaHorarios

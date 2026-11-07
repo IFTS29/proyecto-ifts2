@@ -105,7 +105,7 @@ export default function AdminContenido() {
               </section>
             ) : (
               <section className="caja panel-cont vacio-seccion">
-                <p>Elegí una sección en el menú de la izquierda, debajo de «Contenido institucional», para editarla.</p>
+                <p>Las secciones se editan desde el menú de la izquierda, debajo de «Contenido institucional».</p>
               </section>
             )}
           </div>

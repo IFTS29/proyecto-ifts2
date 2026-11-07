@@ -31,7 +31,7 @@ export function leerPeriodo(valor) {
 }
 
 export const codigoPeriodo = ({ cicloLectivo, cuatrimestre }) => `${cicloLectivo}-${cuatrimestre}`;
-export const textoPeriodo = ({ cicloLectivo, cuatrimestre }) => `${cuatrimestre}.° cuatrimestre ${cicloLectivo}`;
+export const textoPeriodo = ({ cicloLectivo, cuatrimestre }) => `${cuatrimestre}.º cuatrimestre ${cicloLectivo}`;
 
 // Identifica un horario cargado a mano, para no duplicarlo al reutilizar: mismo año, turno, materia,
 // docente, aula, días y horarios. En los textos no cuentan mayúsculas ni espacios de más.
@@ -67,7 +67,7 @@ export function validarHorario(cuerpo = {}) {
       : [],
   };
 
-  if (!datos.materia) return { error: "Completá la materia." };
+  if (!datos.materia) return { error: "La materia es obligatoria." };
   if (datos.materia.length > 120 || datos.profesor.length > 120 || datos.aula.length > 40) {
     return { error: "La materia y el nombre del docente admiten hasta 120 caracteres; el aula, hasta 40." };
   }
@@ -76,13 +76,13 @@ export function validarHorario(cuerpo = {}) {
   }
   if (!enRango(datos.cuatrimestre, 1, 2)) return { error: "El cuatrimestre tiene que ser 1 o 2." };
   if (!enRango(datos.anioCarrera, 1, 3)) return { error: "El año de la carrera tiene que ser 1, 2 o 3." };
-  if (!TURNOS.includes(datos.turno)) return { error: "Elegí el turno: mañana, tarde o noche." };
-  if (datos.dias.length === 0) return { error: "Agregá al menos un día de cursada con su horario." };
+  if (!TURNOS.includes(datos.turno)) return { error: "Elegir un turno: mañana, tarde o noche." };
+  if (datos.dias.length === 0) return { error: "Falta agregar al menos un día de cursada con su horario." };
 
   for (const { dia, desde, hasta } of datos.dias) {
     if (!DIAS.includes(dia)) return { error: "Hay un día de cursada que no es válido." };
     if (!HORA.test(desde) || !HORA.test(hasta)) {
-      return { error: `Revisá el horario del ${NOMBRE_DIA[dia]}: tiene que tener el formato 18:00.` };
+      return { error: `El horario del ${NOMBRE_DIA[dia]} tiene que tener el formato 18:00.` };
     }
     if (desde >= hasta) {
       return { error: `El horario del ${NOMBRE_DIA[dia]} tiene que terminar después de empezar.` };
@@ -129,7 +129,7 @@ const NOMBRE_CAMPO = {
 
 // Valor de un campo como se muestra en "Ver cambios". Los vacíos se muestran como "—".
 function mostrar(campo, valor) {
-  if (campo === "anioCarrera") return `${valor}.°`;
+  if (campo === "anioCarrera") return `${valor}.º`;
   if (campo === "turno") return NOMBRE_TURNO[valor] ?? valor;
   if (campo === "dias") return valor.map((f) => `${NOMBRE_DIA[f.dia]} ${f.desde} a ${f.hasta}`).join(", ");
   return valor || "—";

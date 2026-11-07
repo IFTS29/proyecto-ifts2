@@ -1,6 +1,6 @@
 import rateLimit from "express-rate-limit";
 
-export const MSJ_BLOQUEO = "Demasiados intentos fallidos. Probá de nuevo en 15 minutos.";
+export const MSJ_BLOQUEO = "Demasiados intentos fallidos. Volver a intentarlo en 15 minutos.";
 
 // Se cuenta por correo y no por IP: la IP se puede falsear con el encabezado X-Forwarded-For.
 export const claveDeLogin = (req) => String(req.body?.mail || "").trim().toLowerCase() || "sin-correo";

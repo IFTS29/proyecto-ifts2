@@ -34,7 +34,7 @@ export async function api(ruta, { metodo = "GET", cuerpo } = {}) {
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
     });
   } catch {
-    throw new Error("No se pudo conectar con el servidor. Probá de nuevo en unos minutos.");
+    throw new Error("No se pudo conectar con el servidor. Volver a intentarlo en unos minutos.");
   }
 
   let datos = null;
@@ -61,7 +61,7 @@ export async function descargar(ruta, nombreArchivo) {
   try {
     res = await fetch(`/api${ruta}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
   } catch {
-    throw new Error("No se pudo conectar con el servidor. Probá de nuevo en unos minutos.");
+    throw new Error("No se pudo conectar con el servidor. Volver a intentarlo en unos minutos.");
   }
   if (!res.ok) {
     let mensaje = "No se pudo descargar el archivo.";

@@ -81,7 +81,7 @@ export default function FormHorario({
       const nueva = materiaVacia({ anioCarrera: form.anioCarrera, turno: form.turno });
       setInicial(nueva);
       setForm(nueva);
-      setGuardado(`Se guardó «${materia.materia}». Podés cargar la siguiente.`);
+      setGuardado(`Se guardó «${materia.materia}». Se puede cargar la siguiente.`);
       materiaRef.current?.focus();
     } catch (err) {
       setError(err.message);
@@ -105,9 +105,9 @@ export default function FormHorario({
         <div className="campo">
           <label htmlFor="h-anio">Año de la carrera</label>
           <select id="h-anio" value={form.anioCarrera} onChange={cambiar("anioCarrera")}>
-            <option value="1">1.° año</option>
-            <option value="2">2.° año</option>
-            <option value="3">3.° año</option>
+            <option value="1">1.º año</option>
+            <option value="2">2.º año</option>
+            <option value="3">3.º año</option>
           </select>
         </div>
         <div className="campo">
