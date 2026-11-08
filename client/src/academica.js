@@ -91,6 +91,15 @@ export const textoFranja = ({ desde, hasta }) => `${sinCeros(desde)} a ${sinCero
 // "Lunes 18 a 20 h · Jueves 18 a 20 h"
 export const textoDias = (dias) => dias.map((f) => `${nombreDia(f.dia)} ${textoFranja(f)}`).join(" · ");
 
+// Fecha en Argentina: "10 de marzo de 2027". La usan los horarios y las mesas publicados en Alumnos.
+export const textoFecha = (fechaIso) =>
+  new Date(fechaIso).toLocaleDateString("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
 // Fecha y hora en Argentina: "10 de marzo de 2027, 18:05".
 export function textoFechaHora(fechaIso) {
   if (!fechaIso) return "";
@@ -134,7 +143,7 @@ export function filasDeHorarios(horarios, { anio, turno = "" }) {
     .flatMap((h) => h.dias.map((franja) => ({ ...franja, h })))
     .sort(
       (a, b) =>
-        ordenDia(a.dia) - ordenDia(b.dia) || a.desde.localeCompare(b.desde) || a.h.anioCarrera - b.h.anioCarrera,
+        a.h.anioCarrera - b.h.anioCarrera || ordenDia(a.dia) - ordenDia(b.dia) || a.desde.localeCompare(b.desde),
     );
 }
 

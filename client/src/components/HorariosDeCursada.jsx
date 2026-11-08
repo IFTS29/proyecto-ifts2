@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.js";
-import { textoPeriodo } from "../academica.js";
+import { textoFecha, textoPeriodo } from "../academica.js";
 import HorariosPublicos from "./HorariosPublicos.jsx";
-
-// Fecha en Argentina: "10 de marzo de 2027".
-const textoFecha = (fechaIso) =>
-  new Date(fechaIso).toLocaleDateString("es-AR", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
 // Horarios de cursada de la página de Alumnos. Muestra solo lo publicado desde el panel,
 // del período más reciente; si hay más de uno publicado, se puede elegir.

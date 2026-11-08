@@ -40,11 +40,20 @@ export default function Alumnos() {
           <p>Horarios de cursada, mesas de examen y plataformas del instituto.</p>
         </div>
       </section>
+      {/* Una franja por tema, con el fondo alternado: horarios (blanco), mesas (gris), prácticas (blanco) y
+          enlaces útiles (gris). Información académica primero; los enlaces, al final, como recursos complementarios. */}
       <section className="seccion">
         <div className="contenedor">
           <HorariosDeCursada />
+        </div>
+      </section>
+      <section className="seccion seccion-alt">
+        <div className="contenedor">
           <MesasDeExamen />
-          {/* Información académica primero; los enlaces útiles, al final, como recursos complementarios. */}
+        </div>
+      </section>
+      <section className="seccion">
+        <div className="contenedor">
           <section className="practicas-alumnos" id="practicas" aria-labelledby="titulo-practicas">
             <h2 id="titulo-practicas">Prácticas profesionalizantes y pasantías</h2>
             <div className="documentos">
@@ -61,7 +70,7 @@ export default function Alumnos() {
             <span className="raya" aria-hidden="true" />
             <p>Plataformas y servicios útiles, en un solo lugar.</p>
           </div>
-          <ul className="enlaces dos-col">
+          <ul className="enlaces tres-col">
             {PLATAFORMAS.map((p) => (
               <li key={p.titulo}>
                 <a href={p.href} {...EXTERNO}>

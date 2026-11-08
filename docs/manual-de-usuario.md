@@ -14,7 +14,7 @@ Este manual explica, paso a paso, cómo usar las dos partes.
 **Cómo leer las capturas:**
 
 - Los **círculos naranjas con números** marcan los botones y campos de cada paso. El número de cada círculo coincide con el número del paso explicado junto a la captura.
-- Las capturas se tomaron del sistema real, con **datos de ejemplo**: las personas, materias, fechas y eventos que aparecen son ficticios.
+- Las capturas se tomaron del sistema real, con **datos de ejemplo**: las personas, fechas y eventos del panel son ficticios. Para los horarios y las mesas del sitio público (apartado 1.4) se usaron planillas del instituto como referencia, pero el cronograma del 2.º cuatrimestre de 2026 y el llamado de noviembre–diciembre de 2026 son simulados y no constituyen información académica oficial.
 
 **Contenido:**
 
@@ -122,12 +122,21 @@ Reúne los horarios de cursada y las mesas de examen **publicados** desde el pan
 ![Horarios de cursada en el sitio](capturas-manual/sitio-alumnos-horarios.png)
 
 1. **Botones de cada año:** muestran los horarios de ese año.
-2. **Todos los años:** muestra los tres años juntos.
-3. **Descargar horarios (PDF):** descarga los horarios del período publicado.
+2. **Todos los años:** muestra los tres años juntos, cada uno debajo de una fila verde con el nombre del año.
+3. **Descargar horarios (PDF):** descarga los horarios del período que se está viendo.
+4. **Ver otro período:** aparece cuando hay más de un período publicado, por ejemplo el cuatrimestre anterior.
 
-![Mesas de examen en el sitio](capturas-manual/sitio-alumnos-mesas.png)
+Las mesas de examen se muestran en una franja de otro color. Cada llamado tiene su nombre, sus fechas y una sola tabla con todas sus mesas, ordenadas por fecha:
 
-1. **Descargar mesas (PDF):** descarga las mesas del llamado publicado.
+![Comienzo de la tabla de mesas de examen](capturas-manual/sitio-alumnos-mesas.png)
+
+1. **Actualizado el…:** fecha de la última publicación del llamado.
+
+Al final de la tabla está el botón de descarga:
+
+![Final de la tabla de mesas y botón de descarga](capturas-manual/sitio-alumnos-mesas-pdf.png)
+
+2. **Descargar mesas (PDF):** descarga todas las mesas del llamado en un solo archivo.
 
 Si una mesa no tiene fecha u hora, el sitio muestra «A confirmar». Debajo están los documentos de prácticas profesionalizantes y los enlaces útiles:
 
@@ -393,6 +402,8 @@ Los períodos no se borran. El sitio muestra los períodos publicados del año a
 Se encuentra en **Información académica → Mesas de examen**. Vale la misma regla que en los horarios: **guardar no cambia el sitio**.
 
 Las mesas se organizan por **llamado** (por ejemplo, «Diciembre 2026»). Cada llamado tiene su período de exámenes, un aviso opcional para los alumnos y sus mesas.
+
+Un llamado reúne **todas las materias de ese turno de exámenes**. No se crea un llamado por materia: cada materia es una mesa dentro del llamado (6.3). Así el sitio muestra una sola tabla y un solo PDF.
 
 ### 6.1 Resumen del llamado
 

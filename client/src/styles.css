@@ -672,6 +672,11 @@ p {
   grid-template-columns: 1fr 1fr;
 }
 
+/* Enlaces útiles de Alumnos: tres columnas, para que cada flecha quede cerca del texto de su tarjeta. */
+.tres-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .enlaces a {
   display: flex;
   align-items: center;
@@ -690,6 +695,16 @@ p {
 
 .enlaces a:hover {
   transform: translateY(-2px);
+  border-color: var(--verde);
+}
+
+/* Sobre una franja gris (Alumnos), las tarjetas van en blanco con borde, para separarse del fondo. */
+.seccion-alt .enlaces a {
+  background: var(--superficie);
+  border-color: var(--borde);
+}
+
+.seccion-alt .enlaces a:hover {
   border-color: var(--verde);
 }
 
@@ -1672,6 +1687,10 @@ tr:last-child td {
 }
 
 @media (max-width: 960px) {
+  .tres-col {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .menu .acceso a {
     margin: 8px 0 0;
     justify-content: center;
@@ -2501,6 +2520,7 @@ a.dato {
   }
 
   .dos-col,
+  .tres-col,
   .areas,
   .personas,
   .fila {
@@ -3818,33 +3838,28 @@ body[data-rol="bedelia"] [data-solo-admin] {
   text-align: left;
 }
 
-.mesas-de-examen,
-.practicas-alumnos {
-  margin-top: 40px;
-}
-
 .practicas-alumnos h2 {
   margin-bottom: 16px;
 }
 
-/* Horarios publicados en el celular: cada fila es una ficha (día y horario arriba; materia, docente, aula y turno
-   debajo), para no desplazar la tabla a los costados. Con «Todos los años», el año va debajo de la materia. */
-.horarios-publicos .anio-movil {
-  display: none;
+/* Horarios con «Todos los años»: una fila con el nombre de cada año, en verde claro, distinta del encabezado
+   (gris) y de las filas de las materias (blanco). */
+.horarios-publicos .fila-anio th {
+  padding: 10px 16px;
+  background: var(--verde-suave);
+  color: var(--verde);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
 }
+
+/* Horarios publicados en el celular: cada fila es una ficha (día y horario arriba; materia, docente, aula y turno
+   debajo), para no desplazar la tabla a los costados. */
 
 @media (max-width: 600px) {
   /* Los encabezados se ocultan solo a la vista: los lectores de pantalla los siguen leyendo con cada dato. */
   .horarios-publicos thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
-  .horarios-publicos .col-anio {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -3869,6 +3884,16 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
   .horarios-publicos tr:last-child {
     border-bottom: 0;
+  }
+
+  /* La fila del año ocupa todo el ancho, como un subtítulo entre las fichas. */
+  .horarios-publicos .fila-anio {
+    display: block;
+    padding: 0;
+  }
+
+  .horarios-publicos .fila-anio th {
+    display: block;
   }
 
   .horarios-publicos td {
@@ -3914,13 +3939,6 @@ body[data-rol="bedelia"] [data-solo-admin] {
   .horarios-publicos .col-detalle::before {
     content: attr(data-etiqueta) ": ";
     content: attr(data-etiqueta) ": " / "";
-    color: var(--suave);
-  }
-
-  .horarios-publicos .anio-movil {
-    display: block;
-    font-size: 14px;
-    font-weight: 400;
     color: var(--suave);
   }
 }
@@ -4228,7 +4246,7 @@ body[data-rol="bedelia"] [data-solo-admin] {
     display: inline;
   }
 
-  /* El botón del PDF ocupa todo el ancho; su texto largo («Descargar mesas de …») queda centrado. */
+  /* El botón del PDF ocupa todo el ancho, con el texto centrado. */
   .llamado-publico .acciones .boton {
     width: 100%;
     padding: 10px 20px;
@@ -4250,7 +4268,8 @@ body[data-rol="bedelia"] [data-solo-admin] {
   color: var(--suave);
 }
 
-.llamado-publico .actualizado {
+.actualizado-llamado {
+  margin: 0 0 16px;
   color: var(--suave);
   font-size: 14px;
 }
