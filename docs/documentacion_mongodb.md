@@ -1,6 +1,6 @@
 # Base de datos en MongoDB Atlas: Portal Web Institucional IFTS N.º 2
 
-Este documento describe la configuración del clúster de **MongoDB Atlas** que usa el sitio desplegado (producción y vistas previas de Vercel) y la estructura de su base de datos, con capturas de la consola de Atlas. Las capturas se agregaron al repositorio el 4/11/2026 y muestran el estado de la base en ese momento.
+Este documento describe la configuración del clúster de **MongoDB Atlas** que usa el sitio desplegado (producción y vistas previas de Vercel) y la estructura de su base de datos, con capturas de la consola de Atlas. Las capturas de los apartados 1 a 3.3 se agregaron al repositorio el 4/11/2026, y las de 3.4 y 3.5, el 8/11/2026. Cada una muestra el estado de la base en ese momento.
 
 El modelo de datos completo (entidades, relaciones y campos de cada colección) está en el [Manual Técnico, apartado 4](./manual-tecnico.md#4-base-de-datos). En desarrollo local el sistema puede funcionar sin esta base, en modo memoria (Manual Técnico, 5.1).
 
@@ -75,7 +75,7 @@ Mongoose crea las colecciones y sus índices la primera vez que se usan (Manual 
 
 ## 3. Detalle de colecciones
 
-Este apartado muestra tres colecciones tal como se ven en Atlas. Los campos de todas las colecciones están en el Manual Técnico, 4.2.
+Este apartado muestra cinco colecciones tal como se ven en Atlas. Los campos de todas las colecciones están en el Manual Técnico, 4.2.
 
 ### 3.1 Colección `usuarios`
 
@@ -137,6 +137,48 @@ Guarda una sección editable del contenido institucional por documento. Mientras
 La captura muestra la sección de ingreso, la única editada en ese momento. Se ocultó el valor de `actualizadoPor`.
 
 <img src="img-bbdd/bbdd_contenido_institucional.png" alt="Colección contenidoinstitucional en el Data Explorer, con la sección de ingreso"/>
+
+### 3.4 Colección `llamados`
+
+Guarda los llamados de mesas de examen. Cada documento tiene dos partes: los datos de trabajo, que edita Bedelía desde el panel, y `publicacion`, la copia que ven los alumnos.
+
+| Campo | Tipo | Contenido |
+|---|---|---|
+| `_id` | `ObjectId` | Identificador que asigna MongoDB. Las mesas del llamado lo guardan en `llamadoId` |
+| `nombre` | `String` | Nombre del llamado, por ejemplo «Noviembre–Diciembre 2026» |
+| `nombreClave` | `String` | El nombre en minúsculas y sin espacios de más. Único: no puede haber dos llamados con el mismo nombre |
+| `desde`, `hasta` | `String` | Fechas generales del llamado (AAAA-MM-DD). Opcionales |
+| `aviso` | `String` | Texto para los alumnos. Opcional |
+| `publicacion` | `Object` | Copia publicada: `publicado`, `publicadoEn`, `nombre`, `desde`, `hasta`, `aviso` y `mesas`. Vale `null` si el llamado nunca se publicó |
+| `createdAt`, `updatedAt` | `ISODate` | Fecha de creación y de última modificación |
+
+La primera captura muestra el llamado «Noviembre–Diciembre 2026» publicado: `publicacion.publicado` es `true` y la copia tiene sus 37 mesas.
+
+<img src="img-bbdd/bbdd_llamados.png" alt="Colección llamados en el Data Explorer, con el llamado Noviembre–Diciembre 2026 publicado y 37 mesas"/>
+
+Retirar un llamado desde el panel no borra nada: `publicacion.publicado` pasa a `false` y el resto de la copia se conserva. Un llamado que se publicó alguna vez no se puede eliminar. La segunda captura muestra el llamado de prueba «Nutrición», retirado el 8/11/2026: sigue en la colección, con `publicado: false`.
+
+<img src="img-bbdd/bbdd_llamado_retirado.png" alt="Colección llamados en el Data Explorer, con un llamado retirado: publicacion.publicado en false"/>
+
+### 3.5 Colección `mesas_examen`
+
+Guarda las mesas de cada llamado como datos de trabajo. Guardar una mesa no cambia lo que ven los alumnos: eso sale de la copia publicada del llamado (3.4).
+
+| Campo | Tipo | Contenido |
+|---|---|---|
+| `_id` | `ObjectId` | Identificador que asigna MongoDB |
+| `llamadoId` | `String` | `_id` del llamado al que pertenece la mesa |
+| `materia` | `String` | Nombre de la materia |
+| `anioCarrera` | `Number` | Año de la carrera: 1, 2 o 3 |
+| `fecha`, `hora` | `String` | Fecha (AAAA-MM-DD) y hora (HH:MM). Vacías, el sitio muestra «A confirmar» |
+| `aula`, `tribunal` | `String` | Aula y mesa examinadora. Opcionales |
+| `createdAt`, `updatedAt` | `ISODate` | Fecha de creación y de última modificación |
+
+La captura muestra una de las 37 mesas del llamado «Noviembre–Diciembre 2026». Su `llamadoId` coincide con el `_id` del llamado de la primera captura de 3.4.
+
+<img src="img-bbdd/bbdd_mesas_examen.png" alt="Colección mesas_examen en el Data Explorer, con una mesa y su llamadoId"/>
+
+El horario del 2.º cuatrimestre de 2026 y el llamado de mesas «Noviembre–Diciembre 2026», cargados el 8/11/2026, contienen datos simulados y no constituyen cronogramas académicos oficiales (Manual Técnico, 12.4).
 
 <br>
 
