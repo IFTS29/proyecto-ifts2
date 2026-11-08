@@ -25,7 +25,7 @@ El manual de uso del panel está en [manual-de-usuario.md](./manual-de-usuario.m
 | [Registros de decisiones de arquitectura (ADR)](./adr/README.md) | Las siete decisiones de arquitectura, con su contexto y sus consecuencias. |
 | [Registro de cambios](./registro-de-cambios.md) y [Roadmap del MVP](./roadmap-mvp.md) | Historia de los cambios y planificación. |
 
-**Recorrido sugerido para una presentación técnica:** arquitectura y herramientas (apartado 2), cómo funciona cada parte (6.3), decisiones de diseño (9), pruebas (8) y limitaciones y trabajo futuro (12).
+**Recorrido sugerido para una presentación técnica:** arquitectura y herramientas (apartado 2), funcionamiento de cada parte (6.3), decisiones de diseño (9), pruebas (8) y limitaciones y trabajo futuro (12).
 
 ## 2. Arquitectura del sistema
 
@@ -50,13 +50,13 @@ El sistema tiene tres capas:
 | Despliegue | Vercel (el cliente compilado como sitio estático y la API como función) |
 | Pruebas | `node:test` y supertest |
 
-**Para qué se usa cada herramienta:**
+### 2.1 Herramientas y su función
 
-| Herramienta | Para qué se usa en el portal | Decisión relacionada |
+| Herramienta | Función en el sistema | Decisión relacionada |
 |---|---|---|
 | React + Vite | Sitio público y panel en una sola aplicación; Vite compila el cliente y, en desarrollo, lo sirve desde el mismo servidor. | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
 | Express | API REST con rutas separadas por área (`server/src/routes/`). | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
-| MongoDB Atlas + Mongoose | Datos del portal. El contenido institucional tiene estructuras distintas por sección y se guarda como documento. Plan gratuito (apartado 11). | [ADR-002](./adr/ADR-002-repositorios-intercambiables-e-inyeccion-de-dependencias.md), [ADR-004](./adr/ADR-004-separacion-de-datos-de-trabajo-y-publicados.md) |
+| MongoDB Atlas + Mongoose | Datos del sistema. El contenido institucional tiene estructuras distintas por sección y se guarda como documento. Plan gratuito (apartado 11). | [ADR-002](./adr/ADR-002-repositorios-intercambiables-e-inyeccion-de-dependencias.md), [ADR-004](./adr/ADR-004-separacion-de-datos-de-trabajo-y-publicados.md) |
 | Cloudinary | Fotos de los eventos, fuera de la base de datos. Plan gratuito (apartado 11). | [ADR-005](./adr/ADR-005-almacenamiento-multimedia-hibrido-con-cloudinary.md) |
 | Vercel | Publica el sitio y la API desde GitHub. Plan gratuito (apartado 11). | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
 | JSON Web Token + bcryptjs | Sesión sin estado en el servidor (cada pedido lleva su token) y contraseñas guardadas con hash. | [ADR-006](./adr/ADR-006-control-de-acceso-rbac-y-descarte-de-superadministrador.md) |
@@ -65,6 +65,8 @@ El sistema tiene tres capas:
 | PDFKit | PDF de horarios y mesas, generados en memoria al pedirlos. | [ADR-003](./adr/ADR-003-generacion-de-pdfs-on-the-fly-en-memoria.md) |
 | Instagram Graph API | Sincronización de las publicaciones con `#eventosIFTS2` (apartado 6.3.3). | [ADR-007](./adr/ADR-007-sincronizacion-a-demanda-de-instagram-graph-api.md) |
 | `node:test` + supertest | Pruebas automáticas sin dependencias de prueba extra (apartado 8). | — |
+
+### 2.2 Decisiones de estructura
 
 Tres decisiones de estructura explican gran parte del código:
 
@@ -193,7 +195,7 @@ El diagrama muestra las entidades, sus relaciones y los campos principales. La d
 
 ### 4.2 Colecciones
 
-| Colección | Modelo | Qué guarda |
+| Colección | Modelo | Contenido |
 |---|---|---|
 | `usuarios` | `Usuario` | Cuentas del panel. `rol` es `admin` o `bedelia`. La contraseña se guarda con hash (bcrypt), nunca en texto. `mail` es único y se guarda en minúsculas. |
 | `eventos` | `Evento` | Eventos de la galería. Pueden ser manuales o venir de Instagram (`origen`). El panel permite mostrar u ocultar eventos mediante el campo `estado`. El modelo conserva el valor `archivado` por compatibilidad con versiones anteriores; el archivado actual se calcula por fecha (ver apartado 9). Incluye la lista de fotos (`medios`) y un registro de las fotos quitadas desde el panel (`mediosQuitados`). `instagramId` es único para los eventos que vienen de Instagram. `permalink` y `videoUrl` guardan el enlace de la publicación de Instagram y se usan para no crear eventos repetidos (6.3.2). `tipoMedio` es `IMAGE`, `VIDEO` o `CAROUSEL_ALBUM`. `captionOriginal` conserva el texto original de la publicación y `editadoPorAdmin` marca los eventos de Instagram editados desde el panel. El título y la descripción no tienen largo máximo (12.1). |
@@ -276,7 +278,7 @@ npm start
 
 Se leen de forma centralizada en `server/src/config.js`. El archivo `.env` nunca debe subirse al repositorio.
 
-| Variable | Para qué sirve | Valor por defecto en `.env.example` / Comportamiento si falta |
+| Variable | Función | Valor por defecto en `.env.example` / Comportamiento si falta |
 |---|---|---|
 | `PORT` | Puerto de escucha del servidor local integrado. | `3000`. |
 | `MONGODB_URI` | Cadena de conexión a MongoDB Atlas. | Si falta en local: modo memoria temporal. En producción/Vercel: el servidor no arranca. |
@@ -326,7 +328,9 @@ flowchart LR
 9. **Cambios de variables:** un cambio solo se aplica en un despliegue nuevo. Después de cargar o cambiar una variable hay que hacer un *Redeploy* (Deployments → menú **⋯** del despliegue de producción → **Redeploy**). Vuelve a publicar el mismo código: no cambia datos ni cierra sesiones, salvo que la variable cambiada sea `JWT_SECRET`.
 10. **Tamaño de los pedidos:** Vercel acepta pedidos de hasta 4,5 MB y responde 413 si se supera (apartado 11). Por eso el navegador achica las fotos antes de enviarlas (6.3.4).
 
-Capturas del proyecto en Vercel (sin valores de variables):
+#### Capturas del proyecto en Vercel
+
+Ninguna captura muestra valores de variables.
 
 **Página principal del proyecto**, con el dominio y el último despliegue:
 
@@ -366,7 +370,7 @@ Capturas del proyecto en Vercel (sin valores de variables):
 
 **Rutas.** El prefijo es `/api`.
 
-| Prefijo | Quién accede | Qué hace |
+| Prefijo | Acceso | Función |
 |---|---|---|
 | `GET /salud` | Público | Responde `{"estado":"ok"}`. |
 | `/auth` (`POST /login`, `GET /yo`) | Login público; `/yo` con sesión | Inicia sesión y devuelve el usuario de la sesión. |
@@ -397,7 +401,7 @@ Capturas del proyecto en Vercel (sin valores de variables):
 - El panel está en `pages/Admin*.jsx`. Los formularios y tablas reutilizables están en `components/` (por ejemplo `FormHorario`, `TablaMesas`, `FormIngreso`).
 - Los controles de rol del cliente (`SoloAdministrador`, el menú `AdminLateral`) son solo de comodidad. El servidor valida el rol en cada ruta.
 
-### 6.3 Cómo funciona cada parte
+### 6.3 Funcionamiento de cada parte
 
 Este apartado recorre los flujos principales del portal: qué pasa desde que una persona usa una pantalla hasta que el dato se guarda o se envía, y en qué archivos está cada paso.
 
@@ -451,7 +455,7 @@ flowchart TD
     M --> N
 ```
 
-| Forma | Desde dónde | Qué hace el sistema |
+| Forma | Pantalla | Proceso del sistema |
 |---|---|---|
 | **1. Carga manual con fotos de la computadora** | Panel → Eventos → Nuevo evento | El navegador achica las fotos (6.3.4) y las envía con el formulario. El servidor revisa cada foto (`revisarFotoNueva`: JPG, PNG o WebP, hasta 4 MB) y la sube a Cloudinary, carpeta `ifts2/eventos` (`subirFotosNuevas`). Si falla una subida, borra las que ya había subido, responde 502 y no guarda el evento. |
 | **2. Carga manual con el enlace de una publicación** | El mismo formulario, campo del enlace de Instagram | El título y la descripción se escriben a mano. El enlace tiene que ser de una publicación, un reel o un video (`instagram.com/p/…`, `/reel/…` o `/tv/…`); el navegador (`client/src/eventos.js`) y el servidor (`server/src/services/instagram/enlace.js`) aplican la misma regla y el mismo mensaje, y el servidor responde 400 si no la cumple. Se guarda sin parámetros (`?igsh=…`). Si no se cargaron fotos, el servidor busca la imagen de vista previa de la publicación y la guarda como una foto del panel. Si no puede obtenerla, guarda el evento con la publicación incrustada y muestra un aviso. |
@@ -501,7 +505,7 @@ El token de Instagram dura unos 60 días. Para renovarlo se carga uno nuevo en `
 
 #### 6.3.4 Fotos: dónde se reduce el tamaño
 
-| Origen de la foto | Dónde se reduce | Dónde se guarda | Límites |
+| Origen de la foto | Reducción de tamaño | Almacenamiento | Límites |
 |---|---|---|---|
 | Computadora (formulario del panel) | En el navegador (`client/src/fotos.js`): el lado mayor queda en 1600 px como máximo; las JPG se guardan como JPG (calidad 0,8) y las PNG y WebP como WebP. Una foto de hasta 1600 px y 500 KB se envía tal cual. | Cloudinary, `ifts2/eventos` | Hasta 20 fotos por evento y 4 MB por foto. El navegador no envía pedidos de más de 4 MB, con margen bajo el límite de 4,5 MB de Vercel. |
 | Enlace de una publicación | La reduce Instagram: es su imagen de vista previa. | Cloudinary, `ifts2/eventos` | 4 MB. |
@@ -533,7 +537,7 @@ sequenceDiagram
     end
 ```
 
-Decisiones del formulario:
+**Decisiones del formulario**
 
 - **Envío:** Nodemailer por SMTP (`correo.smtp.js`). Con Gmail, la cuenta que envía usa una contraseña de aplicación y el puerto 465 con conexión segura. Si el servidor de correo no responde, el envío se corta (10 segundos para conectar y 15 para enviar) y el visitante ve el error enseguida.
 - **Reparto entre casillas** (`correo.mensaje.js`): el motivo «Otro» va a la casilla institucional con copia a Bedelía; inscripción, equivalencias, horarios y mesas, y trámites van a Bedelía con copia a la casilla institucional. La copia sirve de respaldo ante ausencias.
@@ -557,7 +561,7 @@ Decisiones del formulario:
 
 **Códigos de respuesta.** Ante un error, las rutas de la API responden un JSON con el campo `error` y un mensaje en español que el cliente muestra tal cual. Las respuestas correctas tienen su propio formato y los PDF se devuelven como archivo. Un error que genera Vercel antes de llegar a la aplicación (por ejemplo, un pedido de más de 4,5 MB) puede tener otro formato.
 
-| Código | Cuándo |
+| Código | Situación |
 |---|---|
 | 400 | Datos inválidos o campos obligatorios vacíos. |
 | 401 | Sin sesión, token inválido o vencido, o usuario eliminado. En el login, credenciales incorrectas. |
@@ -587,15 +591,15 @@ Decisiones del formulario:
 
 ## 8. Pruebas implementadas
 
-Hay **548 pruebas automáticas, todas aprobadas**, en 41 archivos de `server/test/` (medición del 7/11/2026 sobre `develop`). Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
+Hay **548 pruebas automáticas, todas aprobadas**, en 41 archivos de `server/test/` (medición del 8/11/2026 sobre `develop`, commit `c898dfe`). Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
 
 ```bash
 npm test
 ```
 
-La corrida completa tarda unos segundos: 5,7 s en la computadora de una integrante y 21 s en el entorno de revisión (7/11/2026).
+La ejecución completa tarda unos segundos. El 8/11/2026 tardó 5,1 s en la computadora de una integrante (Windows, Node.js 24.15.0) y 20 s en el entorno de revisión (Linux, Node.js 22.22.0).
 
-| Área | Archivos | Qué cubren |
+| Área | Archivos | Cobertura |
 |---|---|---|
 | Acceso y usuarios | `auth`, `permisos`, `usuarios`, `passwords`, `seed`, `arranque`, `config` | Login, bloqueo por intentos, permisos por rol, reglas de contraseña, alta/edición/baja de usuarios, creación del primer administrador, elección de repositorios según el entorno. `permisos` recorre 45 rutas de la API como visitante, Bedelía y Administrador; la matriz está en [matriz-de-permisos.md](./matriz-de-permisos.md). |
 | Horarios y archivado | `academica`, `archivo`, `alumnos`, `finalizados` | Alta, edición y baja de materias, reutilización, publicar y retirar, comparación de cambios, reglas de archivado por fecha en los bordes del calendario. |
@@ -608,7 +612,7 @@ La corrida completa tarda unos segundos: 5,7 s en la computadora de una integran
 
 Los casos de prueba y su relación con los requerimientos están en [plan-de-testing.md](./plan-de-testing.md). Las pruebas cubren el servidor y las funciones de apoyo del cliente que se ejecutan sin navegador (por ejemplo `client/src/academica.js` o `client/src/confirmaciones.js`). No hay pruebas automáticas de la interfaz dentro del navegador.
 
-El registro de las ejecuciones está en el [reporte de pruebas](./reporte-de-pruebas.md). El recorrido con capturas de las operaciones del panel está en la [validación visual de los CRUD](./validacion-visual-cruds.md). Las comprobaciones en navegador hechas durante los PR no están automatizadas en el repositorio (plan de testing, sección 6).
+El resultado de la última ejecución, con la captura de la consola, está en el [reporte de pruebas](./reporte-de-pruebas.md). El recorrido con capturas de las operaciones del panel está en la [validación visual de los CRUD](./validacion-visual-cruds.md). Las comprobaciones en navegador hechas durante los PR no están automatizadas en el repositorio (plan de testing, sección 6).
 
 ## 9. Decisiones de diseño
 
@@ -634,7 +638,7 @@ Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo
 
 **Eventos sin baja destructiva.** El panel permite ocultar un evento pero no eliminarlo físicamente de la base. Es consistente con el alcance institucional de preservar el historial de actividades.
 
-Estados de un evento. El estado guardado lo cambia la Administración desde el panel; el archivado por fecha no es un estado guardado.
+**Estados de un evento.** El estado guardado lo cambia la Administración desde el panel; el archivado por fecha no es un estado guardado.
 
 ```mermaid
 stateDiagram-v2
@@ -673,11 +677,11 @@ La regla es: un evento se ve si su estado es `visible` y, además, no está arch
 
 **Dos registros de lenguaje.** Voseo solo en los textos públicos que presentan la carrera; los mensajes del sistema y el panel, en tono neutro (6.3.6).
 
-## 10. Qué hacer si algo falla
+## 10. Resolución de problemas
 
 Cada ítem describe el comportamiento operativo del sistema ante incidentes:
 
-| Síntoma | Causa probable | Qué hacer |
+| Síntoma | Causa probable | Solución |
 |---|---|---|
 | El sitio desplegado devuelve «El servicio no está disponible en este momento» | MongoDB Atlas no responde o `MONGODB_URI` es incorrecta. | Revisar el estado del clúster y la variable en Vercel. La API reintenta sola en la petición siguiente. |
 | El servidor no arranca con «Falta MONGODB_URI» | Se ejecutó en producción sin la variable. | Definir `MONGODB_URI`. Solo en desarrollo se permite trabajar en modo memoria. |
@@ -703,7 +707,7 @@ Cada ítem describe el comportamiento operativo del sistema ante incidentes:
 
 El portal usa planes gratuitos para no tener costo operativo. Estos son los límites que pueden afectarlo. Las cifras se tomaron de la documentación oficial de cada servicio, consultada el 7/11/2026; los proveedores pueden cambiarlas.
 
-| Servicio | Plan | Límites que importan para el portal | Qué pasa si se superan | Fuente |
+| Servicio | Plan | Límites relevantes | Efecto al superarlos | Fuente |
 |---|---|---|---|---|
 | **MongoDB Atlas** | Gratuito (M0) | 512 MB de datos, incluidos los índices. 500 conexiones. 100 operaciones por segundo. 10 GB de entrada y 10 GB de salida cada 7 días. Se pausa después de 30 días sin conexiones. No incluye respaldos: Atlas los ofrece como suscripción paga aparte (USD 0,10 por día, hasta USD 3 por mes; una instantánea diaria, se guardan las últimas 4), en vista previa privada y no disponible en todas las cuentas. En este clúster no están activados (4.4). | Por encima de las operaciones o de la transferencia, Atlas reduce la velocidad. Sin espacio, no se pueden guardar datos nuevos. Un clúster pausado se reanuda desde Atlas. | [Límites del clúster gratuito](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/) y [respaldos del clúster gratuito](https://www.mongodb.com/docs/atlas/backup/cloud-backup/free-cluster-backup/) |
 | **Cloudinary** | Gratuito | 25 créditos por mes, compartidos: 1 crédito equivale a 1 GB de almacenamiento, 1 GB de transferencia o 1.000 transformaciones. Imágenes de hasta 10 MB y videos de hasta 100 MB. | Primero envía avisos. Si el exceso continúa, la cuenta se puede deshabilitar en parte y después por completo. El plan gratuito no permite pagar el excedente. | [Precios de Cloudinary](https://cloudinary.com/documentation/pricing) |

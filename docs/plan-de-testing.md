@@ -31,7 +31,7 @@ En lugar de postergar las pruebas para el cierre del proyecto, el equipo adopta 
 El equipo trabaja con estos criterios:
 
 1. **Pruebas junto al desarrollo:** las pruebas no se dejan para el final. Las funcionalidades nuevas se acompañan de pruebas automáticas en el mismo PR. Los cambios visuales y de interacción también se comprueban en navegador.
-2. **Sin servicios externos:** `npm test` no necesita MongoDB Atlas, un servidor de correo, Cloudinary ni la API de Meta. En las pruebas, cada servicio externo se reemplaza por un repositorio en memoria o por un servicio simulado (sección 2). La suite completa tarda unos segundos: 5,7 s en la computadora de una integrante y 21 s en el entorno de revisión (7/11/2026).
+2. **Sin servicios externos:** `npm test` no necesita MongoDB Atlas, un servidor de correo, Cloudinary ni la API de Meta. En las pruebas, cada servicio externo se reemplaza por un repositorio en memoria o por un servicio simulado (sección 2). La suite completa tarda unos segundos: el 8/11/2026 tardó 5,1 s en la computadora de una integrante (Windows, Node.js 24.15.0) y 20 s en el entorno de revisión (Linux, Node.js 22.22.0).
 3. **Datos simulados con la estructura de las respuestas de Instagram:** las publicaciones de prueba se arman dentro de cada archivo con los mismos campos que devuelve la Graph API (`id`, `caption`, `media_type`, `media_url`, `thumbnail_url`, `permalink`, `timestamp`, `children`). Incluyen casos difíciles: carruseles con videos, videos sin miniatura y publicaciones sin archivo descargable.
 4. **Comprobaciones en navegador:** en los PR recientes, lo visual se comprobó además con un navegador automatizado, fuera del repositorio (sección 6).
 
@@ -68,9 +68,9 @@ Notas:
 
 ## 3. Estado actual de la suite
 
-Medición sobre `develop` (commit `2476f0f`, con el PR #137 integrado): **548 pruebas en 41 archivos `server/test/*.test.js`, 548 aprobadas, 0 fallidas**. El conteo por archivo es el que informa `node --test` al ejecutar cada archivo por separado; la suma coincide con el total de `npm test`. En `permisos.test.js`, 7 llamadas a `test(` dentro de recorridos por las rutas generan 141 pruebas.
+Medición sobre `develop` (commit `c898dfe`, con el PR #139 integrado): **548 pruebas en 41 archivos `server/test/*.test.js`, 548 aprobadas, 0 fallidas**. El conteo por archivo es el que informa `node --test` al ejecutar cada archivo por separado; la suma coincide con el total de `npm test`. En `permisos.test.js`, 7 llamadas a `test(` dentro de recorridos por las rutas generan 141 pruebas.
 
-| Módulo | Archivo (pruebas) | Qué cubre |
+| Módulo | Archivo (pruebas) | Cobertura |
 | :--- | :--- | :--- |
 | **Autenticación y usuarios** (33) | `auth.test.js` (12), `usuarios.test.js` (18), `passwords.test.js` (3) | Login con JWT, bloqueo por cuenta tras 5 intentos fallidos, ABM de usuarios solo para Administración y política de contraseñas con hash |
 | **Contacto y correo** (44) | `contacto.test.js` (14), `contacto.limite.test.js` (10), `correo.mensaje.test.js` (9), `correo.smtp.test.js` (11) | Validación del formulario, honeypot, límite de envíos por visitante, destinatarios según el motivo y envío por SMTP con sus errores |
@@ -136,15 +136,15 @@ Algunos PR no cambiaron el total de pruebas:
 
 - **Hasta el 31/10:** #59, #68, #72 a #76 y #79.
 - **4 y 5/11:** #66, #110 a #112, #115 a #122 y #130. Son de documentación, del menú lateral del panel y del cartel de sesión del sitio.
-- **6 y 7/11:** #131 (capturas de la base de datos), #132 (Manual Técnico) y #137 (aviso de Contacto y pie con la sesión iniciada, comprobado en navegador; sección 6).
+- **6 y 7/11:** #131 (capturas de la base de datos), #132 (Manual Técnico), #137 (aviso de Contacto y pie con la sesión iniciada, comprobado en navegador; sección 6), #138 (esta versión del plan de testing) y #139 (actualización del Manual Técnico).
 
-Los totales de esta tabla desde el #131 se midieron el 7/11/2026 ejecutando la suite en cada commit de merge. Los anteriores se registraron en una revisión del 5/11/2026 (sobre `develop` en `002a181`); los números de PR y las fechas se verificaron con el historial de `develop`, y volver a medir esos totales queda pendiente.
+Todos los totales de esta tabla se midieron ejecutando la suite en el commit de merge de cada PR: desde el #131, el 7/11/2026, y los anteriores, el 8/11/2026. Los números de PR y las fechas se verificaron con el historial de `develop`.
 
 ### 4.3. Diferencias con la versión inicial
 
 La versión inicial de este documento planificaba las pruebas por sprint. Esta versión registra lo que efectivamente se hizo. Lo que se había planificado y cambió o no se hizo:
 
-| Planificado en la versión inicial | Qué pasó |
+| Planificado en la versión inicial | Situación actual |
 | :--- | :--- |
 | Publicaciones de prueba tomadas de la cuenta `@proyecto.404solutions.ifts2`, en `server/test/fixtures/instagram-edge-cases.json` | Ese archivo no existe. Las publicaciones de prueba se arman dentro de cada archivo, con la estructura de la Graph API (sección 1). En `server/test/fixtures/` solo está `instagram-seed.json`, que ninguna prueba usa (sección 7). |
 | Dos categorías, `#ifts2novedades` e `#ifts2eventos` | Hay una sola categoría, con el hashtag `#eventosIFTS2` (CP-IG-01 a CP-IG-03). |
@@ -155,7 +155,7 @@ La versión inicial de este documento planificaba las pruebas por sprint. Esta v
 | Pruebas de extremo a extremo de los carruseles en el navegador | Se hicieron comprobaciones en navegador durante los PR, fuera del repositorio (sección 6). Pasarlas al repositorio queda como trabajo futuro. |
 | `auth.test.js`: resistencia a la enumeración de usuarios por tiempos de respuesta | Las pruebas comprueban que un correo inexistente y una contraseña incorrecta reciben el mismo mensaje. No miden tiempos de respuesta. |
 | Commits de pruebas con el formato `test(alcance): descripción` | El equipo pasó a títulos en español que empiezan con un verbo (sección 8). |
-| QA-01 con capturas de la ejecución en consola | Falta agregar la captura al reporte de pruebas (sección 6). |
+| QA-01 con capturas de la ejecución en consola | La captura está en el reporte de pruebas, sección 1 (`docs/img-pruebas/npm-test-resultado.png`). |
 
 ---
 
@@ -318,7 +318,7 @@ Además de `npm test`, en los PR recientes se hicieron comprobaciones con Playwr
 - en algunos casos, con respuestas de la API simuladas en lugar de datos reales;
 - en el PR #137, el aviso de Contacto (CP-CON-09) y el pie de página con la sesión iniciada y sin ella.
 
-**Qué está en el repositorio y qué no:**
+**Contenido del repositorio:**
 
 - **Los scripts de Playwright no están en el repositorio**, así que esas comprobaciones no se pueden repetir desde él. Agregar Playwright como dependencia de desarrollo requiere acuerdo del equipo.
 - **Las capturas sí están en el repositorio:** `docs/capturas-cruds/` (65 imágenes) y `docs/capturas-manual/`.
@@ -327,8 +327,8 @@ Además de `npm test`, en los PR recientes se hicieron comprobaciones con Playwr
 
 | Issue | Documento | Contenido | Estado |
 | :--- | :--- | :--- | :--- |
-| `#40 [QA-01]` | `docs/reporte-de-pruebas.md` | Ejecución de `npm test` con el resultado por archivo y casos seleccionados con entrada, salida esperada y salida obtenida | Hecho sobre `develop` en `ea8d2cc` (4/11/2026, 375 pruebas). Pendiente: actualizarlo a la versión final (548 pruebas) y agregar una captura de la ejecución en consola, como preveía la versión inicial de este plan |
-| `#41 [QA-02]` | `docs/validacion-visual-cruds.md` | Recorrido con capturas de crear, leer, actualizar y eliminar o dar de baja en Usuarios, Horarios, Mesas, Eventos e Ingreso, y permisos del rol Bedelía | Hecho sobre `develop` en `ea8d2cc` (4/11/2026). Pendiente: revisar que las capturas sigan coincidiendo con los textos actuales del panel (PR #136) |
+| `#40 [QA-01]` | `docs/reporte-de-pruebas.md` | Ejecución de `npm test` con el resultado por archivo y casos seleccionados con entrada, salida esperada y salida obtenida | Hecho sobre `develop` en `c898dfe` (8/11/2026, 548 pruebas), con la captura de la ejecución en consola que preveía la versión inicial de este plan |
+| `#41 [QA-02]` | `docs/validacion-visual-cruds.md` | Recorrido con capturas de crear, leer, actualizar y eliminar o dar de baja en Usuarios, Horarios, Mesas, Eventos e Ingreso, y permisos del rol Bedelía | Hecho sobre `develop` en `ea8d2cc` (4/11/2026). Las capturas son anteriores a la corrección de textos del PR #136: algunos mensajes del panel pueden verse distintos en el sitio actual |
 
 Para el informe de pruebas se separan tres niveles:
 
@@ -347,9 +347,9 @@ Para el informe de pruebas se separan tres niveles:
    - tarjeta de evento con un título o un resumen largos (CP-IG-04, parte visual).
 4. **Carga de eventos con un enlace real de Instagram:** las pruebas de CP-EVE-11 usan respuestas simuladas. Falta comprobar que se obtiene la foto de una publicación pública real, en un entorno de prueba sin conexión a la base institucional. El resultado depende de Instagram, que puede cambiar cómo responde.
 5. **Cargas simultáneas de la misma publicación:** la búsqueda previa evita los eventos repetidos habituales (CP-IG-08), pero dos cargas exactamente al mismo tiempo de la misma publicación (dos administradores, o una carga y una sincronización) podrían crear dos eventos, porque buscar y guardar son dos pasos separados y no hay un índice único. Si pasa, se oculta uno de los dos desde el panel.
-6. **Hallazgos de seguridad sin corregir:** el registro de QA tiene abiertos H-60 (`JWT_SECRET` no obligatoria en producción), H-58 (la API pública devuelve datos internos de los eventos), H-75 (`/api/instagram/status` muestra el error de Meta sin sesión) y H-68 (límites de largo). También queda pendiente quitar la contraseña de reserva de `server/scripts/seed-admin.js`. Cuando se corrijan, cada arreglo se acompaña de su prueba.
+6. **Hallazgos de seguridad sin corregir:** el registro de QA tiene abiertos H-60 (`JWT_SECRET` no obligatoria en producción), H-58 (la API pública devuelve datos internos de los eventos), H-75 (`/api/instagram/status` muestra el error de Meta sin sesión) y H-68 (límites de largo). Además, `server/scripts/seed-admin.js` conserva una contraseña de reserva que conviene quitar. Cuando se corrijan, cada arreglo se acompaña de su prueba.
 7. **Fixture sin uso:** `server/test/fixtures/instagram-seed.json` no lo lee ninguna prueba y usa el hashtag `#IFTS2Eventos`, que no es el vigente (`#eventosIFTS2`). Se decide si se actualiza y se usa en una prueba o se quita.
-8. **Evidencias de QA-01 y QA-02:** actualizar el reporte de pruebas a 548 pruebas con una captura de la consola, y revisar las capturas de la validación visual (sección 6).
+8. **Validación visual (QA-02):** volver a sacar las capturas de `docs/validacion-visual-cruds.md` con los textos actuales del panel (PR #136; sección 6).
 
 ---
 
@@ -383,6 +383,22 @@ npm run build
 6. **Título del PR:** si corresponde a un issue, empieza con su código entre corchetes, por ejemplo `[US-04] Adapta las mesas de examen al celular…`. La descripción indica el resultado de `npm test`, el de `npm run build` y las comprobaciones en navegador, separadas de la revisión manual.
 7. **Integración:** con la opción «Create a merge commit».
 
+### Flujo de un cambio hasta producción
+
+Cada cambio sigue estos pasos desde que se crea la rama hasta que se publica. Si `npm test` o `npm run build` fallan, el cambio se corrige antes de abrir el PR.
+
+```mermaid
+flowchart TD
+    A[Rama nueva desde develop] --> B[Cambio y su prueba en server/test]
+    B --> C{npm test y npm run build sin errores}
+    C -->|No| B
+    C -->|Sí| D[Comprobación en navegador si cambia una pantalla]
+    D --> E[PR hacia develop con los resultados]
+    E --> F[Revisión de Files changed y de la Preview de Vercel]
+    F --> G[Merge con Create a merge commit]
+    G --> H[Vercel publica producción desde develop]
+```
+
 ---
 
-Última actualización: 7/11/2026, sobre `develop` en `2476f0f` (con el PR #137 integrado).
+Última actualización: 8/11/2026, sobre `develop` en `c898dfe` (con el PR #139 integrado).
