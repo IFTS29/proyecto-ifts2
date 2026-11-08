@@ -1,8 +1,8 @@
 <div align="center">
-  <h1>Portal Web Institucional IFTS N.° 2</h1>
+  <h1>Portal Web Institucional IFTS N.º 2</h1>
   <h2>Proyecto Integrador · Prácticas Profesionalizantes IV · 404-Solutions</h2>
   <br>
-  <img src="https://img.shields.io/badge/STATUS-EN%20DESARROLLO-yellow?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/STATUS-ENTREGA%20FINAL-green?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React">
   <img src="https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
   <img src="https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express">
@@ -12,8 +12,8 @@
 
 <br>
 
-> **Nota:** el proyecto está en la etapa final (Etapa 3), con entrega prevista para el 08/11/2026. Este README se
-> actualiza a medida que avanza el trabajo. El estado de cada funcionalidad está en la sección «Estado del Desarrollo».
+> **Nota:** esta es la versión de la entrega final de la Etapa 3 (08/11/2026). El estado de cada funcionalidad
+> está en la sección «Estado del Desarrollo».
 
 <br>
 
@@ -21,17 +21,17 @@
 
 ## 📚 Datos del Proyecto
 
-- **Institución:** Instituto de Formación Técnica Superior N.° 29 (IFTS N.° 29)
+- **Institución:** Instituto de Formación Técnica Superior N.º 29 (IFTS N.º 29)
 - **Carrera:** Tecnicatura Superior en Desarrollo de Software
-- **Materia:** Prácticas Profesionalizantes IV (Proyecto Integrador) · 2026, 2.° cuatrimestre
+- **Materia:** Prácticas Profesionalizantes IV (Proyecto Integrador) · 2026, 2.º cuatrimestre
 - **Docentes:** Lic. Emir García Ontiveros y Lic. Kevin Del Bello
 - **Empresa simulada:** 404-Solutions
-- **Cliente:** IFTS N.° 2 D.E. 20 · Tecnicatura Superior en Emprendimientos Gastronómicos
+- **Cliente:** IFTS N.º 2 D.E. 20 · Tecnicatura Superior en Emprendimientos Gastronómicos
 - **Tablero:** [Proyecto IFTS2 (GitHub Projects)](https://github.com/orgs/IFTS29/projects/2/views/1)
-- **Versión desplegada (rama `develop`, provisoria):** [proyecto-ifts2.vercel.app](https://proyecto-ifts2.vercel.app)
+- **Versión desplegada:** [proyectoifts2.vercel.app](https://proyectoifts2.vercel.app)
 
-> La versión desplegada corresponde a `develop` y se usa para ver los avances del equipo. Para la entrega
-> final se va a publicar un despliegue nuevo desde `main`.
+> El sitio se publica en Vercel desde la rama `develop`: cada merge a `develop` actualiza la versión
+> desplegada.
 
 <br>
 
@@ -39,7 +39,7 @@
 
 ## 📖 Descripción del Proyecto
 
-El IFTS N.° 2 tenía un sitio en Google Sites que dejó de actualizarse porque mantenerlo llevaba demasiado
+El IFTS N.º 2 tenía un sitio en Google Sites que dejó de actualizarse porque mantenerlo llevaba demasiado
 tiempo. El **Portal Web Institucional** lo reemplaza con dos partes:
 
 1. **Sitio público:** la carrera, el ingreso, la información para alumnos, los eventos y el contacto, con foco
@@ -67,6 +67,54 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 
 ---
 
+## ✨ Funcionalidades Principales
+
+### Sitio público
+
+- **Inicio** con accesos para aspirantes y alumnos, y un carrusel con los eventos más recientes.
+- **La carrera:** perfil del egresado, plan de estudios por año o por área, autoridades y documentos oficiales para ver, descargar o compartir.
+- **Ingreso:** convocatoria vigente con el estado de la preinscripción, sus etapas y preguntas frecuentes.
+- **Alumnos:** horarios de cursada y mesas de examen publicados, con filtro por año y descarga en PDF.
+- **Eventos:** galería por año, del más reciente al más antiguo, con detalle y visor de fotos.
+- **Contacto:** formulario que envía la consulta por correo a Bedelía o a la casilla institucional, según el motivo.
+
+<p align="center">
+  <img src="./docs/img-readme/sitio-inicio.png" alt="Página de inicio del sitio público" width="800">
+</p>
+
+<p align="center">
+  <img src="./docs/img-readme/sitio-eventos.gif" alt="Recorrido por los eventos: carrusel del inicio, detalle y visor de fotos" width="800">
+</p>
+
+<p align="center">
+  <img src="./docs/img-readme/sitio-horarios.gif" alt="Horarios de cursada filtrados por año en la sección Alumnos" width="800">
+</p>
+
+### Panel de administración
+
+- **Dos perfiles:** Administración (acceso total) y Bedelía (horarios y mesas de examen).
+- **Horarios y mesas de examen:** se cargan como datos de trabajo y llegan al sitio recién al publicarlos. Se pueden comparar con lo publicado, actualizar o retirar.
+- **Eventos:** carga con fotos o con el enlace de una publicación de Instagram, edición de la galería, ocultar y mostrar, y sincronización con la cuenta del instituto.
+- **Contenido institucional:** perfil del egresado, autoridades, datos de contacto, convocatoria de ingreso y preguntas frecuentes, publicados al guardar.
+- **Usuarios:** alta, edición y baja de cuentas, con contraseñas guardadas con hash y bloqueo tras 5 intentos fallidos.
+- **Archivado por fecha:** lo vencido deja de verse en el sitio sin borrarse.
+
+<p align="center">
+  <img src="./docs/img-readme/panel-inicio.png" alt="Inicio del panel de administración" width="800">
+</p>
+
+<p align="center">
+  <img src="./docs/img-readme/panel-publicar.gif" alt="Publicación de un período de horarios desde el panel" width="800">
+</p>
+
+> **Nota:** las capturas y animaciones muestran el sistema en un entorno de prueba, con datos ficticios.
+
+El uso paso a paso de cada pantalla está en el [Manual de Usuario](./docs/manual-de-usuario.md).
+
+<br>
+
+---
+
 ## ✅ Estado del Desarrollo
 
 | Funcionalidad | Issue | Estado |
@@ -74,23 +122,23 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
 | Estructura base del proyecto (React + Express) | #28 | ✅ |
 | Modelos de datos y creación del primer administrador | #29 | ✅ |
 | Sitio público en React | #32 | ✅ |
-| Inicio de sesión seguro | #30 | ✅ |
-| Perfiles Administrador y Bedelía | #31 | ✅ Auditoría de permisos en revisión (#109) |
+| Inicio de sesión con JWT y bloqueo por intentos fallidos | #30 | ✅ |
+| Perfiles Administrador y Bedelía | #31 | ✅ Permisos de cada ruta comprobados con pruebas automáticas ([matriz de permisos](./docs/matriz-de-permisos.md)) |
 | Gestión de usuarios del panel | #38 | ✅ |
-| Formulario de contacto con envío de correo | #37 | ✅ Falta la prueba de envío real con el correo institucional |
+| Formulario de contacto con envío de correo | #37 | ✅ Probado en el sitio desplegado con casillas del equipo. Las casillas definitivas las confirma el instituto |
 | Información académica: horarios, aulas y mesas de examen | #33 | ✅ |
-| Eventos institucionales con galería | #34 | 🟡 Se pueden cargar, editar, ocultar y mostrar. Falta la baja (#81) |
+| Eventos institucionales con galería | #34 | 🟡 Se cargan con fotos o con el enlace de una publicación de Instagram, y se editan, ocultan y muestran. No tienen baja: un evento se oculta (#81) |
 | Archivado de contenidos sin borrado | #35 | ✅ |
 | Contenido institucional editable | #36 | ✅ |
 | Integración con Instagram o carga manual | #39, #55 | ✅ La sincronización necesita las credenciales de la cuenta. Sin ellas, los eventos se cargan a mano |
-| Pruebas automáticas y evidencias | #40, #41 | 🔬 En revisión |
-| Manual técnico y manual de usuario | #42, #43 | 🔬 En revisión |
-| Despliegue final y entrega | #44 | ⏳ |
+| Pruebas automáticas y evidencias | #40, #41 | ✅ 548 pruebas aprobadas ([reporte de pruebas](./docs/reporte-de-pruebas.md)) |
+| Manual técnico y manual de usuario | #42, #43 | ✅ |
+| Despliegue final y entrega | #44 | 🟡 Sitio desplegado en Vercel. Entrega el 08/11/2026 |
 
 ✅ hecho · 🟡 parcial · ⏳ pendiente · 🔬 en revisión (Pull Request abierto)
 
-> Estado actualizado al 04/11/2026. Los avances posteriores se registran en los issues y Pull Requests del
-> repositorio. El detalle de lo que falta para cerrar el MVP está en [docs/roadmap-mvp.md](./docs/roadmap-mvp.md).
+> Estado al 08/11/2026. Las limitaciones conocidas y el trabajo futuro están en el
+> [Manual Técnico](./docs/manual-tecnico.md) (apartado 12).
 
 <br>
 
@@ -150,7 +198,7 @@ proyecto-ifts2/
 ├── api/index.js              # entrada de la API en Vercel
 ├── server.js                 # entrada para desarrollo local
 ├── prototipo-html/           # prototipo original (referencia)
-├── docs/                     # manuales, plan de testing, registro de cambios y roadmap
+├── docs/                     # manuales, plan y reporte de pruebas, registro de cambios y roadmap
 ├── .env.example              # variables de entorno de ejemplo
 └── package.json              # dependencias y scripts de todo el proyecto
 ```
@@ -179,22 +227,19 @@ Copy-Item .env.example .env
 - Si PowerShell no deja ejecutar npm: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - Todas las dependencias están en el `package.json` de la raíz: se instalan con un solo `npm install`.
 
-Para poder entrar al panel, completá en el `.env` los datos del primer administrador:
+El `.env.example` ya trae los datos de un primer administrador para desarrollo local (`SEED_ADMIN_NOMBRE`,
+`SEED_ADMIN_MAIL` y `SEED_ADMIN_PASSWORD`). Ese administrador se crea al arrancar, solo si todavía no hay
+usuarios, y con esos datos se ingresa al panel. Se pueden cambiar en el `.env`; la contraseña tiene que tener al
+menos 8 caracteres, con una mayúscula y un número.
 
-```text
-SEED_ADMIN_NOMBRE=Administrador
-SEED_ADMIN_MAIL=admin@ejemplo.local
-SEED_ADMIN_PASSWORD=UnaClave2026
-```
-
-El administrador se crea al arrancar, solo si todavía no hay usuarios. Conviene elegir una contraseña de al
-menos 8 caracteres, con una mayúscula y un número, que es la regla que pide el panel para los demás usuarios.
+> Los valores del `.env.example` son públicos: sirven solo para desarrollo local y no deben usarse en el
+> sitio desplegado.
 
 ```powershell
 npm run dev
 ```
 
-Abrí `http://localhost:3000`. El panel está en `/login`.
+El sitio queda en `http://localhost:3000` y el panel, en `http://localhost:3000/login`.
 
 ### Scripts
 
@@ -230,12 +275,36 @@ repositorio.
 npm test
 ```
 
-Las pruebas automáticas del servidor se ejecutan con `node:test` y supertest, sobre datos en memoria: no
-necesitan base de datos ni conexión a Internet. Cubren el inicio de sesión y el bloqueo por intentos, los
+Hay **548 pruebas automáticas en 41 archivos**, todas aprobadas. Se ejecutan con `node:test` y supertest, sobre
+datos en memoria: no necesitan base de datos ni conexión a Internet. Cubren el inicio de sesión y el bloqueo por intentos, los
 permisos por rol, los usuarios, los eventos y sus fotos, las mesas de examen y los horarios, el archivado por
 fecha, el contenido institucional, la sincronización con Instagram y el formulario de contacto.
 
-El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md).
+| Módulo | Pruebas |
+| :----- | :-----: |
+| Permisos por rol (cada ruta de la API, con cada perfil) | 141 |
+| Eventos, fotos y carga con enlace de Instagram | 108 |
+| Contacto y correo | 44 |
+| Sincronización con Instagram | 44 |
+| Contenido institucional, carrera y plan de estudios | 39 |
+| Autenticación y usuarios | 33 |
+| Ingreso | 31 |
+| Horarios de cursada | 28 |
+| Mesas de examen | 25 |
+| Textos, configuración y arranque | 23 |
+| Archivado y avisos de vigencia | 17 |
+| Panel e inicio | 15 |
+| **Total** | **548** |
+
+<p align="center">
+  <img src="./docs/img-pruebas/npm-test-resultado.png" alt="Resultado de npm test: 548 pruebas aprobadas" width="550">
+</p>
+
+Además, los cambios de pantalla se comprobaron en el navegador durante cada Pull Request, y las operaciones del
+panel tienen un recorrido con capturas en la [validación visual de los CRUD](./docs/validacion-visual-cruds.md).
+
+El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md) y el resultado de la última
+ejecución, con la captura de la consola, en [docs/reporte-de-pruebas.md](./docs/reporte-de-pruebas.md).
 
 <br>
 
@@ -244,8 +313,8 @@ El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md)
 ## 🔀 Organización del Trabajo
 
 - **Metodología:** Scrum simplificado, con tablero Kanban en GitHub Projects.
-- **Ramas:** `main` (solo entrega final), `develop` (trabajo diario) y una rama por tarea (`feature/...`,
-  `fix/...`, `docs/...`) que se integra a `develop` con un Pull Request.
+- **Ramas:** `main` (solo entrega final), `develop` (trabajo diario y versión desplegada) y una rama por tarea
+  (`feature/...`, `fix/...`, `docs/...`) que se integra a `develop` con un Pull Request.
 - **Issues:** con prefijo según el tipo (`SETUP-`, `US-`, `BUG-`, `QA-`, `DOC-`, `SPIKE-`, `CLIENTE-`,
   `POST-`).
 - **Pull Requests:** título con el código del issue y una descripción en presente, por ejemplo
@@ -260,11 +329,15 @@ El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md)
 | Documento | Descripción |
 | :-------- | :---------- |
 | [Manual Técnico](./docs/manual-tecnico.md) | Arquitectura, base de datos, instalación, variables de entorno y decisiones de diseño |
-| [Manual de Usuario](./docs/manual-de-usuario.md) | Cómo usar el panel de administración, para Administrador y Bedelía |
+| [Manual de Usuario](./docs/manual-de-usuario.md) | Cómo usar el sitio público y el panel de administración, paso a paso y con capturas |
+| [Base de datos en MongoDB Atlas](./docs/documentacion_mongodb.md) | Configuración del clúster y colecciones, con capturas |
+| [Decisiones de arquitectura (ADR)](./docs/adr/README.md) | Las siete decisiones de arquitectura, con su contexto y sus consecuencias |
 | [Matriz de permisos](./docs/matriz-de-permisos.md) | Qué puede hacer cada rol en la API y en el panel |
-| [Plan de testing](./docs/plan-de-testing.md) | Casos de prueba y su relación con los requerimientos |
+| [Plan de testing](./docs/plan-de-testing.md) | Estrategia de pruebas, casos de prueba y su relación con los requerimientos |
+| [Reporte de pruebas](./docs/reporte-de-pruebas.md) | Resultado de la última ejecución de las pruebas automáticas |
+| [Validación visual de los CRUD](./docs/validacion-visual-cruds.md) | Recorrido con capturas de las operaciones del panel |
 | [Registro de cambios](./docs/registro-de-cambios.md) | Qué se cambió en cada etapa y por qué |
-| [Roadmap del MVP](./docs/roadmap-mvp.md) | Estado y lo que falta para cerrar el MVP |
+| [Roadmap del MVP](./docs/roadmap-mvp.md) | Planificación y estado del MVP al 04/11/2026 |
 
 <br>
 
@@ -285,5 +358,5 @@ El plan de pruebas está en [docs/plan-de-testing.md](./docs/plan-de-testing.md)
 ---
 
 <div align="center">
-  <p>IFTS N.° 29 · Tecnicatura Superior en Desarrollo de Software · Prácticas Profesionalizantes IV · 2026</p>
+  <p>IFTS N.º 29 · Tecnicatura Superior en Desarrollo de Software · Prácticas Profesionalizantes IV · 2026</p>
 </div>
