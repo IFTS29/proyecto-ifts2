@@ -192,3 +192,32 @@ Acá se anota, en orden cronológico, qué se cambió en el proyecto y por qué.
 - **Convocatoria de ingreso (`PR #100`, `#101`, `#102`, `#106`):** Panel para editar convocatorias, etapas, fechas y FAQs; visualización de convocatoria anterior como referencia e historial de convocatorias.
 - **Archivado automático y celular (`PR #104`, `#105`, `#107`, `#108`):** Archivado de eventos, horarios y mesas según fecha de Argentina sin borrado físico; adaptación completa de mesas y horarios a formato ficha en pantallas móviles sin desborde horizontal (375 pruebas pasando).
 
+## 2026-11-04 al 2026-11-08: permisos por rol, Instagram por enlace, textos, Alumnos y documentación de la entrega (PRs #66, #110 al #146)
+
+**Motivo.** Cerrar la Etapa 3: comprobar los permisos de cada rol con pruebas, terminar la carga de eventos desde Instagram, unificar los textos del sitio, mejorar la página de Alumnos y dejar la documentación al día con el código (Issues #39, #40, #41, #42, #43, #60, #109).
+
+**Qué se hizo en el código**
+- **Matriz de permisos (`PR #114`):** `permisos.test.js` recorre todas las rutas de la API con y sin sesión, como Administración y como Bedelía (141 pruebas), y `docs/matriz-de-permisos.md` documenta el resultado (#109).
+- **Panel (`PR #115`, `#117`):** las secciones de Contenido institucional pasan a un submenú del menú lateral; el subtítulo del menú muestra el rol; el sitio público avisa cuando hay una sesión iniciada (hoy, con el botón **Sesión**).
+- **Instagram (`PR #133`, `#134`, `#135`):** alta de eventos con el enlace de una publicación (con la foto de vista previa o, si no se obtiene, la publicación incrustada); mejor título y descripción de los eventos sincronizados; sin eventos repetidos entre la carga con enlace y la sincronización (#39).
+- **Textos (`PR #136`, `#137`):** textos del panel y del sitio con un criterio común (tono neutro, salvo los textos que presentan la carrera), controlado por una prueba (`textos.test.js`); aviso de Contacto y pie de página con la sesión iniciada.
+- **Alumnos (`PR #144`, `#146`):** franjas alternadas (horarios, mesas, prácticas y enlaces útiles); cada llamado de mesas con la fecha de actualización en su encabezado y un solo botón de PDF; «Todos los años» agrupa por año, cada año en su propio grupo de la tabla con una fila de título; enlaces útiles en tres columnas con tarjetas blancas; filtro por año también en las mesas; en la computadora, las tablas tienen un alto máximo, se desplazan por dentro con el encabezado fijo y vuelven al principio al cambiar el filtro.
+
+**Qué se hizo en la documentación**
+- Plan de testing (`PR #66`, `#138`), reporte de pruebas (`PR #111`, `#140`) y validación visual de los CRUD (`PR #111`, `#119`) (#40, #41).
+- Manual técnico (`PR #122`, `#132`, `#139`), registros de decisiones de arquitectura ADR-001 a ADR-007 (`PR #130`) y documentación de MongoDB Atlas (`PR #121`, `#131`, `#145`) (#42).
+- Manual de usuario: panel de administración (`PR #112`, `#118`, `#141`) y sitio público (`PR #142`, `#144`, `#146`) (#43).
+- README de la entrega final (`PR #116`, `#143`) (#60); limpieza de archivos, roadmap y `package-lock.json` (`PR #110`, `#120`).
+
+**Datos del sitio desplegado (8/11)**
+- Se cargaron en la base del sitio desplegado, con las mismas rutas que usa el panel: los horarios del 1.er cuatrimestre 2026 (20 materias, de la planilla «Unificado» del instituto), un 2.º cuatrimestre 2026 simulado (19 materias del plan con el docente de cada una según las planillas de mesas de 2025) y el llamado simulado «Noviembre–Diciembre 2026» (37 mesas, con la estructura de la planilla de julio–agosto 2025).
+- Se eliminaron dos materias de prueba del 2.º cuatrimestre y se retiraron dos llamados de prueba con nombre de materia («Introducción a la Gastronomía» y «Nutrición»). Los llamados siguen en el panel como retirados: el sistema no permite eliminar un llamado publicado.
+- Los datos simulados no son información académica oficial: antes de anunciar el sitio, Bedelía los reemplaza desde el panel (Manual Técnico, 12.4).
+
+**Cómo se comprobó**
+- `npm test` sobre `develop` en `371c066` (con el PR #146 integrado): 548 pruebas en 41 archivos, 548 aprobadas.
+- Los PR #133 a #137, #144 y #146 se revisaron además en el navegador, a 1280 px y en celular (390 px). Los PR #139 a #146 se compararon byte por byte con la versión aprobada.
+
+**Pendiente después de este cambio**
+- Baja de eventos (#81, solo se ocultan), papelera de Instagram (#65) y las tareas de traspaso del Manual Técnico (12.4).
+- Capturas de Atlas de `llamados` y `mesas_examen` (#127 a #129).

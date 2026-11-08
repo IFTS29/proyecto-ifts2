@@ -591,13 +591,13 @@ sequenceDiagram
 
 ## 8. Pruebas implementadas
 
-Hay **548 pruebas automáticas, todas aprobadas**, en 41 archivos de `server/test/` (medición del 8/11/2026 sobre `develop`, commit `c898dfe`). Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
+Hay **548 pruebas automáticas, todas aprobadas**, en 41 archivos de `server/test/` (medición del 8/11/2026 sobre `develop`, commit `c898dfe`, repetida sobre `371c066` con el mismo resultado). Usan `node:test` y supertest. Corren sobre los repositorios en memoria, así que no necesitan base de datos ni conexión a Internet. Se ejecutan con:
 
 ```bash
 npm test
 ```
 
-La ejecución completa tarda unos segundos. El 8/11/2026 tardó 5,1 s en la computadora de una integrante (Windows, Node.js 24.15.0) y 20 s en el entorno de revisión (Linux, Node.js 22.22.0).
+La ejecución completa tarda unos segundos. En la primera ejecución del 8/11/2026 (`c898dfe`) tardó 5,1 s en la computadora de una integrante (Windows, Node.js 24.15.0) y 20 s en el entorno de revisión (Linux, Node.js 22.22.0); en la repetición sobre `371c066`, 5,0 s y 23 s.
 
 | Área | Archivos | Cobertura |
 |---|---|---|
@@ -760,6 +760,7 @@ El detalle de las pruebas que faltan está en el [plan de testing](./plan-de-tes
 | Sincronización | Revisa solo las últimas 20 publicaciones de la cuenta. | Paginar si hace falta importar publicaciones anteriores. |
 | Límite de inicio de sesión | El contador de intentos vive en memoria: en Vercel, cada instancia lleva el suyo (6.1). | Guardarlo en la base de datos si se necesita un límite exacto. |
 | Tamaño de los pedidos | Vercel acepta pedidos de hasta 4,5 MB (apartado 11). | El navegador ya achica las fotos (6.3.4). |
+| Horarios en Alumnos | Se muestran como lista por día y hora (en el celular, como fichas), no como la grilla semanal de las planillas del instituto. | Agregar una vista de grilla semanal para computadora. |
 
 ### 12.4 Mantenimiento y traspaso
 
@@ -776,6 +777,7 @@ El detalle de las pruebas que faltan está en el [plan de testing](./plan-de-tes
 
 **Tareas de operación:**
 
+- **Datos simulados de horarios y mesas:** el 8/11/2026 se cargaron, para la demostración, un 2.º cuatrimestre 2026 y el llamado «Noviembre–Diciembre 2026» simulados (registro de cambios). Antes de anunciar el sitio a los alumnos, Bedelía los reemplaza desde el panel por los oficiales. Los llamados de prueba «Introducción a la Gastronomía» y «Nutrición» quedaron retirados y siguen en el panel.
 - **Respaldo de la base:** hacer el primer respaldo con `mongodump` y comprobar que se puede restaurar con `mongorestore` en otro clúster (10.1). Evaluar la suscripción de respaldos de Atlas, que es paga (apartado 11).
 - **Formulario de contacto:** pasar el envío a una cuenta del instituto o del equipo, revocar la contraseña de aplicación provisoria y cargar en `CORREO_BEDELIA` y `CORREO_INSTITUCIONAL` las casillas que confirme el instituto (6.3.5).
 - **Variables de Vercel:** pasar a tipo *Secret* las contraseñas y claves que todavía están como *Config*, y después hacer un *Redeploy* (5.5).

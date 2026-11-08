@@ -2,7 +2,7 @@
 
 **Proyecto:** Portal Web Institucional IFTS N.º 2, 404-Solutions (IFTS N.º 29, PP4)  
 **Issue:** #40 [QA-01]  
-**Base de la ejecución:** rama `develop`, commit `c898dfe` (merge del PR #139), 8 de noviembre de 2026  
+**Ejecución documentada con captura:** rama `develop`, commit `c898dfe` (merge del PR #139), 8 de noviembre de 2026. La última repetición, sobre `371c066`, está al final del apartado 1  
 **Entorno:** sin conexión a MongoDB Atlas, Cloudinary, Meta ni SMTP (todo con repositorios en memoria y adaptadores simulados, como describe `docs/plan-de-testing.md`)
 
 Este reporte reemplaza al de la ejecución del 4/11/2026 sobre `ea8d2cc` (375 pruebas en 38 archivos). La evolución del total de pruebas, PR por PR, está en el plan de testing (sección 4.2).
@@ -24,6 +24,8 @@ Se ejecutó `npm test` desde la raíz del repositorio en dos entornos, con el mi
 
 Además de la ejecución completa, en el entorno de revisión cada archivo de `server/test/` se ejecutó por separado con `node --test`. Los 41 archivos pasan y la suma de sus pruebas da las mismas 548.
 
+**Ejecución repetida el 8/11/2026 sobre `develop` en `371c066`** (con los PR #140 a #146 integrados; el #144 y el #146 cambiaron la página de Alumnos): 548 pruebas, 548 aprobadas, 0 falladas, en la computadora de una integrante (Windows, Node.js 24.15.0, 5,0 s, sobre el commit `9b7b54c` del PR #146, con el mismo código que `371c066`) y en el entorno de revisión (Linux, Node.js 22.22.0, 23 s). Las comprobaciones de esos dos PR se agregaron dentro de pruebas existentes de la página de Alumnos y de las mesas en celular, por eso el total no cambia.
+
 <br>
 
 ## 2. Pruebas por archivo
@@ -32,7 +34,7 @@ Además de la ejecución completa, en el entorno de revisión cada archivo de `s
 | :-- | :-: | :-- |
 | `academica.test.js` | 22 | Validación de horarios, publicar/retirar un período, comparar con lo publicado, reutilizar un período anterior y PDF público y de vista previa |
 | `admin.inicio.test.js` | 8 | Resumen del inicio del panel: horarios y llamados publicados, actividad reciente, vistas de Administrador y de Bedelía |
-| `alumnos.test.js` | 6 | Filtros de año y turno en Horarios de cursada |
+| `alumnos.test.js` | 6 | Filtros de año y turno en Horarios de cursada, agrupación por año en «Todos los años», franjas de la página, alto máximo con encabezado fijo y un solo PDF por llamado |
 | `archivo.test.js` | 12 | Archivado automático de eventos, horarios y mesas, con fechas de Argentina |
 | `arranque.test.js` | 7 | Cuándo se exige MongoDB (producción, Vercel) y cuándo se trabaja en memoria (desarrollo) |
 | `auth.test.js` | 12 | Login con JWT, bloqueo tras 5 intentos fallidos, token alterado, correo sin distinguir mayúsculas |
