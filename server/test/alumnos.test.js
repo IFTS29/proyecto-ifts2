@@ -89,9 +89,14 @@ test("horarios: con «Todos los años», una fila con el nombre de cada año, di
   assert.match(tabla, /\{porAnio && \(\s*<tr role="row" className="fila-anio">\s*<th role="rowheader" scope="rowgroup" colSpan=\{columnas\}>\s*\{g\.anio\}\.º año/);
   assert.equal((tabla.match(/scope="rowgroup"/g) || []).length, 1);
   assert.doesNotMatch(tabla, /col-anio|anio-movil/, "ya no hace falta la columna Año");
+  assert.match(tabla, /<div className="tabla-caja" key=\{`\$\{anio\}-\$\{turno\}`\}>/, "al cambiar el filtro, la tabla vuelve al principio");
   assert.doesNotMatch(tabla, /\.° año/, "ordinal «.º»");
   const estilos = leer("styles.css");
-  assert.match(estilos, /\.horarios-publicos \.fila-anio th \{[^}]*background: var\(--verde-suave\);/, "fondo propio, distinto del gris del encabezado");
+  assert.match(estilos, /\n\.fila-anio th \{[^}]*background: var\(--verde-suave\);/, "fondo propio, distinto del gris del encabezado");
+  // En la computadora, horarios y mesas tienen un alto máximo, con el encabezado fijo al desplazar la tabla.
+  const computadora = estilos.slice(estilos.indexOf("@media (min-width: 601px) {"));
+  assert.match(computadora, /\.horarios-publicos \.tabla-caja,\s*\.llamado-publico \.tabla-caja \{\s*max-height: 560px;\s*overflow-y: auto;/);
+  assert.match(computadora, /\.horarios-publicos thead th,\s*\.llamado-publico thead th \{\s*position: sticky;\s*top: 0;/);
   assert.match(tabla, /data-etiqueta="Docente"/, "en el celular cada dato lleva su nombre");
   // Accesibilidad: los encabezados se ocultan solo a la vista y la tabla conserva sus roles.
   assert.match(estilos, /\.horarios-publicos thead \{\s*position: absolute;[\s\S]*?clip: rect\(0 0 0 0\);/);

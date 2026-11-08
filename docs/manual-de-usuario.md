@@ -126,17 +126,20 @@ Reúne los horarios de cursada y las mesas de examen **publicados** desde el pan
 3. **Descargar horarios (PDF):** descarga los horarios del período que se está viendo.
 4. **Ver otro período:** aparece cuando hay más de un período publicado, por ejemplo el cuatrimestre anterior.
 
-Las mesas de examen se muestran en una franja de otro color. Cada llamado tiene su nombre, sus fechas y una sola tabla con todas sus mesas, ordenadas por fecha:
+En la computadora, si la tabla tiene muchas filas, se desplaza por dentro y los nombres de las columnas quedan siempre a la vista.
+
+Las mesas de examen se muestran en una franja de otro color. Cada llamado tiene su nombre, sus fechas y una tabla con sus mesas, ordenadas por fecha:
 
 ![Comienzo de la tabla de mesas de examen](capturas-manual/sitio-alumnos-mesas.png)
 
 1. **Actualizado el…:** fecha de la última publicación del llamado.
+2. **Botones de cada año:** muestran las mesas de ese año. **Todos los años** muestra los tres, cada uno debajo de una fila verde con el nombre del año.
 
-Al final de la tabla está el botón de descarga:
+En la computadora, la tabla se desplaza por dentro y mantiene visibles los encabezados de las columnas. Al final está el botón de descarga:
 
 ![Final de la tabla de mesas y botón de descarga](capturas-manual/sitio-alumnos-mesas-pdf.png)
 
-2. **Descargar mesas (PDF):** descarga todas las mesas del llamado en un solo archivo.
+3. **Descargar mesas (PDF):** descarga todas las mesas del llamado, de los tres años, en un solo archivo.
 
 Si una mesa no tiene fecha u hora, el sitio muestra «A confirmar». Debajo están los documentos de prácticas profesionalizantes y los enlaces útiles:
 
