@@ -68,7 +68,7 @@ Notas:
 
 ## 3. Estado actual de la suite
 
-Medición sobre `develop` (commit `c898dfe`, con el PR #139 integrado): **548 pruebas en 41 archivos `server/test/*.test.js`, 548 aprobadas, 0 fallidas**. El conteo por archivo es el que informa `node --test` al ejecutar cada archivo por separado; la suma coincide con el total de `npm test`. En `permisos.test.js`, 7 llamadas a `test(` dentro de recorridos por las rutas generan 141 pruebas.
+Medición sobre `develop` (commit `c898dfe`, con el PR #139 integrado), repetida sobre `371c066` (con el PR #146 integrado) con el mismo resultado: **548 pruebas en 41 archivos `server/test/*.test.js`, 548 aprobadas, 0 fallidas**. El conteo por archivo es el que informa `node --test` al ejecutar cada archivo por separado; la suma coincide con el total de `npm test`. En `permisos.test.js`, 7 llamadas a `test(` dentro de recorridos por las rutas generan 141 pruebas.
 
 | Módulo | Archivo (pruebas) | Cobertura |
 | :--- | :--- | :--- |
@@ -137,6 +137,7 @@ Algunos PR no cambiaron el total de pruebas:
 - **Hasta el 31/10:** #59, #68, #72 a #76 y #79.
 - **4 y 5/11:** #66, #110 a #112, #115 a #122 y #130. Son de documentación, del menú lateral del panel y del cartel de sesión del sitio.
 - **6 y 7/11:** #131 (capturas de la base de datos), #132 (Manual Técnico), #137 (aviso de Contacto y pie con la sesión iniciada, comprobado en navegador; sección 6), #138 (esta versión del plan de testing) y #139 (actualización del Manual Técnico).
+- **8/11:** #140 a #143 y #145, de documentación, y #144 y #146 (página de Alumnos), que sumaron sus comprobaciones dentro de pruebas existentes de `alumnos.test.js` y `mesas.celular.test.js` (CP-HOR-09 y CP-MES-09).
 
 Todos los totales de esta tabla se midieron ejecutando la suite en el commit de merge de cada PR: desde el #131, el 7/11/2026, y los anteriores, el 8/11/2026. Los números de PR y las fechas se verificaron con el historial de `develop`.
 
@@ -212,6 +213,7 @@ Observaciones:
 | **CP-HOR-06**<br>Reutilizar un período | Reutilizar `2026-1` en `2027-1` | 201 con `{ agregadas: 2, yaEstaban: 0 }`; las materias quedan como datos de trabajo, sin publicar; reutilizar dos veces no duplica | Automatizada (`academica.test.js`) |
 | **CP-HOR-07**<br>PDF público | `GET /api/academic/vigente/horarios.pdf?periodo=2026-1` antes de publicar, publicado y retirado | 404, 200 con `application/pdf` armado desde lo publicado, y 404 | Automatizada (`academica.test.js`) |
 | **CP-HOR-08**<br>PDF de vista previa | Pedido con sesión de Bedelía y sin sesión | Con sesión: PDF de los datos de trabajo con la marca «Vista previa». Sin sesión: 401 | Automatizada (`academica.test.js`) |
+| **CP-HOR-09**<br>«Todos los años» en Alumnos | Materias de 1.º, 2.º y 3.º año, algunas el mismo día y a la misma hora | Agrupadas por año y, dentro de cada año, por día y hora; cada año en su propio grupo de la tabla con una fila de título | Automatizada (`alumnos.test.js`); revisada en navegador (PR #144) |
 
 ### 5.3. Mesas de examen (CP-MES)
 
@@ -225,6 +227,7 @@ Observaciones:
 | **CP-MES-06**<br>Falla al eliminar un llamado | Falla la baja de una de sus mesas | Responde 500 y el llamado sigue; al reintentar responde 204 y no quedan mesas | Automatizada (`mesas.test.js`) |
 | **CP-MES-07**<br>PDF público | Sin parámetro, llamado sin publicar, publicado y retirado | 400, 404, 200 con `application/pdf` y 404 | Automatizada (`mesas.test.js`) |
 | **CP-MES-08**<br>Permisos | Rutas del panel sin sesión; Bedelía crea y publica | 401 sin sesión; Bedelía puede todo lo de mesas | Automatizada (`mesas.test.js`) |
+| **CP-MES-09**<br>Llamado en Alumnos | Llamado publicado con 37 mesas de los tres años | Botones por año (al entrar, el primer año con mesas); con «Todos los años», un grupo por año con su fila de título; la fecha de actualización en el encabezado y un solo botón «Descargar mesas (PDF)» con todas las mesas, con el nombre del llamado para los lectores de pantalla | Automatizada: estructura del filtro, grupos por año y controles (`alumnos.test.js`, `mesas.celular.test.js`). Comprobada en navegador con 37 mesas (PR #144 y #146) |
 
 ### 5.4. Archivado y avisos de vigencia (CP-ARC, RF12)
 
@@ -316,7 +319,8 @@ Además de `npm test`, en los PR recientes se hicieron comprobaciones con Playwr
 - escritorio (1280 px) y celular simulado (390 px; en algunos PR también 320 px);
 - en varios PR, accesibilidad: roles y encabezados de las tablas, textos alternativos y, en las ventanas del panel, foco y teclado;
 - en algunos casos, con respuestas de la API simuladas en lugar de datos reales;
-- en el PR #137, el aviso de Contacto (CP-CON-09) y el pie de página con la sesión iniciada y sin ella.
+- en el PR #137, el aviso de Contacto (CP-CON-09) y el pie de página con la sesión iniciada y sin ella;
+- en los PR #144 y #146, la página de Alumnos con horarios y mesas completos: franjas, «Todos los años», filtro por año en las mesas, tablas con alto máximo y encabezado fijo que vuelven al principio al cambiar el filtro, y enlaces útiles, sin desplazamiento horizontal en celular.
 
 **Contenido del repositorio:**
 
@@ -401,4 +405,4 @@ flowchart TD
 
 ---
 
-Última actualización: 8/11/2026, sobre `develop` en `c898dfe` (con el PR #139 integrado).
+Última actualización: 8/11/2026, sobre `develop` en `371c066` (con el PR #146 integrado).
