@@ -5,6 +5,8 @@
 
 Este documento recorre, con capturas paso a paso, las cuatro operaciones (crear, leer, actualizar y eliminar o dar de baja) en Usuarios, Horarios de cursada, Mesas de examen, Eventos e Ingreso, y deja registrado qué ve el rol Bedelía. Las imágenes están en `docs/capturas-cruds/`.
 
+> **Vigencia de las capturas.** Las imágenes corresponden a las pruebas realizadas el 4/11/2026. Después se modificaron algunos textos, botones y pantallas, principalmente en los PR #133 y #136; por ejemplo, el botón «Publicar evento» hoy dice «Guardar evento». Por eso, las capturas documentan la validación realizada en esa fecha y no necesariamente la apariencia actual del sistema. Para consultar las pantallas y las instrucciones vigentes, ver el [Manual de Usuario](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/manual-de-usuario.md).
+
 ## Cómo se hicieron las capturas
 
 - Servidor y cliente levantados con `npm run dev` desde la raíz, sin `MONGODB_URI`, o sea en modo memoria: los datos se pierden al reiniciar.
