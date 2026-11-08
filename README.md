@@ -107,7 +107,7 @@ El proyecto prioriza servicios gratuitos, con el objetivo de que el **costo oper
   <img src="./docs/img-readme/panel-publicar.gif" alt="Publicación de un período de horarios desde el panel" width="800">
 </p>
 
-> **Nota:** las capturas y animaciones muestran el sistema en un entorno de prueba, con datos ficticios.
+> **Nota:** las capturas y animaciones muestran el sistema con datos de ejemplo. Para los horarios y las mesas se usaron planillas del instituto como referencia, pero el cronograma del 2.º cuatrimestre de 2026 y el llamado de noviembre–diciembre de 2026 son simulados y no constituyen información académica oficial.
 
 El uso paso a paso de cada pantalla está en el [Manual de Usuario](./docs/manual-de-usuario.md).
 

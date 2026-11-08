@@ -13,8 +13,9 @@ import {
 
 // Horarios de un período tal como los ven los alumnos: un botón por año de la carrera y «Todos los años»
 // (como la hoja «Unificado» del instituto), y una fila por día de cursada, ordenadas por día y hora.
-// Con «Todos los años» se suma la columna Año. En el celular cada fila se muestra como una ficha (día y horario
-// arriba, la materia y el resto debajo), sin desplazar la tabla a los costados; el año va debajo de la materia.
+// Con «Todos los años», las materias se agrupan por año, cada año en su propio <tbody>: el grupo empieza con una
+// fila con el nombre del año, con otro fondo que el encabezado y las filas de las materias. En el celular cada fila se muestra como una ficha
+// (día y horario arriba, la materia y el resto debajo), sin desplazar la tabla a los costados.
 // Los encabezados siguen en la tabla (ocultos solo a la vista) y los roles explícitos conservan la tabla para los
 // lectores de pantalla aunque el CSS cambie cómo se dibuja.
 // El componente se monta con los horarios ya cargados (Alumnos y la vista previa lo rearman con "key" al cambiar
@@ -34,10 +35,16 @@ export default function HorariosPublicos({ horarios, accion }) {
   };
 
   const conTurno = turnos.length > 1 && !turno;
-  const conAnio = anio === TODOS_LOS_ANIOS;
+  const porAnio = anio === TODOS_LOS_ANIOS;
   const filas = filasDeHorarios(horarios, { anio, turno });
   const conAula = filas.some((f) => f.h.aula); // la columna Aula aparece solo si alguna materia del año la tiene
-  const columnas = 4 + conTurno + conAula + conAnio;
+  const columnas = 4 + conTurno + conAula;
+  // Grupos de filas: uno por año con «Todos los años» (las filas ya vienen ordenadas por año), o uno solo.
+  const grupos = porAnio
+    ? [...new Set(filas.map((f) => f.h.anioCarrera))].map((a) => ({ anio: a, filas: filas.filter((f) => f.h.anioCarrera === a) }))
+    : filas.length > 0
+      ? [{ anio: null, filas }]
+      : [];
 
   return (
     <div className="horarios-publicos">
@@ -65,7 +72,7 @@ export default function HorariosPublicos({ horarios, accion }) {
       </div>
 
       <div className="tabla-caja">
-        <table role="table" className={conAnio ? "con-anio" : undefined}>
+        <table role="table">
           <thead role="rowgroup">
             <tr role="row">
               <th role="columnheader" scope="col">
@@ -74,11 +81,6 @@ export default function HorariosPublicos({ horarios, accion }) {
               <th role="columnheader" scope="col">
                 Horario
               </th>
-              {conAnio && (
-                <th role="columnheader" scope="col" className="col-anio">
-                  Año
-                </th>
-              )}
               {conTurno && (
                 <th role="columnheader" scope="col">
                   Turno
@@ -97,56 +99,58 @@ export default function HorariosPublicos({ horarios, accion }) {
               )}
             </tr>
           </thead>
-          <tbody role="rowgroup">
-            {filas.map((f, i) => (
-              <tr role="row" key={`${f.h.id}-${i}`}>
-                <td role="cell" className="col-dia">
-                  {nombreDia(f.dia)}
-                </td>
-                <td role="cell" className="col-horario">
-                  {textoFranja(f)}
-                </td>
-                {conAnio && (
-                  <td role="cell" className="col-anio">
-                    {f.h.anioCarrera}.º año
+          {/* Con «Todos los años», un <tbody> por año, encabezado por la fila con su nombre: así los lectores de
+              pantalla asocian cada materia con su año. Con un solo año, un único grupo sin esa fila. */}
+          {grupos.map((g) => (
+            <tbody role="rowgroup" key={g.anio ?? "unico"}>
+              {porAnio && (
+                <tr role="row" className="fila-anio">
+                  <th role="rowheader" scope="rowgroup" colSpan={columnas}>
+                    {g.anio}.º año
+                  </th>
+                </tr>
+              )}
+              {g.filas.map((f, i) => (
+                <tr role="row" key={`${f.h.id}-${i}`}>
+                  <td role="cell" className="col-dia">
+                    {nombreDia(f.dia)}
                   </td>
-                )}
-                {conTurno && (
-                  <td role="cell" className="col-detalle" data-etiqueta="Turno">
-                    {nombreTurno(f.h.turno)}
+                  <td role="cell" className="col-horario">
+                    {textoFranja(f)}
                   </td>
-                )}
-                <td role="cell" className="col-materia">
-                  {f.h.materia}
-                  {/* Solo a la vista en el celular: los lectores de pantalla ya leen la columna Año. */}
-                  {conAnio && (
-                    <span className="anio-movil" aria-hidden="true">
-                      {f.h.anioCarrera}.º año
-                    </span>
+                  {conTurno && (
+                    <td role="cell" className="col-detalle" data-etiqueta="Turno">
+                      {nombreTurno(f.h.turno)}
+                    </td>
                   )}
-                </td>
-                <td role="cell" className="col-detalle" data-etiqueta="Docente">
-                  {f.h.profesor || "A designar"}
-                </td>
-                {conAula && (
-                  <td
-                    role="cell"
-                    className={"col-detalle" + (f.h.aula ? "" : " sin-dato")}
-                    data-etiqueta="Aula"
-                  >
-                    {f.h.aula || "—"}
+                  <td role="cell" className="col-materia">
+                    {f.h.materia}
                   </td>
-                )}
-              </tr>
-            ))}
-            {filas.length === 0 && (
+                  <td role="cell" className="col-detalle" data-etiqueta="Docente">
+                    {f.h.profesor || "A designar"}
+                  </td>
+                  {conAula && (
+                    <td
+                      role="cell"
+                      className={"col-detalle" + (f.h.aula ? "" : " sin-dato")}
+                      data-etiqueta="Aula"
+                    >
+                      {f.h.aula || "—"}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          ))}
+          {filas.length === 0 && (
+            <tbody role="rowgroup">
               <tr role="row">
                 <td role="cell" colSpan={columnas}>
                   {textoSinMaterias(anio)}
                 </td>
               </tr>
-            )}
-          </tbody>
+            </tbody>
+          )}
         </table>
       </div>
       {accion?.(turno)}

@@ -3,13 +3,14 @@ import { avisoDelLlamado, textoAnio, textoFechaDeMesa, textoFechasDelLlamado, te
 // Un llamado de mesas de examen tal como lo ven los alumnos: nombre, fechas generales, aviso y tabla.
 // Un llamado sin mesas (un anuncio) no muestra la tabla. Lo que falta se muestra "A confirmar".
 // Lo usan la página de Alumnos (lo publicado) y la vista previa del panel (los datos de trabajo).
-// "accion" (opcional) va debajo, por ejemplo el enlace al PDF.
+// "accion" (opcional) va debajo, por ejemplo el enlace al PDF. "actualizado" (opcional) es la fecha de la última
+// publicación, en el encabezado del llamado; la vista previa del panel no la recibe.
 // En Alumnos, un turno que ya terminó sigue a la vista con «Turno finalizado» ("finalizado" lo calcula el servidor).
 // La vista previa del panel no lo recibe.
 // En el celular cada mesa se muestra como una ficha (fecha y hora arriba, la materia y el resto debajo), sin
 // desplazar la tabla a los costados (H-95). Los encabezados siguen en la tabla, ocultos solo a la vista, y los roles
 // explícitos conservan la tabla para los lectores de pantalla aunque el CSS cambie cómo se dibuja.
-export default function LlamadoPublico({ llamado, accion }) {
+export default function LlamadoPublico({ llamado, accion, actualizado }) {
   const fechas = textoFechasDelLlamado(llamado);
   const aviso = avisoDelLlamado(llamado);
   const conTribunal = llamado.mesas.some((m) => m.tribunal);
@@ -24,6 +25,7 @@ export default function LlamadoPublico({ llamado, accion }) {
         </div>
       )}
       {fechas && <p className="fechas-llamado">{fechas}</p>}
+      {actualizado && <p className="actualizado-llamado">{actualizado}</p>}
       {aviso && <p className="aviso-llamado">{aviso}</p>}
       {llamado.mesas.length > 0 && (
         <div className="tabla-caja">
