@@ -3842,9 +3842,9 @@ body[data-rol="bedelia"] [data-solo-admin] {
   margin-bottom: 16px;
 }
 
-/* Horarios con «Todos los años»: una fila con el nombre de cada año, en verde claro, distinta del encabezado
-   (gris) y de las filas de las materias (blanco). */
-.horarios-publicos .fila-anio th {
+/* Horarios y mesas con «Todos los años»: una fila con el nombre de cada año, en verde claro, distinta del
+   encabezado (gris) y de las filas (blanco). */
+.fila-anio th {
   padding: 10px 16px;
   background: var(--verde-suave);
   color: var(--verde);
@@ -3852,6 +3852,25 @@ body[data-rol="bedelia"] [data-solo-admin] {
   font-weight: 700;
   text-align: left;
   border-bottom: 1px solid var(--borde);
+}
+
+/* Horarios y mesas en la computadora: la tabla tiene un alto máximo y se desplaza por dentro, con el encabezado de
+   las columnas siempre a la vista. Así cada sección tiene un largo parecido aunque haya muchas filas. En el celular
+   no se aplica: las filas son fichas y un desplazamiento dentro de otro es incómodo con el dedo. */
+@media (min-width: 601px) {
+  .horarios-publicos .tabla-caja,
+  .llamado-publico .tabla-caja {
+    max-height: 560px;
+    overflow-y: auto;
+  }
+
+  .horarios-publicos thead th,
+  .llamado-publico thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: inset 0 -1px 0 var(--borde);
+  }
 }
 
 /* Horarios publicados en el celular: cada fila es una ficha (día y horario arriba; materia, docente, aula y turno
@@ -4145,18 +4164,21 @@ body[data-rol="bedelia"] [data-solo-admin] {
   align-items: center;
 }
 
-/* Mesas de examen en el celular (H-95): cada mesa es una ficha (fecha y hora arriba; materia, año, mesa
-   examinadora y aula debajo), para no desplazar la tabla a los costados. Reglas propias, separadas de las de los
-   horarios, aunque se parezcan: así un cambio acá no altera cómo se ven los horarios. */
-.llamado-publico .anio-movil,
+/* Botones de año de un llamado, como en los horarios. */
+.llamado-publico .pestanas {
+  margin-bottom: 16px;
+}
+
+/* Mesas de examen en el celular (H-95): cada mesa es una ficha (fecha y hora arriba; materia, mesa examinadora y
+   aula debajo), para no desplazar la tabla a los costados. Reglas propias, separadas de las de los horarios, aunque
+   se parezcan: así un cambio acá no altera cómo se ven los horarios. */
 .llamado-publico .fecha-hora-movil {
   display: none;
 }
 
 @media (max-width: 600px) {
-  /* Los encabezados y la celda Año se ocultan solo a la vista: los lectores de pantalla los siguen leyendo. */
-  .llamado-publico thead,
-  .llamado-publico .col-anio {
+  /* Los encabezados se ocultan solo a la vista: los lectores de pantalla los siguen leyendo. */
+  .llamado-publico thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -4181,6 +4203,16 @@ body[data-rol="bedelia"] [data-solo-admin] {
 
   .llamado-publico tr:last-child {
     border-bottom: 0;
+  }
+
+  /* Con «Todos los años», la fila del año ocupa todo el ancho, como un subtítulo entre las fichas. */
+  .llamado-publico .fila-anio {
+    display: block;
+    padding: 0;
+  }
+
+  .llamado-publico .fila-anio th {
+    display: block;
   }
 
   .llamado-publico td {
@@ -4221,13 +4253,6 @@ body[data-rol="bedelia"] [data-solo-admin] {
   .llamado-publico .col-detalle::before {
     content: attr(data-etiqueta) ": ";
     content: attr(data-etiqueta) ": " / "";
-    color: var(--suave);
-  }
-
-  .llamado-publico .anio-movil {
-    display: block;
-    font-size: 14px;
-    font-weight: 400;
     color: var(--suave);
   }
 

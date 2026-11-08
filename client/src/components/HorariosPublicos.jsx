@@ -71,7 +71,9 @@ export default function HorariosPublicos({ horarios, accion }) {
         )}
       </div>
 
-      <div className="tabla-caja">
+      {/* La "key" con el año y el turno vuelve a crear la caja al cambiar el filtro: la tabla empieza otra vez desde
+          arriba, aunque antes se haya desplazado por dentro. */}
+      <div className="tabla-caja" key={`${anio}-${turno}`}>
         <table role="table">
           <thead role="rowgroup">
             <tr role="row">
