@@ -9,7 +9,7 @@
 
 ## 1. Descripción de la Historia de Usuario
 
-> **Como** Administrador del Portal Web Institucional del IFTS N.° 2,  
+> **Como** Administrador del Portal Web Institucional del IFTS N.º 2,  
 > **Quiero** que el sistema consulte periódicamente nuevas publicaciones de la cuenta oficial de Instagram y renueve automáticamente la vigencia del token de acceso de larga duración,  
 > **Para** mantener la cartelera de novedades y eventos actualizada sin requerir intervención manual periódica en el panel ni actualización manual de variables de entorno cada 60 días.
 
@@ -17,13 +17,13 @@
 
 ## 2. Contexto Técnico y Justificación del Desacople del MVP
 
-Durante la Etapa 3 (MVP), el equipo completó e integró exitosamente la sincronización a demanda (`POST /api/instagram/sync`), la clasificación inteligente por hashtags (`#eventosIFTS2`), el soporte de publicaciones embebidas y la tolerancia a fallos offline con carga manual de eventos.
+Durante la Etapa 3 (MVP), el equipo completó e integró exitosamente la sincronización a demanda (`POST /api/instagram/sync`), la clasificación inteligente por hashtags (`#eventosIFTS2`), el soporte de publicaciones embebidas y el manejo de fallos con carga manual de eventos.
 
 La automatización desatendida se programó para el flujo posterior al MVP debido a los siguientes requerimientos de arquitectura en entornos Serverless:
 
 1. **Inmutabilidad de variables de entorno en Vercel:** Las funciones serverless de AWS Lambda / Vercel no tienen permisos en tiempo de ejecución para sobreescribir `process.env.INSTAGRAM_TOKEN`. La persistencia del token renovado requiere almacenarlo dinámicamente en la colección `InstagramSync` de MongoDB Atlas.
 2. **Infraestructura de ejecución programada:** Demanda la configuración de tareas cron en `vercel.json` y la protección del endpoint mediante un secreto criptográfico compartido (`CRON_SECRET`).
-3. **Estabilidad y congelamiento del MVP:** La suite de pruebas del servidor cuenta con 516 pruebas automáticas aprobadas. Para garantizar la entrega en fecha, se priorizó la robustez de la sincronización supervisada manual antes de introducir procesos asíncronos desatendidos.
+3. **Estabilidad y congelamiento del MVP:** La suite de pruebas del servidor cuenta con 548 pruebas automáticas aprobadas (8/11/2026). Para garantizar la entrega en fecha, se priorizó la robustez de la sincronización supervisada manual antes de introducir procesos asíncronos desatendidos.
 
 ---
 

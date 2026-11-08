@@ -167,7 +167,7 @@ También cubren este módulo, fuera de la matriz, las pruebas de `instagram.sinc
 
 ## 5. Alcance de la suite
 
-La suite prueba el servidor, las reglas de negocio y algunas funciones del cliente que se ejecutan sin navegador (iniciales, fechas, textos del panel). No ejecuta un navegador, así que los carruseles, el visor de fotos y el aspecto de las pantallas no se prueban acá. Esa parte se cubre con las comprobaciones en navegador hechas durante los PR y con las capturas de la [validación visual de los CRUD](./validacion-visual-cruds.md) (issue #41).
+La suite prueba el servidor, las reglas de negocio y algunas funciones del cliente que se ejecutan sin navegador (iniciales, fechas, textos del panel). No ejecuta un navegador, así que los carruseles, el visor de fotos y el aspecto de las pantallas no se prueban acá. Esa parte se cubre con las comprobaciones en navegador hechas durante los PR y con las capturas de la [validación visual de los CRUD](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/validacion-visual-cruds.md) (issue #41).
 
 Tampoco se probó contra servicios reales. La conexión con MongoDB Atlas, con Cloudinary, con Instagram y el envío real de correo dependen de credenciales que las pruebas no usan a propósito. La validación con Atlas corresponde al issue #94.
 

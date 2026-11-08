@@ -11,19 +11,19 @@ El IFTS N.º 2 (Tecnicatura Superior en Emprendimientos Gastronómicos) tenía u
 
 Lo desarrolló el equipo 404-Solutions del IFTS N.º 29 como proyecto integrador de Prácticas Profesionalizantes IV. Quedan fuera del alcance: reemplazar SIU Guaraní o Moodle, gestionar legajos, resolver trámites dentro del portal, una aplicación móvil nativa y borrar contenido institucional de forma automática (según el análisis de la Etapa 2).
 
-El manual de uso del panel está en [manual-de-usuario.md](./manual-de-usuario.md).
+El manual de uso del panel está en [manual-de-usuario.md](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/manual-de-usuario.md).
 
 **Documentación relacionada:**
 
 | Documento | Contenido |
 |---|---|
-| [README](../README.md) | Presentación del proyecto, instalación rápida y equipo. |
-| [Manual de usuario](./manual-de-usuario.md) | Uso del panel, paso a paso y con capturas. |
-| [Base de datos en MongoDB Atlas](./documentacion_mongodb.md) | Configuración del clúster y colecciones, con capturas. |
-| [Matriz de permisos](./matriz-de-permisos.md) | Qué puede hacer cada perfil en cada ruta y pantalla. |
-| [Plan de testing](./plan-de-testing.md), [Reporte de pruebas](./reporte-de-pruebas.md) y [Validación visual de los CRUD](./validacion-visual-cruds.md) | Estrategia de pruebas, resultados y evidencias. |
-| [Registros de decisiones de arquitectura (ADR)](./adr/README.md) | Las siete decisiones de arquitectura, con su contexto y sus consecuencias. |
-| [Registro de cambios](./registro-de-cambios.md) y [Roadmap del MVP](./roadmap-mvp.md) | Historia de los cambios y planificación. |
+| [README](https://github.com/IFTS29/proyecto-ifts2/blob/develop/README.md) | Presentación del proyecto, instalación rápida y equipo. |
+| [Manual de usuario](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/manual-de-usuario.md) | Uso del panel, paso a paso y con capturas. |
+| [Base de datos en MongoDB Atlas](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/documentacion_mongodb.md) | Configuración del clúster y colecciones, con capturas. |
+| [Matriz de permisos](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/matriz-de-permisos.md) | Qué puede hacer cada perfil en cada ruta y pantalla. |
+| [Plan de testing](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/plan-de-testing.md), [Reporte de pruebas](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/reporte-de-pruebas.md) y [Validación visual de los CRUD](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/validacion-visual-cruds.md) | Estrategia de pruebas, resultados y evidencias. |
+| [Registros de decisiones de arquitectura (ADR)](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/README.md) | Las siete decisiones de arquitectura, con su contexto y sus consecuencias. |
+| [Registro de cambios](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/registro-de-cambios.md) y [Roadmap del MVP](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/roadmap-mvp.md) | Historia de los cambios y planificación. |
 
 **Recorrido sugerido para una presentación técnica:** arquitectura y herramientas (apartado 2), funcionamiento de cada parte (6.3), decisiones de diseño (9), pruebas (8) y limitaciones y trabajo futuro (12).
 
@@ -54,16 +54,16 @@ El sistema tiene tres capas:
 
 | Herramienta | Función en el sistema | Decisión relacionada |
 |---|---|---|
-| React + Vite | Sitio público y panel en una sola aplicación; Vite compila el cliente y, en desarrollo, lo sirve desde el mismo servidor. | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
-| Express | API REST con rutas separadas por área (`server/src/routes/`). | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
-| MongoDB Atlas + Mongoose | Datos del sistema. El contenido institucional tiene estructuras distintas por sección y se guarda como documento. Plan gratuito (apartado 11). | [ADR-002](./adr/ADR-002-repositorios-intercambiables-e-inyeccion-de-dependencias.md), [ADR-004](./adr/ADR-004-separacion-de-datos-de-trabajo-y-publicados.md) |
-| Cloudinary | Fotos de los eventos, fuera de la base de datos. Plan gratuito (apartado 11). | [ADR-005](./adr/ADR-005-almacenamiento-multimedia-hibrido-con-cloudinary.md) |
-| Vercel | Publica el sitio y la API desde GitHub. Plan gratuito (apartado 11). | [ADR-001](./adr/ADR-001-arquitectura-serverless-desacoplada.md) |
-| JSON Web Token + bcryptjs | Sesión sin estado en el servidor (cada pedido lleva su token) y contraseñas guardadas con hash. | [ADR-006](./adr/ADR-006-control-de-acceso-rbac-y-descarte-de-superadministrador.md) |
+| React + Vite | Sitio público y panel en una sola aplicación; Vite compila el cliente y, en desarrollo, lo sirve desde el mismo servidor. | [ADR-001](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-001-arquitectura-serverless-desacoplada.md) |
+| Express | API REST con rutas separadas por área (`server/src/routes/`). | [ADR-001](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-001-arquitectura-serverless-desacoplada.md) |
+| MongoDB Atlas + Mongoose | Datos del sistema. El contenido institucional tiene estructuras distintas por sección y se guarda como documento. Plan gratuito (apartado 11). | [ADR-002](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-002-repositorios-intercambiables-e-inyeccion-de-dependencias.md), [ADR-004](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-004-separacion-de-datos-de-trabajo-y-publicados.md) |
+| Cloudinary | Fotos de los eventos, fuera de la base de datos. Plan gratuito (apartado 11). | [ADR-005](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-005-almacenamiento-multimedia-hibrido-con-cloudinary.md) |
+| Vercel | Publica el sitio y la API desde GitHub. Plan gratuito (apartado 11). | [ADR-001](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-001-arquitectura-serverless-desacoplada.md) |
+| JSON Web Token + bcryptjs | Sesión sin estado en el servidor (cada pedido lleva su token) y contraseñas guardadas con hash. | [ADR-006](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-006-control-de-acceso-rbac-y-descarte-de-superadministrador.md) |
 | helmet y express-rate-limit | Encabezados de seguridad y límite de intentos de inicio de sesión y de envíos del formulario. | — |
 | Nodemailer | Envío por SMTP de las consultas del formulario de contacto (apartado 6.3.5). | — |
-| PDFKit | PDF de horarios y mesas, generados en memoria al pedirlos. | [ADR-003](./adr/ADR-003-generacion-de-pdfs-on-the-fly-en-memoria.md) |
-| Instagram Graph API | Sincronización de las publicaciones con `#eventosIFTS2` (apartado 6.3.3). | [ADR-007](./adr/ADR-007-sincronizacion-a-demanda-de-instagram-graph-api.md) |
+| PDFKit | PDF de horarios y mesas, generados en memoria al pedirlos. | [ADR-003](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-003-generacion-de-pdfs-on-the-fly-en-memoria.md) |
+| Instagram Graph API | Sincronización de las publicaciones con `#eventosIFTS2` (apartado 6.3.3). | [ADR-007](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-007-sincronizacion-a-demanda-de-instagram-graph-api.md) |
 | `node:test` + supertest | Pruebas automáticas sin dependencias de prueba extra (apartado 8). | — |
 
 ### 2.2 Decisiones de estructura
@@ -189,9 +189,9 @@ erDiagram
     LLAMADO_PUBLICADO ||--o{ MESA_PUBLICADA : "embebe"
 ```
 
-`LLAMADO_PUBLICADO`, `HORARIO_PUBLICADO`, `MESA_PUBLICADA` y `MEDIO` no son colecciones: son subdocumentos que viven dentro de otro documento. Si el visor de Markdown no dibuja el diagrama, la misma imagen está en [der.png](./der.png).
+`LLAMADO_PUBLICADO`, `HORARIO_PUBLICADO`, `MESA_PUBLICADA` y `MEDIO` no son colecciones: son subdocumentos que viven dentro de otro documento. Si el visor de Markdown no dibuja el diagrama, la misma imagen está en [der.png](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/der.png).
 
-El diagrama muestra las entidades, sus relaciones y los campos principales. La definición completa de cada colección está en los modelos de `server/src/models/` y se resume en la tabla 4.2. La configuración del clúster en MongoDB Atlas, con capturas, está en [documentacion_mongodb.md](./documentacion_mongodb.md).
+El diagrama muestra las entidades, sus relaciones y los campos principales. La definición completa de cada colección está en los modelos de `server/src/models/` y se resume en la tabla 4.2. La configuración del clúster en MongoDB Atlas, con capturas, está en [documentacion_mongodb.md](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/documentacion_mongodb.md).
 
 ### 4.2 Colecciones
 
@@ -430,7 +430,7 @@ sequenceDiagram
 - **Contraseñas:** se guardan con hash (`bcryptjs`), nunca en texto. Si el correo no existe, se compara igual contra un hash de relleno (`HASH_FALSO`), para que la demora de la respuesta no revele qué correos están registrados.
 - **Sesión:** el token dura lo que indica `JWT_DURACION` (8 horas por defecto) y se guarda en `sessionStorage`, así que se pierde al cerrar la pestaña. Al abrir la página, `AuthContext.jsx` lo verifica con `GET /api/auth/yo`.
 - **Usuario eliminado:** su token deja de valer en el pedido siguiente, aunque no haya vencido.
-- **Perfiles:** Administración y Bedelía. El servidor controla el perfil en cada ruta; los controles del cliente son solo de comodidad. El detalle está en la [matriz de permisos](./matriz-de-permisos.md).
+- **Perfiles:** Administración y Bedelía. El servidor controla el perfil en cada ruta; los controles del cliente son solo de comodidad. El detalle está en la [matriz de permisos](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/matriz-de-permisos.md).
 
 #### 6.3.2 Las tres formas de cargar un evento
 
@@ -485,7 +485,7 @@ Límites: un evento cargado solo con fotos de la computadora no se puede relacio
 
 #### 6.3.3 Sincronización con Instagram
 
-Se hace a demanda, con el botón del panel; no hay tareas programadas ([ADR-007](./adr/ADR-007-sincronizacion-a-demanda-de-instagram-graph-api.md)). El código está en `server/src/services/instagram/meta.js`.
+Se hace a demanda, con el botón del panel; no hay tareas programadas ([ADR-007](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/ADR-007-sincronizacion-a-demanda-de-instagram-graph-api.md)). El código está en `server/src/services/instagram/meta.js`.
 
 1. **Permisos y credenciales.** Solo Administración. Sin `INSTAGRAM_TOKEN` o `INSTAGRAM_ACCOUNT_ID`, el botón queda deshabilitado y la ruta responde 503 sin consultar Instagram.
 2. **Pedido a Meta.** Pide a la Graph API (`v26.0`) las últimas 20 publicaciones de la cuenta.
@@ -601,7 +601,7 @@ La ejecución completa tarda unos segundos. En la primera ejecución del 8/11/20
 
 | Área | Archivos | Cobertura |
 |---|---|---|
-| Acceso y usuarios | `auth`, `permisos`, `usuarios`, `passwords`, `seed`, `arranque`, `config` | Login, bloqueo por intentos, permisos por rol, reglas de contraseña, alta/edición/baja de usuarios, creación del primer administrador, elección de repositorios según el entorno. `permisos` recorre 45 rutas de la API como visitante, Bedelía y Administrador; la matriz está en [matriz-de-permisos.md](./matriz-de-permisos.md). |
+| Acceso y usuarios | `auth`, `permisos`, `usuarios`, `passwords`, `seed`, `arranque`, `config` | Login, bloqueo por intentos, permisos por rol, reglas de contraseña, alta/edición/baja de usuarios, creación del primer administrador, elección de repositorios según el entorno. `permisos` recorre 45 rutas de la API como visitante, Bedelía y Administrador; la matriz está en [matriz-de-permisos.md](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/matriz-de-permisos.md). |
 | Horarios y archivado | `academica`, `archivo`, `alumnos`, `finalizados` | Alta, edición y baja de materias, reutilización, publicar y retirar, comparación de cambios, reglas de archivado por fecha en los bordes del calendario. |
 | Mesas de examen | `mesas`, `mesas.panel`, `mesas.celular` | Llamados y mesas, publicación, retiro y reglas de eliminación. |
 | Eventos | `eventos`, `eventos.formulario`, `eventos.edicion`, `eventos.fotos`, `eventos.galeria`, `eventos.instagram`, `eventos.sitio` | Alta, edición, mostrar y ocultar, galería, límites de fotos, alta con el enlace de una publicación (incluida la búsqueda segura de la foto y los repetidos), lo que ve el sitio público. |
@@ -610,13 +610,13 @@ La ejecución completa tarda unos segundos. En la primera ejecución del 8/11/20
 | Contacto y correo | `contacto`, `contacto.limite`, `correo.mensaje`, `correo.smtp` | Validación del formulario, límite de envíos, reparto entre casillas, envío por SMTP. |
 | Otros | `admin.inicio`, `confirmaciones`, `enlaces`, `visor`, `salud`, `textos` | Inicio del panel, confirmaciones, enlaces, visor de fotos, estado del servicio y criterio de los textos (6.3.6). |
 
-Los casos de prueba y su relación con los requerimientos están en [plan-de-testing.md](./plan-de-testing.md). Las pruebas cubren el servidor y las funciones de apoyo del cliente que se ejecutan sin navegador (por ejemplo `client/src/academica.js` o `client/src/confirmaciones.js`). No hay pruebas automáticas de la interfaz dentro del navegador.
+Los casos de prueba y su relación con los requerimientos están en [plan-de-testing.md](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/plan-de-testing.md). Las pruebas cubren el servidor y las funciones de apoyo del cliente que se ejecutan sin navegador (por ejemplo `client/src/academica.js` o `client/src/confirmaciones.js`). No hay pruebas automáticas de la interfaz dentro del navegador.
 
-El resultado de la última ejecución, con la captura de la consola, está en el [reporte de pruebas](./reporte-de-pruebas.md). El recorrido con capturas de las operaciones del panel está en la [validación visual de los CRUD](./validacion-visual-cruds.md). Las comprobaciones en navegador hechas durante los PR no están automatizadas en el repositorio (plan de testing, sección 6).
+El resultado de la última ejecución, con la captura de la consola, está en el [reporte de pruebas](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/reporte-de-pruebas.md). El recorrido con capturas de las operaciones del panel está en la [validación visual de los CRUD](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/validacion-visual-cruds.md). Las comprobaciones en navegador hechas durante los PR no están automatizadas en el repositorio (plan de testing, sección 6).
 
 ## 9. Decisiones de diseño
 
-Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo. Para una profundización formal bajo el estándar de la industria, consultar los [Registros de Decisiones de Arquitectura (ADRs)](./adr/README.md) (`ADR-001` a `ADR-007`).
+Cada decisión se tomó del código o de los acuerdos de arquitectura del equipo. Para una profundización formal bajo el estándar de la industria, consultar los [Registros de Decisiones de Arquitectura (ADRs)](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/adr/README.md) (`ADR-001` a `ADR-007`).
 
 **Publicar es un paso aparte de guardar (horarios y mesas).** Los datos de trabajo (`horarios`, `mesas_examen`) y lo que ven los alumnos (`publicaciones_horarios`, `llamados.publicacion`) son documentos distintos. Publicar o actualizar reemplaza la copia entera en una sola escritura, y así nunca se ve una mezcla de la versión anterior y la nueva. Retirar marca la copia como no publicada y la conserva. La razón de fondo es que Bedelía pueda preparar un período completo sin que se vea a medio cargar.
 
@@ -725,7 +725,7 @@ El equipo decidió cerrar el desarrollo con la entrega del 8/11/2026. Lo que sig
 - **No implementado:** una función pedida o pensada que no existe.
 - **Funciona con límites:** la función existe, pero hay casos que no cubre.
 
-El detalle de las pruebas que faltan está en el [plan de testing](./plan-de-testing.md) (sección 7), y, cuando una función no implementada tiene issue en GitHub, se indica su número.
+El detalle de las pruebas que faltan está en el [plan de testing](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/plan-de-testing.md) (sección 7), y, cuando una función no implementada tiene issue en GitHub, se indica su número.
 
 ### 12.1 Riesgos de seguridad conocidos
 

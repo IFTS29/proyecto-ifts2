@@ -1,17 +1,19 @@
 # Estado del Proyecto, Reorganización de Issues y Roadmap al 08/11/2026
 
-**Equipo:** 404-Solutions (IFTS N.° 29 · Prácticas Profesionalizantes IV)  
-**Proyecto:** Portal Web Institucional y Panel de Administración — IFTS N.° 2  
-**Fecha de corte:** 04/11/2026  
+**Equipo:** 404-Solutions (IFTS N.º 29 · Prácticas Profesionalizantes IV)  
+**Proyecto:** Portal Web Institucional y Panel de Administración — IFTS N.º 2  
+**Fecha de corte:** 08/11/2026 (actualización del corte del 04/11/2026)  
 **Fecha límite de entrega (Cierre de Sprint):** **08/11/2026**  
-**Estado de la suite de pruebas:** **375 de 375 pruebas automáticas aprobadas (100% verde)**
+**Estado de la suite de pruebas:** **548 de 548 pruebas automáticas aprobadas** (reporte de pruebas, `develop` en `371c066`)
 
 ---
 
 ## 1. Resumen Ejecutivo de la Situación Actual
 
-El desarrollo técnico central del MVP **está completado en un 95%** gracias a los últimos pull requests mergeados a `develop` (PRs #53 al #108).
-El backend cuenta con arquitectura modular, 375 pruebas automáticas, seguridad JWT y roles, persistencia en MongoDB Atlas y adaptadores resilientes para Cloudinary e Instagram. El frontend React es 100% responsive, con soporte mobile probado para todas las tablas y pantallas.
+La funcionalidad principal del MVP está implementada. El archivado manual de eventos continúa sin desarrollarse (#81, ver 2.B), y el Manual Técnico registra las limitaciones y tareas de seguridad que deben atenderse durante el traspaso. Los últimos pull requests integrados en `develop` llegan hasta el #148.
+El backend cuenta con arquitectura modular, 548 pruebas automáticas, seguridad JWT y roles comprobados por ruta (`permisos.test.js`), persistencia en MongoDB Atlas y adaptadores para Cloudinary e Instagram. El frontend React se probó en computadora (1280 px) y en celular (390 px), con las tablas en formato de fichas en el celular.
+
+**Actualización al 08/11/2026.** Entre el 4 y el 8/11 se completaron la matriz de permisos (#109), la carga de eventos con el enlace de Instagram (#39), los textos del sitio, la página de Alumnos, los manuales técnico y de usuario, el plan de testing, el reporte de pruebas, la documentación de MongoDB Atlas con sus capturas (#94, #127 a #129) y el README. El detalle está en el registro de cambios.
 
 El desfasaje principal no es de código sino de **gestión y documentación**: muchas issues quedaron con estado `OPEN` en GitHub porque contenían notas de validación preventiva o requerimientos accesorios que no bloquean la entrega académica del MVP.
 
@@ -56,43 +58,44 @@ Se conservan los enlaces directos a las historias y tareas ya cerradas en el rep
 - [#41 `[QA-02]` Validación visual de los 4 CRUDs](https://github.com/IFTS29/proyecto-ifts2/issues/41) (Sprint 3)
 - [#42 `[DOC-01]` Manual Técnico del Sistema](https://github.com/IFTS29/proyecto-ifts2/issues/42) (Sprint 3)
 - [#43 `[DOC-02]` Manual de Usuario](https://github.com/IFTS29/proyecto-ifts2/issues/43) (Sprint 3)
-- [#60 `[DOC-04]` Actualización final del README](https://github.com/IFTS29/proyecto-ifts2/issues/60) (Sprint 3)
 - [#109 `[TK-02.4]` Auditoría y pruebas de integración de roles (Admin y Bedelía)](https://github.com/IFTS29/proyecto-ifts2/issues/109) (Sprint 3)
+- [#94 `[QA-04]` Validación de la publicación de mesas con MongoDB Atlas](https://github.com/IFTS29/proyecto-ifts2/issues/94) y sus tareas #127, #128 y #129 (Sprint 3)
+- [#44 `[DOC-03]` Despliegue en producción y entrega](https://github.com/IFTS29/proyecto-ifts2/issues/44) (Sprint 3)
 
 ---
 
-### B. Issues ABIERTAS para el Sprint 3 (Entrega 08/11/2026)
+### B. Issues ABIERTAS del Sprint 3 al 08/11/2026
 
-Este es el trabajo activo para cerrar el MVP ante la cátedra:
-
-| Issue | Título | Qué falta hacer concretamente | Responsable |
-| :---: | :----- | :---------------------------- | :---------: |
-| **[#81](https://github.com/IFTS29/proyecto-ifts2/issues/81)** | `[BUG-03]` Completar baja de eventos | Agregar el botón y modal de eliminación de un evento desde el panel para completar el ciclo CRUD pedido por la cátedra. | Backend / Frontend |
-| **[#94](https://github.com/IFTS29/proyecto-ifts2/issues/94)** | `[QA-04]` Validación de mesas con Atlas | Registrar evidencia de publicación y retiro de un llamado en MongoDB Atlas (o base de staging) con capturas para el informe. | QA / BD |
-| **[#44](https://github.com/IFTS29/proyecto-ifts2/issues/44)** | `[DOC-03]` Despliegue en producción y entrega | Merge final de `develop` a `main`, verificación de Vercel, credenciales de test en canal privado y empaquetado del ZIP de entrega. | DevOps / PO |
+| Issue | Título | Situación | Responsable |
+| :---: | :----- | :-------- | :---------: |
+| **[#81](https://github.com/IFTS29/proyecto-ifts2/issues/81)** | `[US-05.1]` Edición, visibilidad y archivado manual de eventos | La edición y la visibilidad están implementadas (#82, #83). El archivado manual y sus tareas #123 a #126 no se implementaron: el archivado es automático por fecha. Se propuso pasarlas a Post-MVP; lo decide el equipo. | Backend / Frontend |
+| **[#60](https://github.com/IFTS29/proyecto-ifts2/issues/60)** | `[DOC-04]` Actualización final del README | README actualizado en #143, #144 y #146. Se cierra con la revisión final de la documentación. | QA / Documentación |
 
 ---
 
 ### C. Backlog Futuro / Post-MVP (Mejoras Diferidas y Continuidad)
 
-Estas historias quedan formalmente postergadas para el equipo o etapa posterior y **no bloquean la calificación de la Etapa 3**:
+Estas mejoras están previstas o propuestas para etapas posteriores. Su prioridad y alcance quedan sujetos a las decisiones del equipo y a los requisitos de continuidad del proyecto:
 
 - **[#61](https://github.com/IFTS29/proyecto-ifts2/issues/61) `[UI-01]` Migración de estilos a TailwindCSS:**  
-  *Justificación / Gestión de Cambio:* El MVP cumplió al 100% los requisitos de accesibilidad, fluidez mobile y ritmo vertical mediante CSS nativo modular con unidades relativas (`rem`, `em`, `clamp()`) y variables semánticas (AGENTS.md). Se difiere la refactorización a TailwindCSS al backlog futuro como mejora arquitectónica para preservar la estabilidad de los 375 tests y el bundle size antes de la entrega.
+  *Justificación / Gestión de Cambio:* El proyecto utiliza CSS nativo adaptable, con unidades relativas (`rem`, `em`, `clamp()`) y variables semánticas, y se realizaron comprobaciones visuales y de accesibilidad en las principales pantallas, en computadora y en celular. Se difiere la refactorización a TailwindCSS al backlog futuro como mejora arquitectónica para preservar la estabilidad de la suite de pruebas y el bundle size antes de la entrega.
 - **[#45](https://github.com/IFTS29/proyecto-ifts2/issues/45) `[POST-01]`:** Soporte de arquitectura multi-carrera (si el IFTS abre nuevas ofertas académicas).
 - **[#46](https://github.com/IFTS29/proyecto-ifts2/issues/46) `[POST-02]`:** Descarga masiva de información y actas archivadas en formato ZIP.
 - **[#47](https://github.com/IFTS29/proyecto-ifts2/issues/47) `[CLIENTE-01]`:** Trámite institucional del dominio `.edu.ar` ante NIC Argentina.
 - **[#48](https://github.com/IFTS29/proyecto-ifts2/issues/48) `[CLIENTE-02]`:** Recepción de fotos oficiales en alta resolución y cuentas institucionales definitivas.
 - **[#65](https://github.com/IFTS29/proyecto-ifts2/issues/65) `[POST-03]`:** Panel de papelera interactiva con restauración de publicaciones descartadas (`Soft-Delete`).
-- **Mejoras editoriales accesorias:** Edición dinámica de redes y enlaces útiles desde el panel (`#36`), importación puntual por URL de Instagram en el alta manual (`#39`).
+- **[#81](https://github.com/IFTS29/proyecto-ifts2/issues/81) `[US-05.1]` y tareas #123 a #126 (propuesta):** archivado manual de eventos y baja de eventos.
+- **Mejoras editoriales accesorias:** Edición dinámica de redes y enlaces útiles desde el panel (`#36`). La importación por URL de Instagram en el alta manual (`#39`) ya se implementó (#133).
 
 ---
 
 ## 3. Sugerencia de Plan de Acción (Orden de Ejecución Recomendado)
 
 ```text
-Fase 1 (Código y QA Crítico)    ──►  Baja de eventos (#81) + Auditoría de Roles (#109) + Capturas CRUDs (#41) y Reporte (#40)
-Fase 2 (Documentación Formal)   ──►  Elaboración del Manual Técnico (#42) y Manual de Usuario (#43)
-Fase 3 (Verificación y Cierre)  ──►  Validación en Atlas (#94), README (#60) y prueba de correo (#37)
-Fase 4 (Release y Entrega)      ──►  Merge a main, verificación en Vercel y empaquetado del ZIP (#44)
+Fase 1 (Código y QA Crítico)    ──►  Auditoría de Roles (#109), Capturas CRUDs (#41) y Reporte (#40): hechas. Baja y archivado manual de eventos (#81): no implementados
+Fase 2 (Documentación Formal)   ──►  Manual Técnico (#42) y Manual de Usuario (#43): hechos
+Fase 3 (Verificación y Cierre)  ──►  Validación en Atlas (#94) y prueba de correo (#37): hechas. README (#60): en revisión final
+Fase 4 (Release y Entrega)      ──►  Verificación en Vercel y empaquetado del ZIP (#44)
 ```
+
+Al 08/11/2026, el sitio se publica en Vercel desde `develop` (Manual Técnico, 5.5).

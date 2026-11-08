@@ -24,7 +24,7 @@ Se evaluaron dos alternativas:
 Se decidió implementar el patrón de **Separación de Datos de Trabajo vs. Datos Publicados**:
 * **Horarios:** Bedelía trabaja sobre la colección `horarios` (borradores con validación flexible). Cuando decide publicar, el sistema crea o actualiza un documento en la colección `publicaciones_horarios`, generando una instantánea atómica de las materias de ese ciclo lectivo y cuatrimestre.
 * **Mesas de examen:** los llamados se guardan en `llamados` y sus mesas de trabajo en `mesas_examen`. Al publicar, el llamado incrusta un subdocumento inmutable `publicacion` con la lista de mesas congeladas a esa fecha.
-* **Retiro de publicación:** la acción «Retirar publicación» marca la copia como despublicada (`publicado: false` o `publicacion: null`), conservando todos los datos de trabajo intactos en el panel para futuros ajustes sin pérdida de información.
+* **Retiro de publicación:** la acción «Retirar publicación» marca la copia con `publicado: false` y la conserva, junto con todos los datos de trabajo, para futuros ajustes sin pérdida de información. Un llamado que nunca se publicó tiene `publicacion: null` (ver `documentacion_mongodb.md`, 3.4).
 
 ---
 

@@ -25,14 +25,14 @@ Se decidió implementar el **patrón Repository con Inyección de Dependencias**
 * Cada entidad del dominio cuenta con dos implementaciones independientes que respetan exactamente la misma interfaz pública:
   * `*.mongo.js`: implementa las consultas sobre colecciones de MongoDB Atlas mediante Mongoose para producción.
   * `*.memoria.js`: almacena las entidades en estructuras de datos en memoria (arrays / Maps) para desarrollo local sin base y pruebas unitarias/integración.
-* En el arranque del servidor (`server/src/arranque.js`), se eligen todas las implementaciones de una misma fuente: si existe `MONGODB_URI` se inyectan los repositorios Mongo; de lo contrario, se inyectan los de memoria con una advertencia preventiva en consola.
+* En el arranque del servidor (`server/src/arranque.js`), se eligen todas las implementaciones de una misma fuente, según la configuración. En desarrollo, si falta `MONGODB_URI` o falla la conexión, se inyectan los repositorios en memoria con un aviso en consola. En producción, MongoDB es obligatorio: si falta la configuración o falla la conexión, el servidor no inicia.
 
 ---
 
 ## 3. Consecuencias y Trade-offs
 
 ### Consecuencias Positivas
-* **Pruebas deterministas y ultrarrápidas:** las 516 pruebas automáticas se ejecutan en memoria completa en pocos segundos, sin dependencias de red ni latencias de I/O.
+* **Pruebas deterministas y ultrarrápidas:** las pruebas automáticas (548 al 8/11/2026) se ejecutan en memoria completa en pocos segundos, sin dependencias de red ni latencias de I/O.
 * **Desarrollo local sin fricciones:** cualquier integrante del equipo o evaluador puede clonar el repositorio y ejecutar la aplicación inmediatamente sin necesidad de configurar MongoDB Atlas localmente.
 * **Inversión de dependencias (SOLID):** el núcleo de la lógica de negocio y las rutas de Express no dependen de la tecnología de persistencia subyacente.
 

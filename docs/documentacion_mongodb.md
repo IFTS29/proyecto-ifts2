@@ -2,7 +2,7 @@
 
 Este documento describe la configuración del clúster de **MongoDB Atlas** que usa el sitio desplegado (producción y vistas previas de Vercel) y la estructura de su base de datos, con capturas de la consola de Atlas. Las capturas de los apartados 1 a 3.3 se agregaron al repositorio el 4/11/2026, y las de 3.4 y 3.5, el 8/11/2026. Cada una muestra el estado de la base en ese momento.
 
-El modelo de datos completo (entidades, relaciones y campos de cada colección) está en el [Manual Técnico, apartado 4](./manual-tecnico.md#4-base-de-datos). En desarrollo local el sistema puede funcionar sin esta base, en modo memoria (Manual Técnico, 5.1).
+El modelo de datos completo (entidades, relaciones y campos de cada colección) está en el [Manual Técnico, apartado 4](https://github.com/IFTS29/proyecto-ifts2/blob/develop/docs/manual-tecnico.md#4-base-de-datos). En desarrollo local el sistema puede funcionar sin esta base, en modo memoria (Manual Técnico, 5.1).
 
 <br>
 
