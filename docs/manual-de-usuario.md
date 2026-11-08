@@ -16,6 +16,15 @@ Este manual explica, paso a paso, cómo usar las dos partes.
 - Los **círculos naranjas con números** marcan los botones y campos de cada paso. El número de cada círculo coincide con el número del paso explicado junto a la captura.
 - Las capturas se tomaron del sistema real, con **datos de ejemplo**: las personas, fechas y eventos del panel son ficticios. Para los horarios y las mesas del sitio público (apartado 1.4) se usaron planillas del instituto como referencia, pero el cronograma del 2.º cuatrimestre de 2026 y el llamado de noviembre–diciembre de 2026 son simulados y no constituyen información académica oficial.
 
+**Requisitos mínimos:**
+
+- **Dispositivo:** una computadora, una tablet o un celular. El sitio se adapta al tamaño de la pantalla (apartado 1.7). El panel de administración se usa mejor en una computadora.
+- **Navegador:** un navegador actualizado (por ejemplo Chrome, Edge, Firefox o Safari). No hace falta instalar nada.
+- **Conexión a Internet:** necesaria para usar el sitio y el panel, porque la información se guarda en línea. Para cargar eventos con fotos conviene una conexión estable.
+- **Para ver los PDF** de horarios, mesas de examen y preingreso: un visor de PDF, que los navegadores actuales ya traen.
+- **Para usar el panel:** una cuenta que crea Administración (apartado 9). El correo y la contraseña los da el instituto. El sitio público no necesita cuenta.
+- **Para cargar fotos de un evento:** imágenes en formato JPG, PNG o WebP, hasta 20 por evento (apartado 7.2).
+
 **Contenido:**
 
 **Parte 1: sitio público**
